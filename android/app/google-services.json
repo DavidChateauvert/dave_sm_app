@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "988198906820",
+    "project_id": "sm-app-4347b",
+    "storage_bucket": "sm-app-4347b.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:988198906820:android:8d12697ecaed9b20bc5291",
+        "android_client_info": {
+          "package_name": "com.example.sm_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "988198906820-lgahfcum9mk8t2ekjpem4ri292sdtqmb.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAYHFhT6TEqi2dPIXpsftD1QhmVsV69CP0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "988198906820-b5fu2k9q20rh5df227lios6613s5vsth.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "988198906820-phdskarkitjcj1mjrvmqmo6250gpa51j.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.dchateauvert.smApp"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
