@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:sm_app/pages/home.dart';
 import 'package:sm_app/pages/photo.dart';
@@ -24,6 +25,7 @@ class Post extends StatefulWidget {
   final String caption;
   final dynamic likes;
   final dynamic comments;
+  final dynamic mentions;
   final int commentCount;
   final double appBarSize;
   final Timestamp timestamp;
@@ -39,10 +41,11 @@ class Post extends StatefulWidget {
     required this.likes,
     required this.comments,
     required this.commentCount,
+    required this.mentions,
     required this.appBarSize,
     required this.timestamp,
   });
-  
+
   factory Post.fromDocument(DocumentSnapshot doc) {
     return Post(
       postId: doc['postId'],
@@ -55,12 +58,14 @@ class Post extends StatefulWidget {
       likes: doc['likes'],
       comments: doc['comments'],
       commentCount: doc['commentCount'],
+      mentions: doc['mentions'],
       timestamp: doc['timestamp'],
       appBarSize: 112.0,
     );
   }
 
-  factory Post.fromDocumentForTimeline(DocumentSnapshot doc, double appBarSize) {
+  factory Post.fromDocumentForTimeline(
+      DocumentSnapshot doc, double appBarSize) {
     return Post(
       postId: doc['postId'],
       ownerId: doc['ownerId'],
@@ -72,6 +77,7 @@ class Post extends StatefulWidget {
       likes: doc['likes'],
       comments: doc['comments'],
       commentCount: doc['commentCount'],
+      mentions: doc['mentions'],
       timestamp: doc['timestamp'],
       appBarSize: appBarSize,
     );
@@ -93,20 +99,21 @@ class Post extends StatefulWidget {
   @override
   // ignore: no_logic_in_create_state
   _PostState createState() => _PostState(
-    postId: postId,
-    ownerId: ownerId,
-    username: username,
-    mediaUrl: mediaUrl,
-    mediaUrlWidth: mediaUrlWidth,
-    mediaUrlHeight: mediaUrlHeight,
-    caption: caption,
-    likes: likes,
-    comments: comments,
-    commentCount: commentCount,
-    likeCount: getLikeCount(likes),
-    appBarSize: appBarSize,
-    timestamp: timestamp,
-  );
+        postId: postId,
+        ownerId: ownerId,
+        username: username,
+        mediaUrl: mediaUrl,
+        mediaUrlWidth: mediaUrlWidth,
+        mediaUrlHeight: mediaUrlHeight,
+        caption: caption,
+        likes: likes,
+        comments: comments,
+        commentCount: commentCount,
+        mentions: mentions,
+        likeCount: getLikeCount(likes),
+        appBarSize: appBarSize,
+        timestamp: timestamp,
+      );
 }
 
 // with AutomaticKeepAliveClientMixin<Post>
@@ -127,6 +134,7 @@ class _PostState extends State<Post> {
   int commentCount;
   Map likes;
   Map comments;
+  Map mentions;
   late bool isLiked;
   bool isCommented = false;
   bool isCommentedInstant = false;
@@ -147,6 +155,7 @@ class _PostState extends State<Post> {
     required this.likes,
     required this.comments,
     required this.commentCount,
+    required this.mentions,
     required this.appBarSize,
     required this.timestamp,
   });
@@ -158,7 +167,8 @@ class _PostState extends State<Post> {
         if (!snapshot.hasData) {
           return circularProgress();
         }
-        User user = User.fromDocument(snapshot.data as DocumentSnapshot<Object?>);
+        User user =
+            User.fromDocument(snapshot.data as DocumentSnapshot<Object?>);
         bool isPostOwner = currentUserId == ownerId;
         return ListTile(
           leading: CircleAvatar(
@@ -177,11 +187,13 @@ class _PostState extends State<Post> {
                   ),
                 ),
                 SizedBox(width: 8.0),
-                user.verified ? Icon(
-                  Icons.verified_sharp,
-                  color: Theme.of(context).primaryColor, 
-                  size: 17.0, 
-                ) : Text(""),
+                user.verified
+                    ? Icon(
+                        Icons.verified_sharp,
+                        color: Theme.of(context).primaryColor,
+                        size: 17.0,
+                      )
+                    : Text(""),
               ],
             ),
           ),
@@ -197,10 +209,10 @@ class _PostState extends State<Post> {
               Text(
                 DateFormat.Hm().format(timestamp.toDate()),
                 style: const TextStyle(
-                fontSize: 12.0,
-                color: Colors.grey,
+                  fontSize: 12.0,
+                  color: Colors.grey,
                 ),
-              ), 
+              ),
             ],
           ),
         );
@@ -212,14 +224,16 @@ class _PostState extends State<Post> {
     return showDialog(
       context: parentContext,
       builder: (context) {
-        return SimpleDialog(title: Text("Remove this post"),
+        return SimpleDialog(
+          title: Text("Remove this post"),
           children: <Widget>[
             SimpleDialogOption(
               onPressed: () {
                 Navigator.pop(context);
                 deletePostInstant();
               },
-              child: const Text('Delete',
+              child: const Text(
+                'Delete',
                 style: TextStyle(color: Colors.red),
               ),
             ),
@@ -245,64 +259,60 @@ class _PostState extends State<Post> {
     setState(() {
       seen = true;
     });
-      timelineRef
+    timelineRef
         .doc(currentUserId)
         .collection('timelinePosts')
         .doc(postId)
-        .get().then((doc) => {
-          if (doc.exists) {
-            doc.reference.delete()
-          }
-        }
-      );
+        .get()
+        .then((doc) => {
+              if (doc.exists) {doc.reference.delete()}
+            });
   }
 
   deletePost() async {
     // Delete post
     postsRef
-      .doc(ownerId)
-      .collection('userPosts')
-      .doc(postId)
-      .get().then((doc) => {
-        if (doc.exists) {
-          doc.reference.delete()
-        }
-      });
+        .doc(ownerId)
+        .collection('userPosts')
+        .doc(postId)
+        .get()
+        .then((doc) => {
+              if (doc.exists) {doc.reference.delete()}
+            });
 
-      // Delete uploaded image
-      storageRef.child("post_$postId.jpg").delete();
+    // Delete uploaded image
+    storageRef.child("post_$postId.jpg").delete();
 
-      // Delete activity feed
-      QuerySnapshot activityFeedSnapshot = await activityFeedRef
+    // Delete activity feed
+    QuerySnapshot activityFeedSnapshot = await activityFeedRef
         .doc(ownerId)
         .collection('feedItems')
         .where(postId, isEqualTo: postId)
         .get();
-      activityFeedSnapshot.docs.forEach((doc) { 
-        if (doc.exists) {
-          doc.reference.delete();
-        }
-      });
+    activityFeedSnapshot.docs.forEach((doc) {
+      if (doc.exists) {
+        doc.reference.delete();
+      }
+    });
 
-      // Delete comments
-      QuerySnapshot commentsSnapshot = await commentsRef
-        .doc(postId)
-        .collection('comments')
-        .get();
-      commentsSnapshot.docs.forEach((doc) { 
-        if (doc.exists) {
-          doc.reference.delete();
-        }
-      });
+    // Delete comments
+    QuerySnapshot commentsSnapshot =
+        await commentsRef.doc(postId).collection('comments').get();
+    commentsSnapshot.docs.forEach((doc) {
+      if (doc.exists) {
+        doc.reference.delete();
+      }
+    });
   }
 
   handleLikePost() {
     bool _isLiked = likes[currentUserId] == true;
     if (_isLiked) {
-      postsRef.doc(ownerId)
-        .collection('userPosts')
-        .doc(postId)
-        .update({'likes.$currentUserId' : false});
+      postsRef
+          .doc(ownerId)
+          .collection('userPosts')
+          .doc(postId)
+          .update({'likes.$currentUserId': false});
       removeLikeFromActivityFeed();
       setState(() {
         likeCount -= 1;
@@ -310,10 +320,11 @@ class _PostState extends State<Post> {
         likes[currentUserId] = false;
       });
     } else if (!_isLiked) {
-      postsRef.doc(ownerId)
-        .collection('userPosts')
-        .doc(postId)
-        .update({'likes.$currentUserId' : true});
+      postsRef
+          .doc(ownerId)
+          .collection('userPosts')
+          .doc(postId)
+          .update({'likes.$currentUserId': true});
       addLikeToActivityFeed();
 
       setState(() {
@@ -326,46 +337,40 @@ class _PostState extends State<Post> {
 
   addLikeToActivityFeed() {
     if (currentUserId != ownerId) {
-      activityFeedRef
-        .doc(ownerId)
-        .collection("feedItems")
-        .doc(postId)
-        .set({
-          "type": "like",
-          "username": currentUser.username,
-          "userId": currentUser.id,
-          "userProfileImg": currentUser.photoUrl,
-          "postId": postId,
-          "seen": false,
-          "commentData": "",
-          // "mediaUrl": mediaUrl,
-          "timestamp": timestamp,
-        }
-      );
+      activityFeedRef.doc(ownerId).collection("feedItems").doc(postId).set({
+        "type": "like",
+        "username": currentUser.username,
+        "userId": currentUser.id,
+        "userProfileImg": currentUser.photoUrl,
+        "postId": postId,
+        "seen": false,
+        "commentData": "",
+        // "mediaUrl": mediaUrl,
+        "timestamp": timestamp,
+      });
     }
   }
 
   removeLikeFromActivityFeed() {
     if (currentUserId != ownerId) {
       activityFeedRef
-      .doc(ownerId)
-      .collection("feedItems")
-      .doc(postId)
-      .get().then((doc) => {
-        if (doc.exists) {
-          doc.reference.delete()
-        }
-      });
+          .doc(ownerId)
+          .collection("feedItems")
+          .doc(postId)
+          .get()
+          .then((doc) => {
+                if (doc.exists) {doc.reference.delete()}
+              });
     }
-  } 
-  
+  }
+
   double handleRatio() {
     if ((mediaUrlWidth / mediaUrlHeight) < (9 / 12)) {
       return 9 / 12;
     }
     return mediaUrlWidth / mediaUrlHeight;
   }
-  
+
   buildPostImage() {
     return GestureDetector(
       onTap: () => showPhoto(context, mediaUrl, handleRatio()),
@@ -377,49 +382,108 @@ class _PostState extends State<Post> {
             width: MediaQuery.of(context).size.width,
             child: Center(
               child: AspectRatio(
-                aspectRatio: handleRatio(), 
+                aspectRatio: handleRatio(),
                 child: cachedNetworkImage(mediaUrl),
               ),
             ),
-          ) 
+          )
         ],
       ),
     );
   }
 
+  List<String> getAllMentions(String text) {
+    final regexp = RegExp(r'\@[a-zA-Z0-9]+\b()');
+
+    List<String> mentions = [];
+
+    regexp.allMatches(text).forEach((element) {
+      if (element.group(0) != null) {
+        mentions.add(element.group(0).toString());
+      }
+    });
+
+    return mentions;
+  }
+
+  RichText buildHighlightedText(String text) {
+    List<String> mentionsList =
+        mentions.values.map((value) => '@$value').toList().cast<String>();
+
+    List<TextSpan> textSpans = [];
+
+    RegExp mentionRegex = RegExp(mentionsList.join('|'), caseSensitive: false);
+    List<String> segments = text.split(mentionRegex);
+
+    for (int i = 0; i < segments.length; i++) {
+      String segment = segments[i];
+      textSpans.add(TextSpan(
+        text: segment,
+        style: TextStyle(
+          color: Colors.black,
+          fontWeight: FontWeight.w600,
+          fontSize: 20.0,
+        ),
+      ));
+
+      if (i < segments.length - 1) {
+        String? mention = mentionRegex.stringMatch(text);
+        textSpans.add(TextSpan(
+          recognizer: TapGestureRecognizer()
+            ..onTap =
+                () => showProfile(context, profileId: getKeyByValue(mention)),
+          text: mention,
+          style: TextStyle(
+            color: Colors.purple,
+            fontWeight: FontWeight.bold,
+            fontSize: 20.0,
+          ),
+        ));
+      }
+    }
+
+    return RichText(text: TextSpan(children: textSpans));
+  }
+
+  String getKeyByValue(String? value) {
+    value = value?.substring(1);
+    for (var entry in mentions.entries) {
+      if (entry.value == value) {
+        return entry.key;
+      }
+    }
+    throw Exception("Value not found in the map");
+  }
+
   buildPostFooter() {
     return Column(
       children: <Widget>[
-        caption == "" ? Text("") :
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            Expanded(
-              child: GestureDetector(
-                onDoubleTap: () => handleLikePost(),
-                child: Container(
-                  margin: const EdgeInsets.all(20.0),
-                  child: Text(
-                    caption,
-                    style: const TextStyle(
-                      fontSize: 20.0,
-                      fontWeight: FontWeight.w600,
+        caption == ""
+            ? Text("")
+            : Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Expanded(
+                    child: GestureDetector(
+                      onDoubleTap: () => handleLikePost(),
+                      child: Container(
+                        margin: const EdgeInsets.all(20.0),
+                        child: buildHighlightedText(caption),
+                      ),
                     ),
                   ),
-                ),
+                ],
               ),
-            ),
-          ],
-        ),
-        mediaUrl == "" ? Text(""):
-        Row(
-          children: <Widget>[
-            Padding(
-              padding:  const EdgeInsets.only(bottom: 20.0),
-              child: buildPostImage(),
-            ),
-          ],
-        ),
+        mediaUrl == ""
+            ? Text("")
+            : Row(
+                children: <Widget>[
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 20.0),
+                    child: buildPostImage(),
+                  ),
+                ],
+              ),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
@@ -437,21 +501,19 @@ class _PostState extends State<Post> {
             Padding(
               padding: const EdgeInsets.only(right: 30.0),
               child: GestureDetector(
-                onTap: () => showComments(
-                    context, 
-                    postId: postId, 
-                    ownerId: ownerId,   
-                    updateCommentStatus: () {
-                      setState(() {
-                        isCommentedInstant = true;
-                        commentCount++;
-                      });
-                    }
-                  ),
+                onTap: () => showComments(context,
+                    postId: postId, ownerId: ownerId, updateCommentStatus: () {
+                  setState(() {
+                    isCommentedInstant = true;
+                    commentCount++;
+                  });
+                }),
                 child: Icon(
                   Icons.chat,
                   size: 28.0,
-                  color: (isCommented || isCommentedInstant) ? Color.fromARGB(255, 244, 186, 184) : Color.fromARGB(255, 89, 36, 99),
+                  color: (isCommented || isCommentedInstant)
+                      ? Color.fromARGB(255, 244, 186, 184)
+                      : Color.fromARGB(255, 89, 36, 99),
                 ),
               ),
             ),
@@ -464,18 +526,16 @@ class _PostState extends State<Post> {
               margin: EdgeInsets.only(left: 20.0),
               child: Text(
                 "$likeCount likes",
-                style: const TextStyle(color: Colors.black,
-                fontWeight: FontWeight.bold
-                ),
+                style: const TextStyle(
+                    color: Colors.black, fontWeight: FontWeight.bold),
               ),
             ),
             Container(
               margin: EdgeInsets.only(right: 40.0),
               child: Text(
                 "$commentCount",
-                style: const TextStyle(color: Colors.black,
-                fontWeight: FontWeight.bold
-                ),
+                style: const TextStyle(
+                    color: Colors.black, fontWeight: FontWeight.bold),
               ),
             ),
           ],
@@ -490,87 +550,85 @@ class _PostState extends State<Post> {
   Widget build(BuildContext context) {
     // super.build(context);
     isLiked = (likes[currentUserId] == true);
-    isCommented =(comments[currentUserId] == true);
+    isCommented = (comments[currentUserId] == true);
 
-    return (!seen && !deleteInstant)? GestureDetector(
-      onHorizontalDragEnd: (DragEndDetails details) {
-        if (details.primaryVelocity! < 0) {
-            showComments(
-              context, 
-              postId: postId, 
-              ownerId: ownerId,   
-              updateCommentStatus: () {
-                setState(() {
-                  isCommentedInstant == true;
-                  commentCount++;
-                }
-              );
-            }
-          );
-        }
-      },
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          const Divider(
-            color: Color.fromARGB(255, 244, 186, 184),
-            height: 0.0,
-          ),
-          buildPostHeader(),
-          buildPostFooter(),
-          const Divider(
-            color: Color.fromARGB(255, 244, 186, 184),
-          ),
-        ],
-      ),
-    ) : !deleteInstant ? Column(
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          const Divider(
-            color: Color.fromARGB(255, 244, 186, 184),
-            height: 0.0,
-          ),
-          buildPostAlreadySeen(postHeight),
-          const Divider(
-            color: Colors.white,
-          ),
-        ],
-      ) : Container();
+    return (!seen && !deleteInstant)
+        ? GestureDetector(
+            onHorizontalDragEnd: (DragEndDetails details) {
+              if (details.primaryVelocity! < 0) {
+                showComments(context, postId: postId, ownerId: ownerId,
+                    updateCommentStatus: () {
+                  setState(() {
+                    isCommentedInstant == true;
+                    commentCount++;
+                  });
+                });
+              }
+            },
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                const Divider(
+                  color: Color.fromARGB(255, 244, 186, 184),
+                  height: 0.0,
+                ),
+                buildPostHeader(),
+                buildPostFooter(),
+                const Divider(
+                  color: Color.fromARGB(255, 244, 186, 184),
+                ),
+              ],
+            ),
+          )
+        : !deleteInstant
+            ? Column(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  const Divider(
+                    color: Color.fromARGB(255, 244, 186, 184),
+                    height: 0.0,
+                  ),
+                  buildPostAlreadySeen(postHeight),
+                  const Divider(
+                    color: Colors.white,
+                  ),
+                ],
+              )
+            : Container();
   }
 
   buildPostAlreadySeen(height) {
-  return Container(
-    height: height - 16,
-    alignment: Alignment.center,
-    color: Color.fromARGB(255, 244, 186, 184),
-    child: const Text(
-      "Post already seen",
-      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-    ),
-  );
-}
+    return Container(
+      height: height - 16,
+      alignment: Alignment.center,
+      color: Color.fromARGB(255, 244, 186, 184),
+      child: const Text(
+        "Post already seen",
+        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+      ),
+    );
+  }
 
-ScrollableState? scrollableState;
+  ScrollableState? scrollableState;
 
-@override
-void didChangeDependencies() {
-  super.didChangeDependencies();
-  // Save a reference to the nearest scrollable ancestor
-  scrollableState = Scrollable.maybeOf(context);
-  scrollableState?.position.addListener(_scrollListener);
-}
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Save a reference to the nearest scrollable ancestor
+    scrollableState = Scrollable.maybeOf(context);
+    scrollableState?.position.addListener(_scrollListener);
+  }
 
-@override
-void dispose() {
-  scrollableState?.position.removeListener(_scrollListener);
-  scrollController.removeListener(_scrollListener);
-  scrollController.dispose();
-  super.dispose();
-}
-
+  @override
+  void dispose() {
+    scrollableState?.position.removeListener(_scrollListener);
+    scrollController.removeListener(_scrollListener);
+    scrollController.dispose();
+    super.dispose();
+  }
 
   _scrollListener() {
-      if (!seen) {
+    if (!seen) {
       // Calculate the position and size of the post
       final RenderBox postBox = context.findRenderObject() as RenderBox;
       final postPosition = postBox.localToGlobal(Offset.zero);
@@ -584,7 +642,7 @@ void dispose() {
           postHeight = postSize.height;
         });
       }
-      // Check if the post has scrolled out of view by scrolling up Doit changer 
+      // Check if the post has scrolled out of view by scrolling up Doit changer
       if (postBottom < (appBarSize + 8)) {
         // Mark the post as seen and call deletePostInstant()
         seenPost();
@@ -592,23 +650,27 @@ void dispose() {
     }
   }
 
-  showComments(BuildContext context, { required String postId, required String ownerId, required Function() updateCommentStatus}) {
-  Navigator.push(context, MaterialPageRoute(builder: (context) {
-    return Comments(
-      postId: postId,
-      postOwnerId: ownerId,
-      updateCommentStatus: updateCommentStatus,
-      // postMediaUrl: mediaUrl,
+  showComments(BuildContext context,
+      {required String postId,
+      required String ownerId,
+      required Function() updateCommentStatus}) {
+    Navigator.push(context, MaterialPageRoute(builder: (context) {
+      return Comments(
+        postId: postId,
+        postOwnerId: ownerId,
+        updateCommentStatus: updateCommentStatus,
+        // postMediaUrl: mediaUrl,
       );
     }));
-  }    
+  }
 }
 
 showPhoto(BuildContext context, String photoUrl, double aspectRatio) {
   Navigator.push(
     context,
     PageRouteBuilder(
-      transitionDuration: Duration(milliseconds: 200), // Adjust the transition duration as desired
+      transitionDuration: Duration(
+          milliseconds: 200), // Adjust the transition duration as desired
       pageBuilder: (_, __, ___) => Photo(
         photoUrl: photoUrl,
         aspectRatio: aspectRatio,
@@ -622,4 +684,3 @@ showPhoto(BuildContext context, String photoUrl, double aspectRatio) {
     ),
   );
 }
-

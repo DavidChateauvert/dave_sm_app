@@ -14,26 +14,27 @@ class Search extends StatefulWidget {
   _SearchState createState() => _SearchState();
 }
 
-class _SearchState extends State<Search> with AutomaticKeepAliveClientMixin<Search> {
+class _SearchState extends State<Search>
+    with AutomaticKeepAliveClientMixin<Search> {
   TextEditingController searchController = TextEditingController();
   Future<QuerySnapshot>? searchResultsFuture;
 
-  
-
   handleSearch(String query) async {
-    Future<QuerySnapshot> users = usersRef.where("displayNameLower", isGreaterThanOrEqualTo: query).get();
-    // Future<QuerySnapshot> usersUsername = usersRef.where("usernameLower", isGreaterThanOrEqualTo: query.toLowerCase()).get();
-      
-    // Future<QuerySnapshot> users = usersDisplayName.concat(usersUsername);
+    String lowercasedQuery = query.toLowerCase();
+    QuerySnapshot users = await usersRef
+        .orderBy("displayNameLower")
+        .startAt([lowercasedQuery]).endAt([lowercasedQuery + '\uf8ff']).get();
 
     setState(() {
-      searchResultsFuture = users;
+      searchResultsFuture = Future.value(users);
     });
   }
 
   clearSearch() {
-    searchResultsFuture = null;
-    searchController.clear();
+    setState(() {
+      searchController.clear();
+    });
+    handleSearch(searchController.text);
   }
 
   AppBar buildSearchField() {
@@ -53,11 +54,11 @@ class _SearchState extends State<Search> with AutomaticKeepAliveClientMixin<Sear
           suffixIcon: IconButton(
             icon: Icon(Icons.clear),
             onPressed: () => clearSearch(),
-          ), 
-          hintStyle: TextStyle(color: Colors.white), 
+          ),
+          hintStyle: TextStyle(color: Colors.white),
         ),
-        onChanged: handleSearch,
-        onFieldSubmitted: handleSearch,
+        onChanged: (query) => handleSearch(query),
+        onFieldSubmitted: (query) => handleSearch(query),
       ),
     );
   }
@@ -69,14 +70,18 @@ class _SearchState extends State<Search> with AutomaticKeepAliveClientMixin<Sear
         child: ListView(
           shrinkWrap: true,
           children: <Widget>[
-            SvgPicture.asset('assets/images/advanced_search.svg', height: orientation == Orientation.portrait? 300.0 : 200.0),
-            Text("Find Users", textAlign: TextAlign.center, style: 
-            TextStyle(
-              color: Colors.black,
-              fontStyle: FontStyle.normal,
-              fontWeight: FontWeight.w600,
-              fontSize: 60.0,
-            ),),
+            SvgPicture.asset('assets/images/advanced_search.svg',
+                height: orientation == Orientation.portrait ? 300.0 : 200.0),
+            Text(
+              "Find Users",
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Colors.black,
+                fontStyle: FontStyle.normal,
+                fontWeight: FontWeight.w600,
+                fontSize: 60.0,
+              ),
+            ),
           ],
         ),
       ),
@@ -92,7 +97,7 @@ class _SearchState extends State<Search> with AutomaticKeepAliveClientMixin<Sear
         }
         List<UserResult> searchResults = [];
         // ignore: avoid_function_literals_in_foreach_calls
-        snapshot.data?.docs.forEach((doc) { 
+        snapshot.data?.docs.forEach((doc) {
           User user = User.fromDocument(doc);
           searchResults.add(UserResult(user));
         });
@@ -112,7 +117,8 @@ class _SearchState extends State<Search> with AutomaticKeepAliveClientMixin<Sear
     return Scaffold(
       backgroundColor: Color.fromARGB(255, 244, 186, 184),
       appBar: buildSearchField(),
-      body: searchResultsFuture == null ? buildNoContent() : buildSearchResults(),
+      body:
+          searchResultsFuture == null ? buildNoContent() : buildSearchResults(),
     );
   }
 }
@@ -126,47 +132,53 @@ class UserResult extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       color: Theme.of(context).primaryColor.withOpacity(0.7),
-      child: Column(children: <Widget>[
-        GestureDetector(
-          onTap: () => showProfile(context, profileId: user.id),
-          child: ListTile(
-            leading: CircleAvatar(
-              backgroundColor: Colors.grey,
-              backgroundImage: CachedNetworkImageProvider(user.photoUrl),
-            ),
-            title: Row(
-                  children: [
-                    Text(user.username, 
+      child: Column(
+        children: <Widget>[
+          GestureDetector(
+            onTap: () => showProfile(context, profileId: user.id),
+            child: ListTile(
+              leading: CircleAvatar(
+                backgroundColor: Colors.grey,
+                backgroundImage: CachedNetworkImageProvider(user.photoUrl),
+              ),
+              title: Row(
+                children: [
+                  Text(
+                    user.username,
                     style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold
-                      ),
-                    ),
-                    SizedBox(width: 4.0),
-                    user.verified ? Icon(
-                      Icons.verified_sharp,
-                      color: Theme.of(context).primaryColor, 
-                      size: 17.0, 
-                    ) : Text(""),
-                  ],
-                ),
-            subtitle: Text(user.displayName, style: TextStyle(color: Colors.white),
+                        color: Colors.white, fontWeight: FontWeight.bold),
+                  ),
+                  SizedBox(width: 4.0),
+                  user.verified
+                      ? Icon(
+                          Icons.verified_sharp,
+                          color: Theme.of(context).primaryColor,
+                          size: 17.0,
+                        )
+                      : Text(""),
+                ],
+              ),
+              subtitle: Text(
+                user.displayName,
+                style: TextStyle(color: Colors.white),
+              ),
             ),
           ),
-        ),
-        Divider(
-          height: 2.0,
-          color: Colors.white54,
-        )
-      ],
+          Divider(
+            height: 2.0,
+            color: Colors.white54,
+          )
+        ],
       ),
     );
   }
 }
 
 showProfile(BuildContext context, {required String profileId}) {
-    Navigator.push(context, MaterialPageRoute(builder: (context) => 
-    Profile(profileId: profileId),
-      ),
-    );
-  }
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) => Profile(profileId: profileId),
+    ),
+  );
+}

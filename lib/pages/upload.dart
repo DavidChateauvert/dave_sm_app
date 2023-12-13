@@ -2,6 +2,7 @@
 
 import 'dart:io';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:image_size_getter/image_size_getter.dart';
 import 'package:image_size_getter/file_input.dart';
 // import 'package:textfield_tags/textfield_tags.dart';
@@ -15,27 +16,30 @@ import 'package:sm_app/pages/home.dart';
 import 'package:sm_app/widgets/progress.dart';
 import 'package:uuid/uuid.dart';
 import 'package:sm_app/models/user.dart';
+import 'package:flutter_mentions/flutter_mentions.dart';
 import 'package:image/image.dart' as Im;
-
 
 class Upload extends StatefulWidget {
   final User? currentUser;
 
-  Upload({ this.currentUser });
+  Upload({this.currentUser});
 
   @override
   _UploadState createState() => _UploadState();
 }
 
-class _UploadState extends State<Upload> with AutomaticKeepAliveClientMixin<Upload> {
-  TextEditingController captionController = TextEditingController();
-  FocusNode captionFocusNode = FocusNode();
+class _UploadState extends State<Upload>
+    with AutomaticKeepAliveClientMixin<Upload> {
   File? file;
   bool isUploading = false;
   String postId = Uuid().v4();
-  final _postKey = GlobalKey<FormState>();
+  GlobalKey<FlutterMentionsState> _mentionsKey =
+      GlobalKey<FlutterMentionsState>();
   Size size = Size(9, 12);
-
+  TextEditingController searchController = TextEditingController();
+  Future<QuerySnapshot>? searchResultsFuture;
+  List<Map<String, String>> mentionsData = [];
+  List<Map<String, String>> mentionsDataAdded = [];
 
   handleTakePhoto() async {
     Navigator.pop(context);
@@ -63,29 +67,28 @@ class _UploadState extends State<Upload> with AutomaticKeepAliveClientMixin<Uplo
     });
   }
 
-  selectImage(parentContext) {      
+  selectImage(parentContext) {
     return showDialog(
-      context: parentContext, 
-      builder: (context) {
-        return SimpleDialog(
-          title: Text("Create Post"),
-          children: <Widget>[
-            SimpleDialogOption(
-              onPressed: () => handleTakePhoto(),
-              child: Text("Photo with camera"),
-            ),
-            SimpleDialogOption(
-              onPressed: () => handleChooseFromGallery(),
-              child: Text("Image from Gallery"),
-            ),
-            SimpleDialogOption(
-              child: Text("Cancel"),
-              onPressed: () => Navigator.pop(context),
-            ),
-          ],
-        );
-      }
-    );
+        context: parentContext,
+        builder: (context) {
+          return SimpleDialog(
+            title: Text("Create Post"),
+            children: <Widget>[
+              SimpleDialogOption(
+                onPressed: () => handleTakePhoto(),
+                child: Text("Photo with camera"),
+              ),
+              SimpleDialogOption(
+                onPressed: () => handleChooseFromGallery(),
+                child: Text("Image from Gallery"),
+              ),
+              SimpleDialogOption(
+                child: Text("Cancel"),
+                onPressed: () => Navigator.pop(context),
+              ),
+            ],
+          );
+        });
   }
 
   clearImage() {
@@ -106,12 +109,17 @@ class _UploadState extends State<Upload> with AutomaticKeepAliveClientMixin<Uplo
   }
 
   createPostInFirestore({required String caption, required String mediaUrl}) {
+    Map<String, String> mentionsMap =
+        mentionsDataAdded.fold({}, (map, mention) {
+      map[mention['id']!] = mention['display']!;
+      return map;
+    });
 
     postsRef
-    .doc(widget.currentUser?.id)
-    .collection("userPosts")
-    .doc(postId)
-    .set({
+        .doc(widget.currentUser?.id)
+        .collection("userPosts")
+        .doc(postId)
+        .set({
       "postId": postId,
       "ownerId": widget.currentUser?.id,
       "username": widget.currentUser?.username,
@@ -123,49 +131,51 @@ class _UploadState extends State<Upload> with AutomaticKeepAliveClientMixin<Uplo
       "likes": {},
       "comments": {},
       "commentCount": 0,
+      "mentions": mentionsMap,
     });
-
   }
 
   Future<String> uploadImage(imageFile) async {
-    UploadTask uploadTask = storageRef.child("post_$postId.jpg").putFile(imageFile);
+    UploadTask uploadTask =
+        storageRef.child("post_$postId.jpg").putFile(imageFile);
     TaskSnapshot storageSnap = await uploadTask;
     String downloadUrl = await storageSnap.ref.getDownloadURL();
     return downloadUrl;
   }
 
   handleSubmit() async {
-    if (captionController.text.isEmpty && file == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Post Cannot Be Empty"))
-      );
-    } else if (captionController.text.length > 250) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Post Is Too Long"))
-      );
+    if ((_mentionsKey.currentState!.controller!.text.trim().isEmpty ||
+            _mentionsKey.currentState!.controller!.text.trim() == "") &&
+        file == null) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text("Post Cannot Be Empty")));
+    } else if (_mentionsKey.currentState!.controller!.text.length > 400) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text("Post Is Too Long")));
     } else {
       setState(() {
         isUploading = true;
       });
       if (file == null) {
-        createPostInFirestore(caption: captionController.text, mediaUrl: '');
+        createPostInFirestore(
+            caption: _mentionsKey.currentState!.controller!.text, mediaUrl: '');
       } else {
         await compressImage();
         String mediaUrl = await uploadImage(file);
-        createPostInFirestore(caption: captionController.text, mediaUrl: mediaUrl);
+        createPostInFirestore(
+            caption: _mentionsKey.currentState!.controller!.text,
+            mediaUrl: mediaUrl);
       }
       setState(() {
         file = null;
         isUploading = false;
         postId = Uuid().v4();
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Post Successfully Created"))
-      );
-      captionController.clear();
-      captionFocusNode.unfocus();
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text("Post Successfully Created")));
+      _mentionsKey.currentState!.controller!.clear();
+      mentionsDataAdded.clear();
     }
-    
   }
 
   handleRatio() {
@@ -175,164 +185,204 @@ class _UploadState extends State<Upload> with AutomaticKeepAliveClientMixin<Uplo
     return size.width / size.height;
   }
 
-  List<String> mentionSuggestions = ['allo', 'allo2'];
+  Future<void> handleSearch(String query) async {
+    // QuerySnapshot friendsId =
+    //     await friendsRef.doc(currentUser.id).collection("userFriends").get();
 
-  // Controller for the @ mentions text field
-  TextEditingController mentionController = TextEditingController();
+    // List<String> userIds = [];
 
-  // Method to detect "@" symbol and show suggestions
-  void onMentionTextChanged(String text) {
-    if (text.isNotEmpty && text[text.length - 1] == '@') {
-      // Show the suggestions (you can use a dropdown or overlay to display the options)
-      showMentionSuggestionsOverlay();
+    // friendsId.docs.forEach((doc) {
+    //   userIds.add(doc.id);
+    // });
+    // print(userIds);
+
+    String lowercasedQuery = query.toLowerCase();
+    QuerySnapshot users = await usersRef
+        //.where('id', whereIn: userIds)
+        .orderBy("displayNameLower")
+        .startAt([lowercasedQuery]).endAt([lowercasedQuery + '\uf8ff']).get();
+
+    List<Map<String, String>> newData = [];
+
+    // Process QuerySnapshot and populate newData with the required data format
+    for (QueryDocumentSnapshot user in users.docs) {
+      newData.add({
+        'id': user.get('id'),
+        'display': user.get('displayName'),
+      });
     }
+
+    setState(() {
+      mentionsData = newData;
+    });
   }
 
-  // Method to show the @ mention suggestions overlay
-  void showMentionSuggestionsOverlay() {
-    // You can use any approach to show the suggestions overlay, such as a dropdown or an overlay.
-    // For simplicity, we will use a simple AlertDialog in this example.
+  clearSearch() {
+    setState(() {
+      searchController.clear();
+    });
+    handleSearch(searchController.text);
+  }
 
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text('@ Mention Suggestions'),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: mentionSuggestions
-                  .map((mention) => ListTile(
-                        title: Text(mention),
-                        onTap: () {
-                          // Add the selected mention to the text field
-                          addMention(mention);
-                          Navigator.pop(context);
-                        },
-                      ))
-                  .toList(),
-            ),
-          ),
-        );
-      },
+  buildSearchField() {
+    return TextFormField(
+      controller: searchController,
+      style: TextStyle(color: Colors.black),
+      decoration: InputDecoration(
+        prefixIconColor: Colors.purple,
+        suffixIconColor: Colors.purple,
+        filled: true,
+        prefixIcon: Icon(
+          Icons.account_box,
+          size: 28.0,
+        ),
+        suffixIcon: IconButton(
+          icon: Icon(Icons.clear),
+          onPressed: () => clearSearch(),
+        ),
+        hintStyle: TextStyle(color: Colors.black),
+      ),
+      onChanged: (query) => handleSearch(query),
+      onFieldSubmitted: (query) => handleSearch(query),
     );
   }
-
-  // Method to add the selected mention to the text field
-  void addMention(String mention) {
-    final currentText = mentionController.text;
-    final cursorPosition = mentionController.selection.base.offset;
-    final newText = currentText.replaceRange(cursorPosition, cursorPosition, '@$mention ');
-    mentionController.text = newText;
-    mentionController.selection = TextSelection.fromPosition(TextPosition(offset: cursorPosition + mention.length + 2));
-  }
-
 
   buildUploadForm() {
     if (file != null) {
       final fileImage = FileImage(file!);
       size = ImageSizeGetter.getSize(FileInput(fileImage.file));
     }
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).primaryColor,
-        leading: IconButton(
-          icon: Icon(Icons.add_a_photo_outlined, color: Colors.white),
-          onPressed: () => selectImage(context),
-        ),
-        title: GestureDetector(
-          onTap: () => captionFocusNode.unfocus(),
-          child: Text(
-          "Caption Post",
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 30.0
-          ),
-          ),
-        ),
-        centerTitle: true,
-        actions: [
-          TextButton(
-            onPressed: isUploading ? null : () => handleSubmit(),
-            child: Text(
-              "Post",
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                fontSize: 20.0,
-              ),
+    return Portal(
+      child: MaterialApp(
+        home: Scaffold(
+          appBar: AppBar(
+            backgroundColor: Theme.of(context).primaryColor,
+            leading: IconButton(
+              icon: Icon(Icons.add_a_photo_outlined, color: Colors.white),
+              onPressed: () => selectImage(context),
             ),
-          ),
-        ],
-      ),
-      body: ListView(
-        children: <Widget>[
-          isUploading ? linearProgress() : Text(""),
-          Padding(padding: EdgeInsets.only(top: 10.0),
-          ),
-           ListTile(
-            leading: CircleAvatar(
-              backgroundImage: CachedNetworkImageProvider
-              (widget.currentUser!.photoUrl),
+            title: Text(
+              "Caption Post",
+              style: TextStyle(color: Colors.white, fontSize: 30.0),
             ),
-            title: Container(
-              width: 250.0,
-              child: Form(
-                key: _postKey,
-                child : TextFormField(
-                controller: captionController,
-                focusNode: captionFocusNode,
-                decoration: InputDecoration(
-                  hintText: "Write a post...",
-                  border: InputBorder.none,
+            centerTitle: true,
+            actions: [
+              TextButton(
+                onPressed: isUploading ? null : () => handleSubmit(),
+                child: Text(
+                  "Post",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 20.0,
+                  ),
                 ),
-                maxLines: null,
               ),
-              ),
-            ),
+            ],
           ),
-          (file != null) ? 
-          Column(
-              children: <Widget>[
-                Padding(
-                  padding: EdgeInsets.only(top: 30.0),
-                  child: Container(
-                    // height: 500.0,
-                    width: MediaQuery.of(context).size.width,
-                    child: Center(
-                      child: AspectRatio(
-                        aspectRatio: handleRatio(),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            image: DecorationImage(
-                              fit: BoxFit.cover,
-                              image: FileImage(file!),
+          body: ListView(
+            children: <Widget>[
+              isUploading ? linearProgress() : Text(""),
+              Padding(
+                padding: EdgeInsets.only(top: 10.0),
+              ),
+              ListTile(
+                leading: CircleAvatar(
+                  backgroundImage:
+                      CachedNetworkImageProvider(widget.currentUser!.photoUrl),
+                ),
+                title: Container(
+                  width: 250.0,
+                  child: FlutterMentions(
+                    key: _mentionsKey,
+                    decoration: InputDecoration(
+                      hintText: "Write a post...",
+                      border: InputBorder.none,
+                    ),
+                    suggestionListHeight: 200,
+                    suggestionListDecoration: BoxDecoration(
+                      color: Theme.of(context).primaryColor,
+                      borderRadius: BorderRadius.circular(7.0),
+                    ),
+                    mentions: [
+                      Mention(
+                        trigger: '@',
+                        disableMarkup: false,
+                        style: TextStyle(
+                          color: Colors.purple,
+                        ),
+                        data: mentionsData,
+                        matchAll: false,
+                        suggestionBuilder: (data) {
+                          return Container(
+                            decoration: BoxDecoration(
+                                color:
+                                    const Color.fromARGB(255, 209, 209, 209)),
+                            height: 50.0,
+                            width: 100.0,
+                            alignment: Alignment.centerLeft,
+                            child: Padding(
+                              padding: EdgeInsets.only(left: 10.0),
+                              child: Text(data['display']!),
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                    onSearchChanged: (String trigger, String query) async {
+                      await handleSearch(query);
+                    },
+                    onMentionAdd: (data) {
+                      mentionsDataAdded.add(
+                          {'id': data['id']!, 'display': data['display']!});
+                    },
+                  ),
+                ),
+              ),
+              (file != null)
+                  ? Column(
+                      children: <Widget>[
+                        Padding(
+                          padding: EdgeInsets.only(top: 30.0),
+                          child: Container(
+                            // height: 500.0,
+                            width: MediaQuery.of(context).size.width,
+                            child: Center(
+                              child: AspectRatio(
+                                aspectRatio: handleRatio(),
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    image: DecorationImage(
+                                      fit: BoxFit.cover,
+                                      image: FileImage(file!),
+                                    ),
+                                  ),
+                                ),
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: TextButton.icon(
-                    onPressed: () => clearImage(),
-                    icon: const Icon(Icons.cancel_outlined,
-                        color: Color.fromARGB(255, 89, 36, 99)),
-                    label: const Text(
-                      "Remove Image",
-                      style: TextStyle(
-                        color: Color.fromARGB(255, 89, 36, 99),
-                        fontSize: 20.0,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            )
-          : Text("")
-        ],
+                        Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: TextButton.icon(
+                            onPressed: () => clearImage(),
+                            icon: const Icon(Icons.cancel_outlined,
+                                color: Color.fromARGB(255, 89, 36, 99)),
+                            label: const Text(
+                              "Remove Image",
+                              style: TextStyle(
+                                color: Color.fromARGB(255, 89, 36, 99),
+                                fontSize: 20.0,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    )
+                  : Text("")
+            ],
+          ),
+        ),
       ),
     );
   }

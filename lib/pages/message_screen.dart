@@ -10,7 +10,6 @@ import '../widgets/progress.dart';
 // ignore: depend_on_referenced_packages
 import 'package:chat_bubbles/chat_bubbles.dart';
 
-
 // ignore: depend_on_referenced_packages
 import 'package:intl/intl.dart';
 
@@ -20,7 +19,7 @@ class MessageScreen extends StatefulWidget {
   MessageScreen({
     required this.otherUserId,
   });
-  
+
   @override
   _MessageScreen createState() => _MessageScreen();
 }
@@ -29,28 +28,27 @@ class _MessageScreen extends State<MessageScreen> {
   TextEditingController messageController = TextEditingController();
   FocusNode captionFocusNode = FocusNode();
   final String currentUserId = currentUser.id;
-  
-  @override 
+
+  @override
   void initState() {
     super.initState();
-
   }
 
   buildMessages() {
     return StreamBuilder(
       stream: messagesRef
-        .doc(currentUserId)
-        .collection('and')
-        .doc(widget.otherUserId)
-        .collection("message")
-        .orderBy("timestamp", descending: true).snapshots(),
-
+          .doc(currentUserId)
+          .collection('and')
+          .doc(widget.otherUserId)
+          .collection("message")
+          .orderBy("timestamp", descending: true)
+          .snapshots(),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
           return circularProgress();
         }
         List<Message> messages = [];
-        snapshot.data?.docs.forEach((doc) { 
+        snapshot.data?.docs.forEach((doc) {
           messages.add(Message.fromDocument(doc));
         });
 
@@ -81,136 +79,148 @@ class _MessageScreen extends State<MessageScreen> {
       //       })
       //     }
       //   );
-        
-
 
       messagesRef
-        .doc(currentUserId)
-        .collection("and")
-        .doc(widget.otherUserId)
-        .collection('message')
-        .add({
-          "username": currentUser.username,
-          "message": messageController.text,
-          "timestamp": timestamp,
-          "avatarUrl": currentUser.photoUrl,
-          "userId": currentUser.id,
-          "otherUserId": widget.otherUserId,
-        });
+          .doc(currentUserId)
+          .collection("and")
+          .doc(widget.otherUserId)
+          .collection('message')
+          .add({
+        "username": currentUser.username,
+        "message": messageController.text,
+        "timestamp": timestamp,
+        "avatarUrl": currentUser.photoUrl,
+        "userId": currentUser.id,
+        "otherUserId": widget.otherUserId,
+      });
 
       messagesRef
-        .doc(widget.otherUserId)
-        .collection("and")
-        .doc(currentUserId)
-        .collection("message")
-        .add({
-          "username": currentUser.username,
-          "message": messageController.text,
-          "timestamp": timestamp,
-          "avatarUrl": currentUser.photoUrl,
-          "userId": currentUser.id,
-          "otherUserId": widget.otherUserId,
-        });
+          .doc(widget.otherUserId)
+          .collection("and")
+          .doc(currentUserId)
+          .collection("message")
+          .add({
+        "username": currentUser.username,
+        "message": messageController.text,
+        "timestamp": timestamp,
+        "avatarUrl": currentUser.photoUrl,
+        "userId": currentUser.id,
+        "otherUserId": widget.otherUserId,
+      });
+
+      initMessegin();
 
       addNotificationActivityFeed();
-      FirebaseApi().sendNotification(messageController.text, widget.otherUserId, currentUser.displayName);
-      }
+      FirebaseApi().sendNotification(
+          messageController.text, widget.otherUserId, currentUser.displayName);
+    }
     messageController.clear();
+  }
+
+  initMessegin() async {
+    await FirebaseApi().initMessaging(currentUserId);
   }
 
   addNotificationActivityFeed() {
     activityFeedRef
-      .doc(widget.otherUserId)
-      .collection('feedItems')
-      .where("type", isEqualTo: "message")
-      .where("userId", isEqualTo: currentUserId)
-      .get().then((doc) => {
-        if (doc.docs.isEmpty) {
-          activityFeedRef
-          .doc(widget.otherUserId)
-          .collection("feedItems")
-          .add({
-            "type": "message",
-            "commentData": messageController.text,
-            "username": currentUser.username,
-            "userId": currentUserId,
-            "userProfileImg": currentUser.photoUrl,
-            "postId": widget.otherUserId,
-            "seen": false,
-            // "mediaUrl": mediaUrl,
-            "timestamp": DateTime.now(),
-          })
-        } else {
-          doc.docs.forEach((document) {
-            document.reference.update({
-              "seen": false,
-              "timestamp": DateTime.now(),
+        .doc(widget.otherUserId)
+        .collection('feedItems')
+        .where("type", isEqualTo: "message")
+        .where("userId", isEqualTo: currentUserId)
+        .get()
+        .then((doc) => {
+              if (doc.docs.isEmpty)
+                {
+                  activityFeedRef
+                      .doc(widget.otherUserId)
+                      .collection("feedItems")
+                      .add({
+                    "type": "message",
+                    "commentData": messageController.text,
+                    "username": currentUser.username,
+                    "userId": currentUserId,
+                    "userProfileImg": currentUser.photoUrl,
+                    "postId": widget.otherUserId,
+                    "seen": false,
+                    // "mediaUrl": mediaUrl,
+                    "timestamp": DateTime.now(),
+                  })
+                }
+              else
+                {
+                  doc.docs.forEach((document) {
+                    document.reference.update({
+                      "seen": false,
+                      "timestamp": DateTime.now(),
+                    });
+                  })
+                }
             });
-          })
-        }
-      }
-    );
   }
 
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(
-      future: usersRef.doc(widget.otherUserId).get(),
-      builder: (context, snapshot) {
-        if (!snapshot.hasData) {
-          return circularProgress();
-        }
-        User otherUser = User.fromDocument(snapshot.data as DocumentSnapshot<Object?>);
-         return Scaffold(
-          appBar: AppBar(
-            backgroundColor: Theme.of(context).primaryColor,
-            title: GestureDetector(
-              onTap: () => showProfile(context, profileId: otherUser.id),
-              child: Row(
-                children: [
-                  CircleAvatar(
-                      backgroundImage: CachedNetworkImageProvider(otherUser.photoUrl),
-                  ),
-                  SizedBox(width: 8.0),
-                  Text(otherUser.displayName),
-                  SizedBox(width: 8.0),
-                  otherUser.verified ? Icon(
-                  Icons.verified_sharp,
-                  color: Colors.white, 
-                  size: 17.0, 
-                ) : Text(""),
-                ],
+        future: usersRef.doc(widget.otherUserId).get(),
+        builder: (context, snapshot) {
+          if (!snapshot.hasData) {
+            return circularProgress();
+          }
+          User otherUser =
+              User.fromDocument(snapshot.data as DocumentSnapshot<Object?>);
+          return Scaffold(
+            appBar: AppBar(
+              backgroundColor: Theme.of(context).primaryColor,
+              title: GestureDetector(
+                onTap: () => showProfile(context, profileId: otherUser.id),
+                child: Row(
+                  children: [
+                    CircleAvatar(
+                      backgroundImage:
+                          CachedNetworkImageProvider(otherUser.photoUrl),
+                    ),
+                    SizedBox(width: 8.0),
+                    Text(otherUser.displayName),
+                    SizedBox(width: 8.0),
+                    otherUser.verified
+                        ? Icon(
+                            Icons.verified_sharp,
+                            color: Colors.white,
+                            size: 17.0,
+                          )
+                        : Text(""),
+                  ],
+                ),
               ),
+              centerTitle: true,
             ),
-            centerTitle: true,
-          ),
-          body: Column(
-            children: <Widget>[
-              Expanded(child: buildMessages()),
-              Divider(),
-              ListTile(
-                title: TextFormField(
-                  controller: messageController,
-                  focusNode: captionFocusNode,
-                  decoration: InputDecoration(labelText: "Write your message..."),
-                  maxLines: null,
-                ),
-                trailing: OutlinedButton(
-                  onPressed: () => addMessage(),
-                  style: OutlinedButton.styleFrom(
-                    side: BorderSide.none,
+            body: Column(
+              children: <Widget>[
+                Expanded(child: buildMessages()),
+                Divider(),
+                ListTile(
+                  title: TextFormField(
+                    controller: messageController,
+                    focusNode: captionFocusNode,
+                    decoration:
+                        InputDecoration(labelText: "Write your message..."),
+                    maxLines: null,
                   ),
-                  child: Icon(
-                    Icons.send_outlined,
-                    color: Theme.of(context).primaryColor,
+                  trailing: OutlinedButton(
+                    onPressed: () => addMessage(),
+                    style: OutlinedButton.styleFrom(
+                      side: BorderSide.none,
+                    ),
+                    child: Icon(
+                      Icons.send_outlined,
+                      color: Theme.of(context).primaryColor,
+                    ),
                   ),
                 ),
-              ),
-            ],
-          ),
-        );
-      }
-    );
+              ],
+            ),
+          );
+        });
   }
 }
 
@@ -255,10 +265,10 @@ class Message extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: <Widget>[
                     BubbleSpecialThree(
-                    text: message,
-                    color: const Color.fromARGB(255, 89, 36, 99),
-                    tail: true,
-                    textStyle: const TextStyle(
+                      text: message,
+                      color: const Color.fromARGB(255, 89, 36, 99),
+                      tail: true,
+                      textStyle: const TextStyle(
                         color: Colors.white,
                         fontSize: 20.0,
                       ),
@@ -282,7 +292,7 @@ class Message extends StatelessWidget {
   }
 
   buildReceiverBubble() {
-  return Column(
+    return Column(
       children: <Widget>[
         Padding(
           padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
@@ -294,15 +304,15 @@ class Message extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
                     BubbleSpecialThree(
-                    text: message,
-                    color: Color.fromARGB(255, 244, 186, 184),
-                    tail: true,
-                    textStyle: const TextStyle(
+                      text: message,
+                      color: Color.fromARGB(255, 244, 186, 184),
+                      tail: true,
+                      textStyle: const TextStyle(
                         color: Colors.black,
                         fontSize: 20.0,
+                      ),
+                      isSender: false,
                     ),
-                    isSender: false,
-                  ),
                     SizedBox(height: 4.0),
                     Text(
                       DateFormat.Hm().format(timestamp.toDate()),
@@ -323,6 +333,8 @@ class Message extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return currentUser.id == userId ? buildSenderBubble() : buildReceiverBubble();
+    return currentUser.id == userId
+        ? buildSenderBubble()
+        : buildReceiverBubble();
   }
 }

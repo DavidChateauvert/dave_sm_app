@@ -34,27 +34,25 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   bool isAuth = false;
-  PageController pageController =  PageController();
+  PageController pageController = PageController();
   int pageIndex = 0;
-
 
   @override
   void initState() {
-    // initializeFirebase();
+    //initializeFirebase();
     super.initState();
     // Detects when user signed in
-    googleSignIn.onCurrentUserChanged.listen((account) { 
+    googleSignIn.onCurrentUserChanged.listen((account) {
       handleSignIn();
     }, onError: (err) {
       print('Error signing in: $err');
     });
     //Reauthenticated user when pp is opened
-    googleSignIn.signInSilently(suppressErrors: false)
-      .then((account) {
-        handleSignIn();
-      }).catchError((err) {
-        print('Error signing in: $err');
-      });
+    googleSignIn.signInSilently(suppressErrors: false).then((account) {
+      handleSignIn();
+    }).catchError((err) {
+      print('Error signing in: $err');
+    });
   }
 
   // void initializeFirebase() async {
@@ -75,32 +73,32 @@ class _HomeState extends State<Home> {
   // }
 
   handleSignIn() async {
-  try {
-    final GoogleSignInAccount? account = await googleSignIn.signInSilently();
-    if (account == null) {
-      await googleSignIn.signIn();
+    try {
+      final GoogleSignInAccount? account = await googleSignIn.signInSilently();
+      if (account == null) {
+        await googleSignIn.signIn();
+      }
+      await createUserInFirestore();
+      setState(() {
+        isAuth = true;
+      });
+    } catch (error) {
+      print('Error signing in: $error');
+      setState(() {
+        isAuth = false;
+      });
     }
-    await createUserInFirestore();
-    setState(() {
-      isAuth = true;
-    });
-  } catch (error) {
-    print('Error signing in: $error');
-    setState(() {
-      isAuth = false;
-    });
   }
-}
 
   createUserInFirestore() async {
-    // 1 : Check if user exsits in users collection according to there id 
+    // 1 : Check if user exsits in users collection according to there id
     final GoogleSignInAccount? user = googleSignIn.currentUser;
     if (user != null) {
       DocumentSnapshot doc = await usersRef.doc(user.id).get();
       if (!doc.exists) {
         // 2 : If they don't exist, take them to the create account page
-        final username = await Navigator.push(context, MaterialPageRoute(builder: (context) => 
-        CreateAccount()));
+        final username = await Navigator.push(
+            context, MaterialPageRoute(builder: (context) => CreateAccount()));
         // 3 : Get username from create account, use it to make new user document in users collection
         usersRef.doc(user.id).set({
           "id": user.id,
@@ -116,16 +114,16 @@ class _HomeState extends State<Home> {
         });
         // Make new user their own follower
         await followersRef
-          .doc(user.id)
-          .collection('userFollowers')
-          .doc(user.id)
-          .set({});
+            .doc(user.id)
+            .collection('userFollowers')
+            .doc(user.id)
+            .set({});
 
         doc = await usersRef.doc(user.id).get();
       }
       currentUser = User.fromDocument(doc);
       // await FirebaseApi().initMessaging(currentUser.id);
-    }     
+    }
   }
 
   @override
@@ -175,66 +173,76 @@ class _HomeState extends State<Home> {
         onTap: onTap,
         activeColor: Theme.of(context).primaryColor,
         items: [
-          BottomNavigationBarItem(icon: Icon(Icons.view_timeline_outlined),),
-          BottomNavigationBarItem(icon: Icon(Icons.search),),
-          BottomNavigationBarItem(icon: Icon(Icons.add_box_outlined),),
-          BottomNavigationBarItem(icon: Icon(Icons.account_box_outlined),),
-          BottomNavigationBarItem(icon: Icon(Icons.message_outlined),),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.view_timeline_outlined),
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.search),
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.add_box_outlined),
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.account_box_outlined),
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.message_outlined),
+          ),
         ],
       ),
     );
   }
 
   Scaffold buildUnAuthScreen() {
-  return Scaffold(
-    body: Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topRight,
-          end: Alignment.bottomLeft,
-          colors: [
-            Color.fromARGB(255, 244, 186, 184),
-            Theme.of(context).primaryColor
+    return Scaffold(
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topRight,
+            end: Alignment.bottomLeft,
+            colors: [
+              Color.fromARGB(255, 244, 186, 184),
+              Theme.of(context).primaryColor
+            ],
+          ),
+        ),
+        alignment: Alignment.center,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: <Widget>[
+            Text(
+              'Dave',
+              style: TextStyle(fontSize: 90, color: Colors.white),
+            ),
+            GestureDetector(
+              onTap: login,
+              child: Container(
+                width: 200,
+                child: Center(
+                  child: Text(
+                    'Login',
+                    style: TextStyle(fontSize: 60, color: Colors.white),
+                  ),
+                ),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topRight,
+                    end: Alignment.bottomLeft,
+                    colors: [
+                      Theme.of(context).primaryColor,
+                      Color.fromARGB(255, 244, 186, 184)
+                    ],
+                  ),
+                ),
+                alignment: Alignment.center,
+              ),
+            )
           ],
         ),
       ),
-      alignment: Alignment.center,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: <Widget>[
-          Text(
-            'Dave',
-            style: TextStyle(fontSize: 90, color: Colors.white),
-          ),
-          GestureDetector(
-            onTap: login,
-            child: Container(
-              width: 200,
-              child: Center(
-                child: Text(
-                  'Login',
-                  style: TextStyle(fontSize: 60, color: Colors.white),
-                ),
-              ),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topRight,
-                  end: Alignment.bottomLeft,
-                  colors: [
-                    Theme.of(context).primaryColor,
-                    Color.fromARGB(255, 244, 186, 184)
-                  ],
-                ),
-              ),
-              alignment: Alignment.center,
-            ),
-          )
-        ],
-      ),
-    ),
-  );
-}
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
