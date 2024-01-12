@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:sm_app/pages/home.dart';
+import 'package:sm_app/widgets/header.dart';
 import 'package:sm_app/widgets/post_profile.dart';
 import 'package:sm_app/widgets/progress.dart';
 
@@ -12,13 +13,12 @@ class PostScreen extends StatefulWidget {
     required this.userId,
     required this.postId,
   });
-  
+
   @override
   _ProfileScreen createState() => _ProfileScreen();
-  
 }
 
-class _ProfileScreen extends State<PostScreen>{
+class _ProfileScreen extends State<PostScreen> {
   bool isLoading = false;
   PostProfile? post;
 
@@ -29,21 +29,37 @@ class _ProfileScreen extends State<PostScreen>{
   }
 
   getPost() async {
-  setState(() {
-    isLoading = true;
-  });
+    setState(() {
+      isLoading = true;
+    });
 
-  DocumentSnapshot snapshot = await postsRef
-    .doc(currentUser.id)
-    .collection('userPosts')
-    .doc(widget.postId)
-    .get();
+    DocumentSnapshot snapshot = await timelineRef
+        .doc(currentUser.id)
+        .collection('timelinePosts')
+        .doc(widget.postId)
+        .get();
 
-  setState(() {
-    isLoading = false;
-    post = PostProfile.fromDocument(snapshot);
-  });
-}
+    setState(() {
+      isLoading = false;
+      if (snapshot.exists) {
+        post = PostProfile.fromDocument(snapshot);
+      } else {
+        post = buildPostAlreadySeen();
+      }
+    });
+  }
+
+  buildPostAlreadySeen() {
+    return Container(
+      height: 100,
+      alignment: Alignment.center,
+      color: Theme.of(context).colorScheme.secondary,
+      child: const Text(
+        "Post already seen",
+        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+      ),
+    );
+  }
 
   buildProfilePost() {
     if (isLoading) {
@@ -57,22 +73,13 @@ class _ProfileScreen extends State<PostScreen>{
   @override
   Widget build(context) {
     return Scaffold(
-     appBar: AppBar(
-        backgroundColor: Theme.of(context).primaryColor,
-        title: const Text(
-          "Post",
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 30.0
-          ),
-        ),
-      ),
+      appBar: header(context, titleText: "Posts"),
       body: ListView(
         children: <Widget>[
           Divider(
             height: 0.0,
           ),
-          buildProfilePost() 
+          buildProfilePost()
         ],
       ),
     );

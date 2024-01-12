@@ -26,12 +26,21 @@ class MessageScreen extends StatefulWidget {
 
 class _MessageScreen extends State<MessageScreen> {
   TextEditingController messageController = TextEditingController();
-  FocusNode captionFocusNode = FocusNode();
+  FocusNode messageFocusNode = FocusNode();
   final String currentUserId = currentUser.id;
+  late String otherUserToken;
 
   @override
   void initState() {
     super.initState();
+    initializeToken();
+  }
+
+  Future<void> initializeToken() async {
+    String userTokens = await FirebaseApi().getToken(widget.otherUserId) ?? "";
+    setState(() {
+      otherUserToken = userTokens;
+    });
   }
 
   buildMessages() {
@@ -53,7 +62,7 @@ class _MessageScreen extends State<MessageScreen> {
         });
 
         return GestureDetector(
-          onTap: () => captionFocusNode.unfocus(),
+          onTap: () => messageFocusNode.unfocus(),
           child: ListView(
             reverse: true,
             children: messages,
@@ -63,22 +72,9 @@ class _MessageScreen extends State<MessageScreen> {
     );
   }
 
-  addMessage() {
+  addMessageInFirestore() async {
     if (messageController.text.isNotEmpty) {
       DateTime timestamp = DateTime.now();
-
-      // await messagesRef
-      //   .doc(currentUserId)
-      //   .collection("and")
-      //   .doc(widget.otherUserId)
-      //   .collection('message')
-      //   .where("userId", isEqualTo: currentUserId)
-      //   .get().then((querySnapshot) => {
-      //     querySnapshot.docs.forEach((doc) {
-      //       doc.reference.delete();
-      //       })
-      //     }
-      //   );
 
       messagesRef
           .doc(currentUserId)
@@ -108,54 +104,43 @@ class _MessageScreen extends State<MessageScreen> {
         "otherUserId": widget.otherUserId,
       });
 
-      initMessegin();
-
-      addNotificationActivityFeed();
-      FirebaseApi().sendNotification(
-          messageController.text, widget.otherUserId, currentUser.displayName);
+      await addNotificationActivityFeed();
+      FirebaseApi().sendMessageNotification(
+          widget.otherUserId, messageController.text, currentUser.displayName);
     }
+
     messageController.clear();
   }
 
-  initMessegin() async {
-    await FirebaseApi().initMessaging(currentUserId);
-  }
+  // initMessegin() async {
+  //   await FirebaseApi().initMessaging(currentUserId);
+  // }
 
-  addNotificationActivityFeed() {
-    activityFeedRef
-        .doc(widget.otherUserId)
-        .collection('feedItems')
-        .where("type", isEqualTo: "message")
-        .where("userId", isEqualTo: currentUserId)
-        .get()
-        .then((doc) => {
-              if (doc.docs.isEmpty)
-                {
-                  activityFeedRef
-                      .doc(widget.otherUserId)
-                      .collection("feedItems")
-                      .add({
-                    "type": "message",
-                    "commentData": messageController.text,
-                    "username": currentUser.username,
-                    "userId": currentUserId,
-                    "userProfileImg": currentUser.photoUrl,
-                    "postId": widget.otherUserId,
-                    "seen": false,
-                    // "mediaUrl": mediaUrl,
-                    "timestamp": DateTime.now(),
-                  })
-                }
-              else
-                {
-                  doc.docs.forEach((document) {
-                    document.reference.update({
-                      "seen": false,
-                      "timestamp": DateTime.now(),
-                    });
-                  })
-                }
-            });
+  addNotificationActivityFeed() async {
+    try {
+      await messagesRef
+          .doc(widget.otherUserId)
+          .collection("and")
+          .doc(currentUserId)
+          .update({
+        "lastUserSent": currentUserId,
+        "message": messageController.text,
+        "seen": false,
+        "timestamp": DateTime.now(),
+      });
+      await messagesRef
+          .doc(currentUserId)
+          .collection("and")
+          .doc(widget.otherUserId)
+          .update({
+        "lastUserSent": currentUserId,
+        "message": messageController.text,
+        "seen": true,
+        "timestamp": DateTime.now(),
+      });
+    } catch (e) {
+      print("Error: $e");
+    }
   }
 
   @override
@@ -170,7 +155,7 @@ class _MessageScreen extends State<MessageScreen> {
               User.fromDocument(snapshot.data as DocumentSnapshot<Object?>);
           return Scaffold(
             appBar: AppBar(
-              backgroundColor: Theme.of(context).primaryColor,
+              backgroundColor: Theme.of(context).colorScheme.primary,
               title: GestureDetector(
                 onTap: () => showProfile(context, profileId: otherUser.id),
                 child: Row(
@@ -201,19 +186,19 @@ class _MessageScreen extends State<MessageScreen> {
                 ListTile(
                   title: TextFormField(
                     controller: messageController,
-                    focusNode: captionFocusNode,
+                    focusNode: messageFocusNode,
                     decoration:
                         InputDecoration(labelText: "Write your message..."),
                     maxLines: null,
                   ),
                   trailing: OutlinedButton(
-                    onPressed: () => addMessage(),
+                    onPressed: () => addMessageInFirestore(),
                     style: OutlinedButton.styleFrom(
                       side: BorderSide.none,
                     ),
                     child: Icon(
                       Icons.send_outlined,
-                      color: Theme.of(context).primaryColor,
+                      color: Theme.of(context).colorScheme.primary,
                     ),
                   ),
                 ),

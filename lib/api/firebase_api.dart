@@ -4,18 +4,11 @@ import 'package:sm_app/pages/home.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-Future<void> handleBackGroundMessage(RemoteMessage message) async {
-  print("Title: ${message.notification?.title}");
-  print("Body: ${message.notification?.body}");
-  print("Payload: ${message.data}");
-}
-
 class FirebaseApi {
   final _firebaseMessaging = FirebaseMessaging.instance;
   late String fCMToken;
 
   Future<void> initMessaging(currentUserId) async {
-    print("allo");
     await _firebaseMessaging.requestPermission();
     final fCMToken = await _firebaseMessaging.getToken();
 
@@ -24,9 +17,6 @@ class FirebaseApi {
         "token": fCMToken,
       });
     }
-
-    print("Token : $fCMToken");
-    // FirebaseMessaging.onBackgroundMessage(handleBackGroundMessage);
   }
 
   requestPermissionText() async {
@@ -60,22 +50,21 @@ class FirebaseApi {
           .get();
       if (doc.exists) {
         Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-        String? token = data['token'] as String?;
+        String token = data['token'];
         return token;
       } else {
         print("Document not found.");
-        return null;
+        return "";
       }
     } catch (error) {
       print("Error getting document: $error");
-      return null;
+      return "";
     }
   }
 
-  sendNotification(message, receiverId, senderName) async {
-    requestPermissionText();
-    final token = await getToken(receiverId);
-    print(token);
+  sendMessageNotification(
+      String otherUserId, String message, String senderName) async {
+    String userTokens = await FirebaseApi().getToken(otherUserId) ?? "";
     try {
       await http.post(Uri.parse('https://fcm.googleapis.com/fcm/send'),
           headers: <String, String>{
@@ -90,12 +79,45 @@ class FirebaseApi {
               'status': 'done',
               'body': message,
               'title': "Vous avez recu un message",
+              'screen': "${currentUser.id}"
             },
             "notification": <String, dynamic>{
-              "title": "$senderName :",
+              "title": "$senderName",
               "body": message,
             },
-            "to": token,
+            "content_available": true,
+            "to": userTokens,
+          }));
+    } catch (e) {
+      print("erreur de send Notifcation");
+    }
+  }
+
+  sendMentionsNotification(String otherUserId, String senderName) async {
+    String userTokens = await FirebaseApi().getToken(otherUserId) ?? "";
+    print(userTokens);
+    try {
+      print("Rentrer");
+      await http.post(Uri.parse('https://fcm.googleapis.com/fcm/send'),
+          headers: <String, String>{
+            'Content-type': 'application/json',
+            'Authorization':
+                'key=AAAA5hU-q8Q:APA91bEsFeg67RQ2qtOnphuadgkwsmZ4K3zgdwHEvtnoIfdTS1hUvPbe-kUhuyZe0NvJiYnGwaikAp339wIGD_DmvunTzNK5oMNwhwN-hbCsqm-PC1kiO3wJOiYfNSQHbw3LiRFV-Vkp',
+          },
+          body: jsonEncode(<String, dynamic>{
+            'priority': 'high',
+            'data': <String, dynamic>{
+              'click_action': 'FLUTTER_NOTIFICATION_CLICK',
+              'status': 'done',
+              'body': "Dave",
+              'title': "Dave",
+            },
+            "notification": <String, dynamic>{
+              "title": "Dave",
+              "body": "$senderName vous a identifié dans un post",
+            },
+            "content_available": true,
+            "to": userTokens,
           }));
     } catch (e) {
       print("erreur de send Notifcation");

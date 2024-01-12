@@ -22,16 +22,16 @@ class Comments extends StatefulWidget {
 
   @override
   CommentsState createState() => CommentsState(
-    postId: postId,
-    postOwnerId: postOwnerId,
-    updateCommentStatus: updateCommentStatus,
-    // mediaUrl: mediaUrl
-  );
+        postId: postId,
+        postOwnerId: postOwnerId,
+        updateCommentStatus: updateCommentStatus,
+        // mediaUrl: mediaUrl
+      );
 }
 
 class CommentsState extends State<Comments> {
   TextEditingController commentController = TextEditingController();
-  FocusNode captionFocusNode = FocusNode();
+  FocusNode commentFocusNode = FocusNode();
   late final String postId;
   late final String postOwnerId;
   late final Function() updateCommentStatus;
@@ -47,19 +47,20 @@ class CommentsState extends State<Comments> {
   buildComment() {
     return StreamBuilder(
       stream: commentsRef
-        .doc(postId)
-        .collection('comments')
-        .orderBy("timestamp", descending: false).snapshots(),
+          .doc(postId)
+          .collection('comments')
+          .orderBy("timestamp", descending: false)
+          .snapshots(),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
           return circularProgress();
         }
         List<Comment> comments = [];
-        snapshot.data?.docs.forEach((doc) { 
+        snapshot.data?.docs.forEach((doc) {
           comments.add(Comment.fromDocument(doc));
         });
         return GestureDetector(
-          onTap: () => captionFocusNode.unfocus(),
+          onTap: () => commentFocusNode.unfocus(),
           child: ListView(
             children: comments,
           ),
@@ -71,48 +72,37 @@ class CommentsState extends State<Comments> {
   addComment() {
     updateCommentStatus();
     // Add to comments
-    commentsRef
-      .doc(postId)
-      .collection("comments")
-      .add({
-        "username": currentUser.username,
-        "comment": commentController.text,
-        "timestamp": DateTime.now(),
-        "avatarUrl": currentUser.photoUrl,
-        "userId": currentUser.id,
-      });
-    
+    commentsRef.doc(postId).collection("comments").add({
+      "username": currentUser.username,
+      "comment": commentController.text,
+      "timestamp": DateTime.now(),
+      "avatarUrl": currentUser.photoUrl,
+      "userId": currentUser.id,
+    });
+
     // Add to activity feed
     if (postOwnerId != currentUser.id) {
-      activityFeedRef
-        .doc(postOwnerId)
-        .collection("feedItems")
-        .add({
-          "type": "comment",
-          "commentData": commentController.text,
-          "username": currentUser.username,
-          "userId": currentUser.id,
-          "userProfileImg": currentUser.photoUrl,
-          "postId": postId,
-          "seen": false,
-          // "mediaUrl": mediaUrl,
-          "timestamp": DateTime.now(),
-        }
-      );
+      activityFeedRef.doc(postOwnerId).collection("feedItems").add({
+        "type": "comment",
+        "commentData": commentController.text,
+        "username": currentUser.displayName,
+        "userId": currentUser.id,
+        "userProfileImg": currentUser.photoUrl,
+        "postId": postId,
+        "seen": false,
+        // "mediaUrl": mediaUrl,
+        "timestamp": DateTime.now(),
+      });
     }
 
     // Update post
-    postsRef
-      .doc(postOwnerId)
-      .collection('userPosts')
-      .doc(postId)
-      .update({
-        "commentCount": FieldValue.increment(1),
-        'comments.${currentUser.id}' : true,
-      });
+    postsRef.doc(postOwnerId).collection('userPosts').doc(postId).update({
+      "commentCount": FieldValue.increment(1),
+      'comments.${currentUser.id}': true,
+    });
 
     commentController.clear();
-    captionFocusNode.unfocus();
+    commentFocusNode.unfocus();
   }
 
   @override
@@ -125,8 +115,9 @@ class CommentsState extends State<Comments> {
           Divider(),
           ListTile(
             title: TextFormField(
+              maxLines: null,
               controller: commentController,
-              focusNode: captionFocusNode,
+              focusNode: commentFocusNode,
               decoration: InputDecoration(labelText: "Write a comment..."),
             ),
             trailing: OutlinedButton(
@@ -176,14 +167,12 @@ class Comment extends StatelessWidget {
           title: Text(
             username,
             style: const TextStyle(
-              color: Colors.black,
               fontWeight: FontWeight.bold,
             ),
           ),
           subtitle: Text(
             comment,
             style: const TextStyle(
-              color: Colors.black,
               fontWeight: FontWeight.normal,
             ),
           ),

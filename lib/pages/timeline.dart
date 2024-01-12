@@ -5,7 +5,6 @@ import 'package:sm_app/widgets/header.dart';
 import 'package:sm_app/widgets/post.dart';
 import 'package:sm_app/widgets/progress.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_core/firebase_core.dart';
 
 import '../models/user.dart';
 
@@ -27,7 +26,6 @@ class _TimelineState extends State<Timeline> {
 
   @override
   void initState() {
-    // initializeFirebase();
     super.initState();
     getTimeline();
     getFollowing();
@@ -60,10 +58,6 @@ class _TimelineState extends State<Timeline> {
     });
   }
 
-  void initializeFirebase() async {
-    await Firebase.initializeApp();
-  }
-
   buildTimeline() {
     // ignore: unnecessary_null_comparison
     if (posts == null) {
@@ -79,12 +73,12 @@ class _TimelineState extends State<Timeline> {
         }
         return false;
       },
-      child: RefreshIndicator(
+      child: RefreshIndicator.adaptive(
         onRefresh: () => getTimeline(),
         child: ListView.builder(
           // reverse: true,
           key: _listKey,
-          physics: AlwaysScrollableScrollPhysics(),
+          // physics: AlwaysScrollableScrollPhysics(),
           itemCount: posts.length,
           itemBuilder: (BuildContext context, int index) {
             final reversedIndex = posts.length - 1 - index;
@@ -158,7 +152,7 @@ class _TimelineState extends State<Timeline> {
   Widget build(context) {
     return Scaffold(
       appBar: header(context),
-      body: RefreshIndicator(
+      body: RefreshIndicator.adaptive(
         onRefresh: () => getTimeline(),
         child: buildTimeline(),
       ),

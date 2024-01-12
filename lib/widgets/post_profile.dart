@@ -2,16 +2,14 @@
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:sm_app/pages/home.dart';
 import 'package:sm_app/pages/search.dart';
 import 'package:sm_app/widgets/custom_image.dart';
 import 'package:sm_app/widgets/post.dart';
-// import 'package:sm_app/widgets/custom_image.dart';
 import 'package:sm_app/widgets/progress.dart';
-
-// ignore: depend_on_referenced_packages
-import 'package:intl/intl.dart';
+import 'package:timeago/timeago.dart' as timeago;
 
 import '../models/user.dart';
 import '../pages/comments.dart';
@@ -154,9 +152,8 @@ class _PostProfileState extends State<PostProfile> {
             child: Row(
               children: [
                 Text(
-                  user.username,
+                  user.displayName,
                   style: const TextStyle(
-                    color: Colors.black,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -164,7 +161,7 @@ class _PostProfileState extends State<PostProfile> {
                 user.verified
                     ? Icon(
                         Icons.verified_sharp,
-                        color: Theme.of(context).primaryColor,
+                        color: Theme.of(context).colorScheme.primary,
                         size: 17.0,
                       )
                     : Text(""),
@@ -180,13 +177,7 @@ class _PostProfileState extends State<PostProfile> {
                       icon: Icon(Icons.more_horiz),
                     )
                   : Text(''),
-              Text(
-                DateFormat.Hm().format(timestamp.toDate()),
-                style: const TextStyle(
-                  fontSize: 12.0,
-                  color: Colors.grey,
-                ),
-              ),
+              Text(timeago.format(timestamp.toDate(), locale: 'en_short')),
             ],
           ),
         );
@@ -300,7 +291,7 @@ class _PostProfileState extends State<PostProfile> {
     if (currentUserId != ownerId) {
       activityFeedRef.doc(ownerId).collection("feedItems").doc(postId).set({
         "type": "like",
-        "username": currentUser.username,
+        "username": currentUser.displayName,
         "userId": currentUser.id,
         "userProfileImg": currentUser.photoUrl,
         "postId": postId,
@@ -352,6 +343,55 @@ class _PostProfileState extends State<PostProfile> {
     );
   }
 
+  RichText buildHighlightedText(String text) {
+    List<String> mentionsList =
+        mentions.values.map((value) => '@$value').toList().cast<String>();
+
+    List<TextSpan> textSpans = [];
+
+    RegExp mentionRegex = RegExp(mentionsList.join('|'), caseSensitive: false);
+    List<String> segments = text.split(mentionRegex);
+
+    for (int i = 0; i < segments.length; i++) {
+      String segment = segments[i];
+      textSpans.add(TextSpan(
+        text: segment,
+        style: TextStyle(
+          color: Theme.of(context).colorScheme.onBackground,
+          fontWeight: FontWeight.w600,
+          fontSize: 20.0,
+        ),
+      ));
+
+      if (i < segments.length - 1) {
+        String? mention = mentionRegex.stringMatch(text);
+        textSpans.add(TextSpan(
+          recognizer: TapGestureRecognizer()
+            ..onTap =
+                () => showProfile(context, profileId: getKeyByValue(mention)),
+          text: mention,
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.secondary,
+            fontWeight: FontWeight.bold,
+            fontSize: 20.0,
+          ),
+        ));
+      }
+    }
+
+    return RichText(text: TextSpan(children: textSpans));
+  }
+
+  String getKeyByValue(String? value) {
+    value = value?.substring(1);
+    for (var entry in mentions.entries) {
+      if (entry.value == value) {
+        return entry.key;
+      }
+    }
+    throw Exception("Value not found in the map");
+  }
+
   buildPostFooter() {
     return Column(
       children: <Widget>[
@@ -364,14 +404,8 @@ class _PostProfileState extends State<PostProfile> {
                     child: GestureDetector(
                       onDoubleTap: () => handleLikePost(),
                       child: Container(
-                        margin: const EdgeInsets.all(20.0),
-                        child: Text(
-                          caption,
-                          style: const TextStyle(
-                            fontSize: 20.0,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
+                        margin: const EdgeInsets.all(16.0),
+                        child: buildHighlightedText(caption),
                       ),
                     ),
                   ),
@@ -415,8 +449,8 @@ class _PostProfileState extends State<PostProfile> {
                   Icons.chat,
                   size: 28.0,
                   color: (isCommented || isCommentedInstant)
-                      ? Color.fromARGB(255, 244, 186, 184)
-                      : Color.fromARGB(255, 89, 36, 99),
+                      ? Theme.of(context).colorScheme.secondary
+                      : Theme.of(context).colorScheme.primary,
                 ),
               ),
             ),
@@ -430,7 +464,8 @@ class _PostProfileState extends State<PostProfile> {
               child: Text(
                 "$likeCount likes",
                 style: const TextStyle(
-                    color: Colors.black, fontWeight: FontWeight.bold),
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
             Container(
@@ -438,7 +473,8 @@ class _PostProfileState extends State<PostProfile> {
               child: Text(
                 "$commentCount",
                 style: const TextStyle(
-                    color: Colors.black, fontWeight: FontWeight.bold),
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ],
@@ -473,6 +509,7 @@ class _PostProfileState extends State<PostProfile> {
                   color: Color.fromARGB(255, 244, 186, 184),
                   height: 0.0,
                 ),
+                const SizedBox(height: 8.0),
                 buildPostHeader(),
                 buildPostFooter(),
                 const Divider(

@@ -7,7 +7,6 @@ import 'package:sm_app/pages/post_screen.dart';
 import 'package:sm_app/pages/profile.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
-
 late Widget mediaPreview;
 late String activityItemText;
 
@@ -32,36 +31,36 @@ class ActivityFeedItem extends StatefulWidget {
     required this.commentData,
     required this.seen,
     required this.timestamp,
-
   });
 
   factory ActivityFeedItem.fromDocument(DocumentSnapshot doc) {
-    final String commentData = doc['type'] == "comment" ? doc['commentData'] : '';
+    final String commentData =
+        doc['type'] == "comment" ? doc['commentData'] : '';
 
     return ActivityFeedItem(
-      username : doc['username'],
-      userId : doc['userId'],
-      type : doc['type'],
-      postId : doc['postId'],
-      userProfileImg : doc['userProfileImg'],
-      commentData :  commentData,
+      username: doc['username'],
+      userId: doc['userId'],
+      type: doc['type'],
+      postId: doc['postId'],
+      userProfileImg: doc['userProfileImg'],
+      commentData: commentData,
       seen: doc['seen'],
-      timestamp : doc['timestamp'],
+      timestamp: doc['timestamp'],
     );
   }
 
   @override
   // ignore: no_logic_in_create_state
   _ActivityFeedItem createState() => _ActivityFeedItem(
-    username : username,
-    userId : userId,
-    type : type,
-    postId : postId,
-    userProfileImg : userProfileImg,
-    commentData : commentData,
-    seen: seen,
-    timestamp : timestamp,
-  );
+        username: username,
+        userId: userId,
+        type: type,
+        postId: postId,
+        userProfileImg: userProfileImg,
+        commentData: commentData,
+        seen: seen,
+        timestamp: timestamp,
+      );
 }
 
 class _ActivityFeedItem extends State<ActivityFeedItem> {
@@ -118,6 +117,8 @@ class _ActivityFeedItem extends State<ActivityFeedItem> {
       activityItemText = "replied: $commentData";
     } else if (type == "message") {
       activityItemText = "sent you a new message";
+    } else if (type == "mention") {
+      activityItemText = "has tagged you in a post";
     } else {
       activityItemText = "Error: Unkown type '$type'";
     }
@@ -132,7 +133,7 @@ class _ActivityFeedItem extends State<ActivityFeedItem> {
   // }
 
   showNotification(context, type) {
-    if ((["like", "comment"].contains(type))) {
+    if ((["like", "comment", "mention"].contains(type))) {
       showPost(context, type);
     } else if (type == "follow") {
       showProfile(context, profileId: userId);
@@ -182,9 +183,9 @@ class _ActivityFeedItem extends State<ActivityFeedItem> {
           leading: CircleAvatar(
             backgroundImage: CachedNetworkImageProvider(userProfileImg),
           ),
-            subtitle: Text(
-              timeago.format(timestamp.toDate()),
-              overflow: TextOverflow.ellipsis,
+          subtitle: Text(
+            timeago.format(timestamp.toDate()),
+            overflow: TextOverflow.ellipsis,
           ),
           trailing: mediaPreview,
         ),
@@ -195,22 +196,23 @@ class _ActivityFeedItem extends State<ActivityFeedItem> {
   showPost(context, type) {
     if (!seen) {
       activityFeedRef
-        .doc(currentUser.id)
-        .collection("feedItems")
-        .where("type", isEqualTo: type)
-        .where("postId", isEqualTo: postId)
-        .get().then((doc) => 
-          doc.docs.forEach((document) {
-          activityFeedRef
-            .doc(currentUser.id)
-            .collection("feedItems")
-            .doc(document.id)
-            .update({"seen": true});
-          })
-        );
+          .doc(currentUser.id)
+          .collection("feedItems")
+          .where("type", isEqualTo: type)
+          .where("postId", isEqualTo: postId)
+          .get()
+          .then((doc) => doc.docs.forEach((document) {
+                activityFeedRef
+                    .doc(currentUser.id)
+                    .collection("feedItems")
+                    .doc(document.id)
+                    .update({"seen": true});
+              }));
     }
-    Navigator.push(context, MaterialPageRoute(builder: (context) =>
-      PostScreen(userId: userId, postId: postId),
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => PostScreen(userId: userId, postId: postId),
       ),
     );
   }
@@ -218,13 +220,15 @@ class _ActivityFeedItem extends State<ActivityFeedItem> {
   showProfile(BuildContext context, {required String profileId}) {
     if (!seen) {
       activityFeedRef
-        .doc(currentUser.id)
-        .collection("feedItems")
-        .doc(userId)
-        .update({"seen": true});
-    } 
-    Navigator.push(context, MaterialPageRoute(builder: (context) => 
-    Profile(profileId: profileId),
+          .doc(currentUser.id)
+          .collection("feedItems")
+          .doc(userId)
+          .update({"seen": true});
+    }
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => Profile(profileId: profileId),
       ),
     );
   }
@@ -234,24 +238,25 @@ class _ActivityFeedItem extends State<ActivityFeedItem> {
         .doc(currentUser.id)
         .collection("feedItems")
         .where("type", isEqualTo: "message")
-        .get().then((doc) => 
-          doc.docs.forEach((document) {
-          activityFeedRef
-            .doc(currentUser.id)
-            .collection("feedItems")
-            .doc(document.id)
-            .update({"seen": true});
-          })
-        );
+        .get()
+        .then((doc) => doc.docs.forEach((document) {
+              activityFeedRef
+                  .doc(currentUser.id)
+                  .collection("feedItems")
+                  .doc(document.id)
+                  .update({"seen": true});
+            }));
   }
 
   showMessageScreen(BuildContext context, {required String profileId}) {
     if (!seen) {
       setSeenInFirebase();
-    } 
-    Navigator.push(context, MaterialPageRoute(builder: (context) => 
-      MessageScreen(otherUserId: profileId),
+    }
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => MessageScreen(otherUserId: profileId),
       ),
     );
-  }  
+  }
 }

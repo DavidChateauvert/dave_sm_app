@@ -1,5 +1,4 @@
 // ignore_for_file: prefer_const_constructors
-
 import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -12,6 +11,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:sm_app/api/firebase_api.dart';
 import 'package:sm_app/pages/home.dart';
 import 'package:sm_app/widgets/progress.dart';
 import 'package:uuid/uuid.dart';
@@ -36,10 +36,52 @@ class _UploadState extends State<Upload>
   GlobalKey<FlutterMentionsState> _mentionsKey =
       GlobalKey<FlutterMentionsState>();
   Size size = Size(9, 12);
-  TextEditingController searchController = TextEditingController();
-  Future<QuerySnapshot>? searchResultsFuture;
+  FocusNode captionFocusNode = FocusNode();
+  List<Map<String, String>> mentionsDataInit = [];
   List<Map<String, String>> mentionsData = [];
   List<Map<String, String>> mentionsDataAdded = [];
+  late String otherUserToken;
+
+  @override
+  void initState() {
+    super.initState();
+    getFriends();
+    // getFollowers();
+    // getFollowing();
+  }
+
+  getFriends() async {
+    QuerySnapshot followingSnapshot =
+        await friendsRef.doc(currentUser.id).collection('userFriends').get();
+
+    List<String> userIds = [];
+
+    followingSnapshot.docs.forEach((doc) {
+      userIds.add(doc.id);
+    });
+
+    QuerySnapshot userSnapshot = await usersRef.get();
+
+    List<Map<String, String>> newData = [];
+
+    userSnapshot.docs.forEach((doc) {
+      if (userIds.contains(doc['id'])) {
+        newData.add({
+          'id': doc['id'],
+          'display': doc['displayName'],
+        });
+      }
+    });
+
+    setState(() {
+      mentionsDataInit = newData;
+    });
+  }
+
+  handleTakePhotoFunctions() async {
+    await handleTakePhoto();
+    await compressImage();
+  }
 
   handleTakePhoto() async {
     Navigator.pop(context);
@@ -52,6 +94,11 @@ class _UploadState extends State<Upload>
     setState(() {
       file = File(xfile!.path);
     });
+  }
+
+  handleChooseFromGalleryFunctions() async {
+    await handleChooseFromGallery();
+    await compressImage();
   }
 
   handleChooseFromGallery() async {
@@ -67,6 +114,17 @@ class _UploadState extends State<Upload>
     });
   }
 
+  compressImage() async {
+    final tempDir = await getTemporaryDirectory();
+    final path = tempDir.path;
+    Im.Image? imageFile = Im.decodeImage(file!.readAsBytesSync());
+    final compressedImageFile = File('$path/img_$postId.jpg')
+      ..writeAsBytesSync(Im.encodeJpg(imageFile!, quality: 85));
+    setState(() {
+      file = compressedImageFile;
+    });
+  }
+
   selectImage(parentContext) {
     return showDialog(
         context: parentContext,
@@ -75,11 +133,11 @@ class _UploadState extends State<Upload>
             title: Text("Create Post"),
             children: <Widget>[
               SimpleDialogOption(
-                onPressed: () => handleTakePhoto(),
+                onPressed: () => handleTakePhotoFunctions(),
                 child: Text("Photo with camera"),
               ),
               SimpleDialogOption(
-                onPressed: () => handleChooseFromGallery(),
+                onPressed: () => handleChooseFromGalleryFunctions(),
                 child: Text("Image from Gallery"),
               ),
               SimpleDialogOption(
@@ -97,18 +155,8 @@ class _UploadState extends State<Upload>
     });
   }
 
-  compressImage() async {
-    final tempDir = await getTemporaryDirectory();
-    final path = tempDir.path;
-    Im.Image? imageFile = Im.decodeImage(file!.readAsBytesSync());
-    final compressedImageFile = File('$path/img_$postId.jpg')
-      ..writeAsBytesSync(Im.encodeJpg(imageFile!, quality: 85));
-    setState(() {
-      file = compressedImageFile;
-    });
-  }
-
   createPostInFirestore({required String caption, required String mediaUrl}) {
+    captionFocusNode.unfocus();
     Map<String, String> mentionsMap =
         mentionsDataAdded.fold({}, (map, mention) {
       map[mention['id']!] = mention['display']!;
@@ -122,7 +170,7 @@ class _UploadState extends State<Upload>
         .set({
       "postId": postId,
       "ownerId": widget.currentUser?.id,
-      "username": widget.currentUser?.username,
+      "username": widget.currentUser?.displayName,
       "mediaUrl": mediaUrl,
       "mediaUrlWidth": size.width,
       "mediaUrlHeight": size.height,
@@ -132,6 +180,28 @@ class _UploadState extends State<Upload>
       "comments": {},
       "commentCount": 0,
       "mentions": mentionsMap,
+    });
+
+    for (var mention in mentionsMap.entries) {
+      activityFeedRef.doc(mention.key).collection("feedItems").add({
+        "type": "mention",
+        "username": currentUser.displayName,
+        "userId": currentUser.id,
+        "userProfileImg": currentUser.photoUrl,
+        "postId": postId,
+        "seen": false,
+        // "mediaUrl": mediaUrl,
+        "timestamp": DateTime.now(),
+      });
+      FirebaseApi()
+          .sendMentionsNotification(mention.key, currentUser.displayName);
+    }
+  }
+
+  Future<void> initializeToken(String otherUserId) async {
+    String userTokens = await FirebaseApi().getToken(otherUserId) ?? "";
+    setState(() {
+      otherUserToken = userTokens;
     });
   }
 
@@ -160,12 +230,13 @@ class _UploadState extends State<Upload>
         createPostInFirestore(
             caption: _mentionsKey.currentState!.controller!.text, mediaUrl: '');
       } else {
-        await compressImage();
+        // await compressImage();
         String mediaUrl = await uploadImage(file);
         createPostInFirestore(
             caption: _mentionsKey.currentState!.controller!.text,
             mediaUrl: mediaUrl);
       }
+
       setState(() {
         file = null;
         isUploading = false;
@@ -186,65 +257,16 @@ class _UploadState extends State<Upload>
   }
 
   Future<void> handleSearch(String query) async {
-    // QuerySnapshot friendsId =
-    //     await friendsRef.doc(currentUser.id).collection("userFriends").get();
-
-    // List<String> userIds = [];
-
-    // friendsId.docs.forEach((doc) {
-    //   userIds.add(doc.id);
-    // });
-    // print(userIds);
-
     String lowercasedQuery = query.toLowerCase();
-    QuerySnapshot users = await usersRef
-        //.where('id', whereIn: userIds)
-        .orderBy("displayNameLower")
-        .startAt([lowercasedQuery]).endAt([lowercasedQuery + '\uf8ff']).get();
 
-    List<Map<String, String>> newData = [];
-
-    // Process QuerySnapshot and populate newData with the required data format
-    for (QueryDocumentSnapshot user in users.docs) {
-      newData.add({
-        'id': user.get('id'),
-        'display': user.get('displayName'),
-      });
-    }
+    List<Map<String, String>> filteredData = mentionsDataInit
+        .where(
+            (user) => user['display']!.toLowerCase().contains(lowercasedQuery))
+        .toList();
 
     setState(() {
-      mentionsData = newData;
+      mentionsData = filteredData;
     });
-  }
-
-  clearSearch() {
-    setState(() {
-      searchController.clear();
-    });
-    handleSearch(searchController.text);
-  }
-
-  buildSearchField() {
-    return TextFormField(
-      controller: searchController,
-      style: TextStyle(color: Colors.black),
-      decoration: InputDecoration(
-        prefixIconColor: Colors.purple,
-        suffixIconColor: Colors.purple,
-        filled: true,
-        prefixIcon: Icon(
-          Icons.account_box,
-          size: 28.0,
-        ),
-        suffixIcon: IconButton(
-          icon: Icon(Icons.clear),
-          onPressed: () => clearSearch(),
-        ),
-        hintStyle: TextStyle(color: Colors.black),
-      ),
-      onChanged: (query) => handleSearch(query),
-      onFieldSubmitted: (query) => handleSearch(query),
-    );
   }
 
   buildUploadForm() {
@@ -255,10 +277,15 @@ class _UploadState extends State<Upload>
     return Portal(
       child: MaterialApp(
         home: Scaffold(
+          backgroundColor: Theme.of(context).colorScheme.background,
           appBar: AppBar(
-            backgroundColor: Theme.of(context).primaryColor,
+            backgroundColor: Theme.of(context).colorScheme.primary,
             leading: IconButton(
-              icon: Icon(Icons.add_a_photo_outlined, color: Colors.white),
+              icon: Icon(
+                Icons.add_a_photo_outlined,
+                color: Colors.white,
+                size: 30.0,
+              ),
               onPressed: () => selectImage(context),
             ),
             title: Text(
@@ -274,7 +301,7 @@ class _UploadState extends State<Upload>
                   style: TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
-                    fontSize: 20.0,
+                    fontSize: 22.0,
                   ),
                 ),
               ),
@@ -294,22 +321,28 @@ class _UploadState extends State<Upload>
                 title: Container(
                   width: 250.0,
                   child: FlutterMentions(
+                    focusNode: captionFocusNode,
                     key: _mentionsKey,
+                    style: TextStyle(
+                      overflow: TextOverflow.visible,
+                    ),
                     decoration: InputDecoration(
                       hintText: "Write a post...",
                       border: InputBorder.none,
                     ),
                     suggestionListHeight: 200,
                     suggestionListDecoration: BoxDecoration(
-                      color: Theme.of(context).primaryColor,
+                      color: Theme.of(context).colorScheme.primary,
                       borderRadius: BorderRadius.circular(7.0),
                     ),
+                    maxLines: null,
+                    keyboardType: TextInputType.text,
                     mentions: [
                       Mention(
                         trigger: '@',
                         disableMarkup: false,
                         style: TextStyle(
-                          color: Colors.purple,
+                          color: Theme.of(context).colorScheme.primary,
                         ),
                         data: mentionsData,
                         matchAll: false,
@@ -317,9 +350,9 @@ class _UploadState extends State<Upload>
                           return Container(
                             decoration: BoxDecoration(
                                 color:
-                                    const Color.fromARGB(255, 209, 209, 209)),
+                                    const Color.fromARGB(255, 244, 186, 184)),
                             height: 50.0,
-                            width: 100.0,
+                            width: 10.0,
                             alignment: Alignment.centerLeft,
                             child: Padding(
                               padding: EdgeInsets.only(left: 10.0),

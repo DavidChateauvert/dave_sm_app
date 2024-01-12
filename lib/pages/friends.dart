@@ -10,7 +10,7 @@ import '../models/user.dart';
 class Friends extends StatefulWidget {
   final String profileId;
 
-  Friends({ required this.profileId });
+  Friends({required this.profileId});
 
   @override
   _Friends createState() => _Friends();
@@ -19,7 +19,6 @@ class Friends extends StatefulWidget {
 class _Friends extends State<Friends> {
   List<UserResult> userResult = [];
 
-
   buildFollowing() {
     // ignore: unnecessary_null_comparison
     if (userResult == null) {
@@ -27,50 +26,48 @@ class _Friends extends State<Friends> {
     } else if (userResult.isEmpty) {
       return circularProgress();
     }
-      return ListView(
-          children: userResult,
-      );
+    return ListView(
+      children: userResult,
+    );
   }
 
   getFriends() async {
-  QuerySnapshot followingSnapshot = await friendsRef
-    .doc(currentUser.id)
-    .collection('userFriends')
-    .get();
+    QuerySnapshot friendsSnapshot =
+        await friendsRef.doc(currentUser.id).collection('userFriends').get();
 
-  List<String> userIds = [];
+    List<String> userIds = [];
 
-  followingSnapshot.docs.forEach((doc) {
-    userIds.add(doc.id);
-  });
-
-  QuerySnapshot userSnapshot = await usersRef.get();
-
-  List<UserResult> userResults = [];
-
-  userSnapshot.docs.forEach((doc) {
-    if (userIds.contains(doc['id'])) {
-      User user = User.fromDocument(doc);
-      userResults.add(UserResult(user));
-    }
-  });
-
-  if (mounted) {
-    setState(() {
-      this.userResult = userResults;
+    friendsSnapshot.docs.forEach((doc) {
+      userIds.add(doc.id);
     });
+
+    QuerySnapshot userSnapshot = await usersRef.get();
+
+    List<UserResult> userResults = [];
+
+    userSnapshot.docs.forEach((doc) {
+      if (userIds.contains(doc['id'])) {
+        User user = User.fromDocument(doc);
+        userResults.add(UserResult(user));
+      }
+    });
+
+    if (mounted) {
+      setState(() {
+        this.userResult = userResults;
+      });
+    }
   }
-}
+
   @override
   void initState() {
     super.initState();
     getFriends();
   }
 
-
   @override
   Widget build(context) {
-    getFriends();    
+    getFriends();
 
     return Scaffold(
       appBar: AppBar(
@@ -78,10 +75,7 @@ class _Friends extends State<Friends> {
         title: Text(
           // ignore: prefer_if_null_operators
           "Friends",
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 30.0
-          ),
+          style: const TextStyle(color: Colors.white, fontSize: 30.0),
           overflow: TextOverflow.ellipsis,
         ),
         centerTitle: true,
@@ -100,26 +94,32 @@ class UserResult extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Theme.of(context).primaryColor.withOpacity(0.7),
-      child: Column(children: <Widget>[
-        GestureDetector(
-          onTap: () => showProfile(context, profileId: user.id),
-          child: ListTile(
-            leading: CircleAvatar(
-              backgroundColor: Colors.grey,
-              backgroundImage: CachedNetworkImageProvider(user.photoUrl),
-            ),
-            title: Text(user.displayName, style: TextStyle(color: Colors.white,
-            fontWeight: FontWeight.bold),),
-            subtitle: Text(user.username, style: TextStyle(color: Colors.white),
+      color: Theme.of(context).colorScheme.primary.withOpacity(0.7),
+      child: Column(
+        children: <Widget>[
+          GestureDetector(
+            onTap: () => showProfile(context, profileId: user.id),
+            child: ListTile(
+              leading: CircleAvatar(
+                backgroundColor: Colors.grey,
+                backgroundImage: CachedNetworkImageProvider(user.photoUrl),
+              ),
+              title: Text(
+                user.displayName,
+                style:
+                    TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+              ),
+              subtitle: Text(
+                user.username,
+                style: TextStyle(color: Colors.white),
+              ),
             ),
           ),
-        ),
-        Divider(
-          height: 2.0,
-          color: Colors.white54,
-        )
-      ],
+          Divider(
+            height: 2.0,
+            color: Colors.white54,
+          )
+        ],
       ),
     );
   }

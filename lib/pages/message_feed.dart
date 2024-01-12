@@ -1,27 +1,26 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:sm_app/pages/home.dart';
-import 'package:sm_app/pages/search_message.dart';
-import 'package:sm_app/widgets/activityFeedItems.dart';
 import 'package:sm_app/widgets/header.dart';
+import 'package:sm_app/widgets/messageFeedItems.dart';
 import 'package:sm_app/widgets/progress.dart';
 
-class ActivityFeed extends StatefulWidget {
+class MessageFeed extends StatefulWidget {
   @override
-  _ActivityFeed createState() => _ActivityFeed();
+  _MessageFeed createState() => _MessageFeed();
 }
 
-class _ActivityFeed extends State<ActivityFeed> {
-  getActivityFeed() async {
-    QuerySnapshot snapshot = await activityFeedRef
+class _MessageFeed extends State<MessageFeed> {
+  getMessageFeed() async {
+    QuerySnapshot snapshot = await messagesRef
         .doc(currentUser.id)
-        .collection('feedItems')
+        .collection('and')
         .orderBy('timestamp', descending: true)
         .limit(50)
         .get();
-    List<ActivityFeedItem> feedItems = [];
+    List<MessageFeedItem> feedItems = [];
     snapshot.docs.forEach((doc) {
-      feedItems.add(ActivityFeedItem.fromDocument(doc));
+      feedItems.add(MessageFeedItem.fromDocument(doc));
     });
     return feedItems;
   }
@@ -29,11 +28,10 @@ class _ActivityFeed extends State<ActivityFeed> {
   @override
   Widget build(context) {
     return Scaffold(
-      appBar:
-          header(context, titleText: "Notifications", removeBackButton: true),
+      appBar: header(context, titleText: "Messages", showMessageButton: false),
       body: Container(
         child: FutureBuilder(
-          future: getActivityFeed(),
+          future: getMessageFeed(),
           builder: (context, snapshot) {
             if (!snapshot.hasData) {
               return circularProgress();
@@ -46,12 +44,4 @@ class _ActivityFeed extends State<ActivityFeed> {
       ),
     );
   }
-}
-
-showSearchMessage(BuildContext context) {
-  Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => SearchMessage(),
-      ));
 }

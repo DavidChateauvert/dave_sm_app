@@ -1,6 +1,13 @@
+import 'dart:io';
+import 'dart:ui';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:image/image.dart' as Im;
+import 'package:image_picker/image_picker.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:sm_app/pages/home.dart';
 import 'package:sm_app/widgets/progress.dart';
 
@@ -9,7 +16,7 @@ import '../models/user.dart';
 class EditProfile extends StatefulWidget {
   final String currentUserId;
 
-  EditProfile({ required this.currentUserId });
+  EditProfile({required this.currentUserId});
 
   @override
   _EditProfileState createState() => _EditProfileState();
@@ -17,15 +24,17 @@ class EditProfile extends StatefulWidget {
 
 class _EditProfileState extends State<EditProfile> {
   final _scaffoldKey = GlobalKey<ScaffoldState>();
-  TextEditingController usernameController = TextEditingController();
-  TextEditingController displayNameController = TextEditingController();
+  TextEditingController firstNameController = TextEditingController();
+  TextEditingController lastNameController = TextEditingController();
   TextEditingController bioController = TextEditingController();
   bool isLoading = false;
+  bool pictureIsLoading = false;
   late User user;
-  bool _usernameValid = true;
-  bool _displayNameValid = true;
+  bool _firstnameValid = true;
+  bool _lastNameValid = true;
   bool _bioValid = true;
-
+  File? file;
+  String newPhotoUrl = "";
 
   @override
   void initState() {
@@ -40,53 +49,64 @@ class _EditProfileState extends State<EditProfile> {
 
     DocumentSnapshot doc = await usersRef.doc(widget.currentUserId).get();
     user = User.fromDocument(doc);
-    usernameController.text = user.username;
-    displayNameController.text = user.displayName;
+    firstNameController.text = user.firstName;
+    lastNameController.text = user.lastName;
     bioController.text = user.bio;
+    newPhotoUrl = user.photoUrl;
     setState(() {
       isLoading = false;
     });
   }
 
-  Column buildUsernameField() {
+  buildName() {
+    String displayName =
+        "${firstNameController.text} ${lastNameController.text}";
+    return Text(
+      displayName,
+      style: TextStyle(
+        fontSize: 20.0,
+        fontWeight: FontWeight.bold,
+      ),
+    );
+  }
+
+  Column buildFirstNameField() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         const Padding(
           padding: EdgeInsets.only(top: 12.0),
           child: Text(
-            "Username",
+            "First Name",
             style: TextStyle(color: Colors.grey),
           ),
         ),
         TextField(
-          controller: usernameController,
+          controller: firstNameController,
           decoration: InputDecoration(
-            hintText: "Update your username",
-            errorText: _usernameValid ? null : "Username Too Short"
-          ),
+              hintText: "Update your fist Name",
+              errorText: _firstnameValid ? null : "First Name Too Short"),
         ),
       ],
     );
   }
 
-  Column buildDisplayNameField() {
+  Column buildLastNameField() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         const Padding(
           padding: EdgeInsets.only(top: 12.0),
           child: Text(
-            "Display Name",
+            "Last Name",
             style: TextStyle(color: Colors.grey),
           ),
         ),
         TextField(
-          controller: displayNameController,
+          controller: lastNameController,
           decoration: InputDecoration(
-            hintText: "Update your display name",
-            errorText: _displayNameValid ? null : "Display Name Too Short"
-          ),
+              hintText: "Update your last name",
+              errorText: _lastNameValid ? null : "Last Name Too Short"),
         ),
       ],
     );
@@ -106,9 +126,8 @@ class _EditProfileState extends State<EditProfile> {
         TextField(
           controller: bioController,
           decoration: InputDecoration(
-            hintText: "Update your bio",
-            errorText: _bioValid ? null : "Bio is Too Long"
-          ),
+              hintText: "Update your bio",
+              errorText: _bioValid ? null : "Bio is Too Long"),
         ),
       ],
     );
@@ -116,23 +135,30 @@ class _EditProfileState extends State<EditProfile> {
 
   updateProfileData() {
     setState(() {
-      usernameController.text.trim().length < 3 || 
-      usernameController.text.isEmpty ? _usernameValid = false : 
-      _usernameValid = true;
-      displayNameController.text.trim().length < 3 || 
-      displayNameController.text.isEmpty ? _displayNameValid = false : 
-      _displayNameValid = true;
-      bioController.text.trim().length > 100 ? _bioValid = false :
-      _bioValid = true;
+      firstNameController.text.trim().length < 1 ||
+              firstNameController.text.isEmpty
+          ? _firstnameValid = false
+          : _firstnameValid = true;
+      lastNameController.text.trim().length < 2 ||
+              lastNameController.text.isEmpty
+          ? _lastNameValid = false
+          : _lastNameValid = true;
+      bioController.text.trim().length > 100
+          ? _bioValid = false
+          : _bioValid = true;
     });
 
-    if (_usernameValid && _displayNameValid && _bioValid) {
+    String displayName =
+        "${firstNameController.text} ${lastNameController.text}";
+
+    if (_firstnameValid && _lastNameValid && _bioValid) {
       usersRef.doc(widget.currentUserId).update({
-        "username": usernameController.text,
-        "usernameLower": usernameController.text.toLowerCase(),
-        "displayName": displayNameController.text,
-        "displayNameLower": displayNameController.text.toLowerCase(),
+        "firstName": firstNameController.text,
+        "lastName": lastNameController.text,
+        "displayName": displayName,
+        "displayNameLower": displayName.toLowerCase(),
         "bio": bioController.text,
+        "photoUrl": newPhotoUrl,
       });
       final scaffoldMessenger = ScaffoldMessenger.of(context);
       final snackBar = SnackBar(content: Text('Profile Updated!'));
@@ -142,9 +168,102 @@ class _EditProfileState extends State<EditProfile> {
 
   logout() async {
     await googleSignIn.signOut();
-    Navigator.push(context, MaterialPageRoute(builder: (context) => 
-      Home()
+    Navigator.pop(context);
+    Navigator.pushReplacement(
+      context,
+      PageRouteBuilder(
+        pageBuilder: (context, animation1, animation2) => Home(),
+        transitionDuration: Duration(seconds: 0),
+      ),
+    );
+    // Navigator.push(context, MaterialPageRoute(builder: (context) => Home()));
+  }
+
+  handleTakePhoto() async {
+    final ImagePicker _imagePicker = ImagePicker();
+    XFile? xfile = (await _imagePicker.pickImage(
+      source: ImageSource.camera,
+      maxHeight: 960.0,
+      maxWidth: 675.0,
     ));
+    handlePictureUpload(File(xfile!.path));
+  }
+
+  handleChooseFromGallery() async {
+    ImagePicker _imagePicker = ImagePicker();
+    XFile? xfile = (await _imagePicker.pickImage(
+      source: ImageSource.gallery,
+      maxHeight: 675.0,
+      maxWidth: 960,
+    ));
+    handlePictureUpload(File(xfile!.path));
+  }
+
+  handlePictureUpload(file) async {
+    setState(() {
+      pictureIsLoading = true;
+    });
+    await compressImage(file);
+    String mediaUrl = await uploadImage(file);
+    setState(() {
+      newPhotoUrl = mediaUrl;
+      pictureIsLoading = false;
+    });
+  }
+
+  compressImage(File file) async {
+    final tempDir = await getTemporaryDirectory();
+    final path = tempDir.path;
+    Im.Image? imageFile = Im.decodeImage(file.readAsBytesSync());
+    final compressedImageFile = File('$path/img_${user.id}.jpg')
+      ..writeAsBytesSync(Im.encodeJpg(imageFile!, quality: 85));
+    setState(() {
+      file = compressedImageFile;
+    });
+  }
+
+  Future<String> uploadImage(imageFile) async {
+    UploadTask uploadTask = storageRef
+        .child("profilePictures/${user.id}_${user.displayName}.jpg")
+        .putFile(imageFile);
+    TaskSnapshot storageSnap = await uploadTask;
+    String downloadUrl = await storageSnap.ref.getDownloadURL();
+    return downloadUrl;
+  }
+
+  selectImage(parentContext) {
+    showDialog(
+      context: parentContext,
+      builder: (context) {
+        return SimpleDialog(
+          title: Text("Create Post"),
+          children: <Widget>[
+            SimpleDialogOption(
+              onPressed: () {
+                handleTakePhoto();
+                Navigator.pop(context, "takePhoto");
+              },
+              child: Text("Photo with camera"),
+            ),
+            SimpleDialogOption(
+              onPressed: () {
+                handleChooseFromGallery();
+                Navigator.pop(context, "chooseFromGallery");
+              },
+              child: Text("Image from Gallery"),
+            ),
+            SimpleDialogOption(
+              child: Text("Cancel"),
+              onPressed: () => Navigator.pop(context, "cancel"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  handleChangePicture() async {
+    await selectImage(context);
   }
 
   @override
@@ -152,82 +271,129 @@ class _EditProfileState extends State<EditProfile> {
     return Scaffold(
       key: _scaffoldKey,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).colorScheme.primary,
         title: const Text(
           "Edit Profile",
-          style: TextStyle(
-            color: Colors.black,
-          ),
+          style: const TextStyle(color: Colors.white, fontSize: 30.0),
         ),
         actions: <Widget>[
           IconButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(context, user),
             icon: Icon(Icons.done),
             iconSize: 30.0,
             color: Colors.green,
           ),
         ],
       ),
-      body: isLoading ? 
-      circularProgress() : 
-      ListView(
-        children: <Widget>[
-          Container(
-            child: Column(
+      body: isLoading
+          ? circularProgress()
+          : ListView(
               children: <Widget>[
-                Padding(
-                  padding: const EdgeInsets.only(top: 16.0, bottom: 8.0),
-                  child: CircleAvatar(
-                    backgroundImage: CachedNetworkImageProvider(user.photoUrl),
-                  ),
-                ),
-                Padding(
-                  padding: EdgeInsets.all(16.0),
+                Container(
                   child: Column(
                     children: <Widget>[
-                      buildUsernameField(),
-                      buildDisplayNameField(),
-                      buildBioField(),
-                    ],
-                  ),
-                ),
-                ElevatedButton(
-                  onPressed: () => updateProfileData(),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    foregroundColor: Theme.of(context).primaryColor,
-                    textStyle: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  child: const Text(
-                    "Update profile",
-                    style: TextStyle(
-                      color: Color.fromARGB(255, 89, 36, 99),
-                      fontSize: 20.0,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: TextButton.icon(
-                    onPressed: () => logout(),
-                    icon: const Icon(Icons.cancel, color: Colors.red),
-                    label: const Text(
-                      "Logout",
-                      style: TextStyle(
-                        color: Colors.red,
-                        fontSize: 20.0,
+                      const SizedBox(height: 16.0),
+                      Container(
+                        height: 80,
+                        child: pictureIsLoading
+                            ? circularProgress()
+                            : CircleAvatar(
+                                radius: 40.0,
+                                backgroundColor: Colors.grey,
+                                backgroundImage: newPhotoUrl.isNotEmpty
+                                    ? CachedNetworkImageProvider(newPhotoUrl)
+                                    : user.photoUrl.isNotEmpty
+                                        ? CachedNetworkImageProvider(
+                                            user.photoUrl)
+                                        : null,
+                              ),
                       ),
-                    ),
+                      const SizedBox(height: 8.0),
+                      ElevatedButton(
+                        onPressed: () => handleChangePicture(),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          foregroundColor:
+                              Theme.of(context).colorScheme.primary,
+                          textStyle: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        child: Text(
+                          "Change Profile Picture",
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.primary,
+                            fontSize: 16.0,
+                            fontWeight: FontWeight.normal,
+                          ),
+                        ),
+                      ),
+                      Padding(
+                        padding: EdgeInsets.all(16.0),
+                        child: Column(
+                          children: <Widget>[
+                            buildName(),
+                            buildFirstNameField(),
+                            buildLastNameField(),
+                            buildBioField(),
+                          ],
+                        ),
+                      ),
+                      ElevatedButton(
+                        onPressed: () => updateProfileData(),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          foregroundColor:
+                              Theme.of(context).colorScheme.primary,
+                          textStyle: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        child: Text(
+                          "Update Profile",
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.primary,
+                            fontSize: 20.0,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      // Padding(
+                      //   padding: const EdgeInsets.only(top: 16.0),
+                      //   child: TextButton.icon(
+                      //     onPressed: () =>
+                      //         Provider.of<ThemeProvider>(context, listen: false)
+                      //             .toggleTheme(),
+                      //     icon: Icon(CupertinoIcons.brightness_solid,
+                      //         color: Theme.of(context).colorScheme.secondary),
+                      //     label: Text(
+                      //       "Change theme",
+                      //       style: TextStyle(
+                      //         color: Theme.of(context).colorScheme.secondary,
+                      //         fontSize: 20.0,
+                      //       ),
+                      //     ),
+                      //   ),
+                      // ),
+                      // Padding(
+                      //   padding: const EdgeInsets.only(top: 16.0),
+                      //   child: TextButton.icon(
+                      //     onPressed: () => logout(),
+                      //     icon: const Icon(Icons.cancel, color: Colors.red),
+                      //     label: const Text(
+                      //       "Logout",
+                      //       style: TextStyle(
+                      //         color: Colors.red,
+                      //         fontSize: 20.0,
+                      //       ),
+                      //     ),
+                      //   ),
+                      // ),
+                    ],
                   ),
                 ),
               ],
             ),
-          ),
-        ],
-      ),
     );
   }
 }

@@ -1,13 +1,21 @@
 // ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables, use_build_context_synchronously
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_app_badger/flutter_app_badger.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:provider/provider.dart';
+import 'package:sm_app/api/firebase_api.dart';
+import 'package:sm_app/api/notification_api.dart';
+import 'package:sm_app/pages/message_feed.dart';
+import 'package:sm_app/pages/message_screen.dart';
 import 'package:sm_app/pages/profile.dart';
 import 'package:sm_app/pages/search.dart';
 import 'package:sm_app/pages/timeline.dart';
 import 'package:sm_app/pages/upload.dart';
+import 'package:sm_app/providers/notification_provider.dart';
 import '../models/user.dart';
 import 'activity_feed.dart';
 import 'create_account.dart';
@@ -24,6 +32,7 @@ final timelineRef = FirebaseFirestore.instance.collection('timeline');
 final messagesRef = FirebaseFirestore.instance.collection('messages');
 final friendsRef = FirebaseFirestore.instance.collection('friends');
 final tokensRef = FirebaseFirestore.instance.collection('tokens');
+final reportsRef = FirebaseFirestore.instance.collection('reports');
 final DateTime timestamp = DateTime.now();
 late User currentUser;
 
@@ -34,20 +43,31 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   bool isAuth = false;
-  PageController pageController = PageController();
+  PageController pageController =
+      PageController(initialPage: 0, keepPage: false);
   int pageIndex = 0;
+  bool isCreatingUser = false;
 
   @override
   void initState() {
     //initializeFirebase();
     super.initState();
+    initLocalNotifications();
+    FirebaseMessaging.onMessage.listen((message) {
+      handleNotificationInside(message);
+    });
+    FirebaseMessaging.onMessageOpenedApp.listen((message) {
+      handleNotificationOutside(message);
+    });
+    FirebaseMessaging.onBackgroundMessage(handleBackGroundMessage);
+    googleSignIn.signIn();
     // Detects when user signed in
     googleSignIn.onCurrentUserChanged.listen((account) {
       handleSignIn();
     }, onError: (err) {
       print('Error signing in: $err');
     });
-    //Reauthenticated user when pp is opened
+    // Reauthenticated user when pp is opened
     googleSignIn.signInSilently(suppressErrors: false).then((account) {
       handleSignIn();
     }).catchError((err) {
@@ -55,22 +75,17 @@ class _HomeState extends State<Home> {
     });
   }
 
-  // void initializeFirebase() async {
-  //   await Firebase.initializeApp();
-  // }
+  void initLocalNotifications() async {
+    await NotificationsApi.init();
+  }
 
-  // handleSignIn(GoogleSignInAccount? account) async {
-  //   if (account != null) {
-  //       await createUserInFirestore();
-  //       setState(() {
-  //         isAuth = true;
-  //       });
-  //     } else {
-  //       setState(() {
-  //         isAuth = false;
-  //       });
-  //     }
-  // }
+  Future<void> handleBackGroundMessage(RemoteMessage message) async {
+    final notificationProvider =
+        Provider.of<NotificationProvider>(context, listen: false);
+
+    notificationProvider.incrementNotificationCount();
+    FlutterAppBadger.updateBadgeCount(notificationProvider.notificationCount);
+  }
 
   handleSignIn() async {
     try {
@@ -78,10 +93,13 @@ class _HomeState extends State<Home> {
       if (account == null) {
         await googleSignIn.signIn();
       }
-      await createUserInFirestore();
-      setState(() {
-        isAuth = true;
-      });
+      if (!isCreatingUser) {
+        // Set the flag to indicate user creation is in progress
+        await createUserInFirestore();
+        setState(() {
+          isAuth = true;
+        });
+      }
     } catch (error) {
       print('Error signing in: $error');
       setState(() {
@@ -96,21 +114,31 @@ class _HomeState extends State<Home> {
     if (user != null) {
       DocumentSnapshot doc = await usersRef.doc(user.id).get();
       if (!doc.exists) {
+        setState(() {
+          isCreatingUser = true;
+        });
         // 2 : If they don't exist, take them to the create account page
-        final username = await Navigator.push(
-            context, MaterialPageRoute(builder: (context) => CreateAccount()));
+        final User newUser = await Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) => CreateAccount(
+                      userId: user.id,
+                    )));
+        print(newUser.displayName);
         // 3 : Get username from create account, use it to make new user document in users collection
         usersRef.doc(user.id).set({
           "id": user.id,
-          "username": username,
-          "usernameLower": username.toString().toLowerCase(),
-          "photoUrl": user.photoUrl,
+          "username": newUser.displayName,
+          "usernameLower": newUser.displayName.toString().toLowerCase(),
+          "photoUrl": newUser.photoUrl != "" ? newUser.photoUrl : user.photoUrl,
           "email": user.email,
-          "displayName": user.displayName,
-          "displayNameLower": user.displayName?.toLowerCase(),
-          "bio": "",
+          "firstName": newUser.firstName,
+          "lastName": newUser.lastName,
+          "displayName": newUser.displayName,
+          "displayNameLower": newUser.displayName.toLowerCase(),
+          "bio": newUser.bio,
           "timestamp": timestamp,
-          "verifed": false,
+          "verified": false,
         });
         // Make new user their own follower
         await followersRef
@@ -120,9 +148,13 @@ class _HomeState extends State<Home> {
             .set({});
 
         doc = await usersRef.doc(user.id).get();
+        setState(() {
+          isCreatingUser = false;
+        });
       }
       currentUser = User.fromDocument(doc);
-      // await FirebaseApi().initMessaging(currentUser.id);
+      await FirebaseApi().initMessaging(currentUser.id);
+      print("Init messaging");
     }
   }
 
@@ -146,12 +178,36 @@ class _HomeState extends State<Home> {
     });
   }
 
-  onTap(int pageIndex) {
-    pageController.animateToPage(
-      pageIndex,
-      duration: Duration(milliseconds: 250),
-      curve: Curves.easeInOut,
+  void handleNotificationInside(RemoteMessage message) {
+    String title = message.notification?.title ?? "";
+    String body = message.notification?.body ?? "";
+    NotificationsApi.showNotification(id: 1, title: title, body: body);
+  }
+
+  void handleNotificationOutside(RemoteMessage message) {
+    String screenValue = message.data['screen'] ?? "";
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (context) => Home()),
+      (route) => false,
     );
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => MessageFeed(),
+      ),
+    );
+    if (screenValue != "") {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => MessageScreen(otherUserId: screenValue),
+        ),
+      );
+    }
+  }
+
+  onTap(int pageIndex) {
+    pageController.jumpToPage(pageIndex);
   }
 
   Scaffold buildAuthScreen() {
@@ -171,22 +227,29 @@ class _HomeState extends State<Home> {
       bottomNavigationBar: CupertinoTabBar(
         currentIndex: pageIndex,
         onTap: onTap,
-        activeColor: Theme.of(context).primaryColor,
+        activeColor: Theme.of(context).colorScheme.primary,
         items: [
           BottomNavigationBarItem(
-            icon: Icon(Icons.view_timeline_outlined),
+            label: "Timeline",
+            icon: Icon(CupertinoIcons.text_justify),
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.search),
+            label: "Search",
+            icon: Icon(CupertinoIcons.search),
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.add_box_outlined),
+            label: "Post",
+            icon: Icon(CupertinoIcons.add),
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.account_box_outlined),
+            label: "Profile",
+            icon: Icon(CupertinoIcons.person),
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.message_outlined),
+            label: "Notifications",
+            icon: Badge(
+              child: Icon(CupertinoIcons.bell),
+            ),
           ),
         ],
       ),
@@ -202,7 +265,7 @@ class _HomeState extends State<Home> {
             end: Alignment.bottomLeft,
             colors: [
               Color.fromARGB(255, 244, 186, 184),
-              Theme.of(context).primaryColor
+              Color.fromARGB(255, 89, 36, 99),
             ],
           ),
         ),
@@ -211,18 +274,18 @@ class _HomeState extends State<Home> {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: <Widget>[
-            Text(
-              'Dave',
-              style: TextStyle(fontSize: 90, color: Colors.white),
-            ),
+            // Text(
+            //   'Dave',
+            //   style: TextStyle(fontSize: 90, color: Colors.white),
+            // ),
             GestureDetector(
               onTap: login,
               child: Container(
-                width: 200,
+                width: 220,
                 child: Center(
                   child: Text(
-                    'Login',
-                    style: TextStyle(fontSize: 60, color: Colors.white),
+                    'Dave',
+                    style: TextStyle(fontSize: 80, color: Colors.white),
                   ),
                 ),
                 decoration: BoxDecoration(
@@ -230,7 +293,7 @@ class _HomeState extends State<Home> {
                     begin: Alignment.topRight,
                     end: Alignment.bottomLeft,
                     colors: [
-                      Theme.of(context).primaryColor,
+                      Color.fromARGB(255, 89, 36, 99),
                       Color.fromARGB(255, 244, 186, 184)
                     ],
                   ),

@@ -1,26 +1,27 @@
 import 'package:flutter/material.dart';
-// import 'package:sm_app/api/firebase_api.dart';
+import 'package:provider/provider.dart';
 import 'package:sm_app/pages/home.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:sm_app/providers/notification_provider.dart';
+// import 'package:sm_app/theme/theme.dart';
+import 'package:sm_app/providers/theme_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // await Firebase.initializeApp(
-  //     options: FirebaseOptions(
-  //   apiKey: "AIzaSyDSBBIJnN5cWAyVZGnTGfiq36wcsnynyz4",
-  //   authDomain: "sm-app-4347b.firebaseapp.com",
-  //   projectId: "sm-app-4347b",
-  //   storageBucket: "sm-app-4347b.appspot.com",
-  //   messagingSenderId: "988198906820",
-  //   appId: "1:988198906820:web:f789a36eeccf962dbc5291",
-  //   measurementId: "G-S2H4HQV6WG",
-  // ));
   initializeFirebase();
-
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp])
       .then((_) {
-    runApp(MyApp());
+    runApp(
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider(create: (context) => ThemeProvider()),
+          ChangeNotifierProvider(create: (context) => NotificationProvider()),
+          // Add more providers as needed
+        ],
+        child: MyApp(),
+      ),
+    );
   });
 }
 
@@ -43,11 +44,11 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-        title: 'Dave',
-        debugShowCheckedModeBanner: false,
-        theme: ThemeData(
-          primaryColor: Color.fromARGB(255, 89, 36, 99),
-        ),
-        home: Home());
+      title: 'Dave',
+      debugShowCheckedModeBanner: false,
+      theme: Provider.of<ThemeProvider>(context).themeData,
+      //darkTheme: darkMode,
+      home: Home(),
+    );
   }
 }

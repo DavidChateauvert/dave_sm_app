@@ -18,6 +18,7 @@ class _SearchState extends State<Search>
     with AutomaticKeepAliveClientMixin<Search> {
   TextEditingController searchController = TextEditingController();
   Future<QuerySnapshot>? searchResultsFuture;
+  FocusNode searchFocusNode = FocusNode();
 
   handleSearch(String query) async {
     String lowercasedQuery = query.toLowerCase();
@@ -35,12 +36,14 @@ class _SearchState extends State<Search>
       searchController.clear();
     });
     handleSearch(searchController.text);
+    searchFocusNode.unfocus();
   }
 
   AppBar buildSearchField() {
     return AppBar(
-      backgroundColor: Theme.of(context).primaryColor,
+      backgroundColor: Theme.of(context).colorScheme.primary,
       title: TextFormField(
+        focusNode: searchFocusNode,
         controller: searchController,
         style: TextStyle(color: Colors.white),
         decoration: InputDecoration(
@@ -131,7 +134,7 @@ class UserResult extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Theme.of(context).primaryColor.withOpacity(0.7),
+      color: Theme.of(context).colorScheme.primary.withOpacity(0.7),
       child: Column(
         children: <Widget>[
           GestureDetector(
@@ -152,7 +155,7 @@ class UserResult extends StatelessWidget {
                   user.verified
                       ? Icon(
                           Icons.verified_sharp,
-                          color: Theme.of(context).primaryColor,
+                          color: Theme.of(context).colorScheme.primary,
                           size: 17.0,
                         )
                       : Text(""),

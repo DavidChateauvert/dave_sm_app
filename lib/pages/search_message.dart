@@ -12,14 +12,16 @@ class SearchMessage extends StatefulWidget {
   _SearchMessageState createState() => _SearchMessageState();
 }
 
-class _SearchMessageState extends State<SearchMessage> with AutomaticKeepAliveClientMixin<SearchMessage> {
+class _SearchMessageState extends State<SearchMessage>
+    with AutomaticKeepAliveClientMixin<SearchMessage> {
   TextEditingController searchController = TextEditingController();
   Future<QuerySnapshot>? searchResultsFuture;
   List<String> allFriends = [];
   int friendBuilderCounter = 0;
 
   handleSearch(String query) {
-    Future<QuerySnapshot> users = usersRef.where("displayNameLower", isGreaterThanOrEqualTo: query).get();
+    Future<QuerySnapshot> users =
+        usersRef.where("displayNameLower", isGreaterThanOrEqualTo: query).get();
 
     setState(() {
       searchResultsFuture = users;
@@ -27,7 +29,7 @@ class _SearchMessageState extends State<SearchMessage> with AutomaticKeepAliveCl
   }
 
   handleEmptySearch() {
-     Future<QuerySnapshot> users = usersRef.get();
+    Future<QuerySnapshot> users = usersRef.get();
 
     setState(() {
       searchResultsFuture = users;
@@ -41,7 +43,7 @@ class _SearchMessageState extends State<SearchMessage> with AutomaticKeepAliveCl
 
   AppBar buildSearchField() {
     return AppBar(
-      backgroundColor: Theme.of(context).primaryColor,
+      backgroundColor: Theme.of(context).colorScheme.primary,
       title: TextFormField(
         controller: searchController,
         style: TextStyle(color: Colors.white),
@@ -56,8 +58,8 @@ class _SearchMessageState extends State<SearchMessage> with AutomaticKeepAliveCl
           suffixIcon: IconButton(
             icon: Icon(Icons.clear),
             onPressed: () => clearSearch(),
-          ), 
-          hintStyle: TextStyle(color: Colors.white), 
+          ),
+          hintStyle: TextStyle(color: Colors.white),
         ),
         onChanged: handleSearch,
         onFieldSubmitted: handleSearch,
@@ -75,7 +77,7 @@ class _SearchMessageState extends State<SearchMessage> with AutomaticKeepAliveCl
         }
         List<UserResult> searchResults = [];
         // ignore: avoid_function_literals_in_foreach_calls
-        snapshot.data?.docs.forEach((doc) { 
+        snapshot.data?.docs.forEach((doc) {
           User user = User.fromDocument(doc);
           if (allFriends.contains(user.id)) {
             searchResults.add(UserResult(user));
@@ -97,7 +99,7 @@ class _SearchMessageState extends State<SearchMessage> with AutomaticKeepAliveCl
         }
         List<UserResult> searchResults = [];
         // ignore: avoid_function_literals_in_foreach_calls
-        snapshot.data?.docs.forEach((doc) { 
+        snapshot.data?.docs.forEach((doc) {
           User user = User.fromDocument(doc);
           if (allFriends.contains(user.id)) {
             searchResults.add(UserResult(user));
@@ -113,28 +115,27 @@ class _SearchMessageState extends State<SearchMessage> with AutomaticKeepAliveCl
   bool get wantKeepAlive => true;
 
   getFriends() async {
-     if (friendBuilderCounter < 1) {
-      QuerySnapshot snapshot = await friendsRef
-      .doc(currentUser.id)
-      .collection('userFriends')
-      .get();
+    if (friendBuilderCounter < 1) {
+      QuerySnapshot snapshot =
+          await friendsRef.doc(currentUser.id).collection('userFriends').get();
 
-    snapshot.docs.forEach((doc) { 
-      allFriends.add(doc.id);
-    });
-    friendBuilderCounter++;
+      snapshot.docs.forEach((doc) {
+        allFriends.add(doc.id);
+      });
+      friendBuilderCounter++;
     }
   }
 
   @override
   Widget build(context) {
-    getFriends();    
+    getFriends();
     super.build(context);
 
     return Scaffold(
       backgroundColor: Color.fromARGB(255, 244, 186, 184),
       appBar: buildSearchField(),
-      body: searchResultsFuture == null ? buildNoContent() : buildSearchResults(),
+      body:
+          searchResultsFuture == null ? buildNoContent() : buildSearchResults(),
     );
   }
 }
@@ -147,48 +148,54 @@ class UserResult extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Theme.of(context).primaryColor.withOpacity(0.7),
-      child: Column(children: <Widget>[
-        GestureDetector(
-          onTap: () => showMessageScreen(context, profileId: user.id),
-          child: ListTile(
-            leading: CircleAvatar(
-              backgroundColor: Colors.grey,
-              backgroundImage: CachedNetworkImageProvider(user.photoUrl),
-            ),
-            title: Row(
-                  children: [
-                    Text(user.username, 
+      color: Theme.of(context).colorScheme.primary.withOpacity(0.7),
+      child: Column(
+        children: <Widget>[
+          GestureDetector(
+            onTap: () => showMessageScreen(context, profileId: user.id),
+            child: ListTile(
+              leading: CircleAvatar(
+                backgroundColor: Colors.grey,
+                backgroundImage: CachedNetworkImageProvider(user.photoUrl),
+              ),
+              title: Row(
+                children: [
+                  Text(
+                    user.username,
                     style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold
-                      ),
-                    ),
-                    SizedBox(width: 4.0),
-                    user.verified ? Icon(
-                      Icons.verified_sharp,
-                      color: Theme.of(context).primaryColor, 
-                      size: 17.0, 
-                    ) : Text(""),
-                  ],
-                ),
-            subtitle: Text(user.displayName, style: TextStyle(color: Colors.white),
+                        color: Colors.white, fontWeight: FontWeight.bold),
+                  ),
+                  SizedBox(width: 4.0),
+                  user.verified
+                      ? Icon(
+                          Icons.verified_sharp,
+                          color: Theme.of(context).colorScheme.primary,
+                          size: 17.0,
+                        )
+                      : Text(""),
+                ],
+              ),
+              subtitle: Text(
+                user.displayName,
+                style: TextStyle(color: Colors.white),
+              ),
             ),
           ),
-        ),
-        Divider(
-          height: 2.0,
-          color: Colors.white54,
-        )
-      ],
+          Divider(
+            height: 2.0,
+            color: Colors.white54,
+          )
+        ],
       ),
     );
   }
 }
 
 showMessageScreen(BuildContext context, {required String profileId}) {
-  Navigator.push(context, MaterialPageRoute(builder: (context) => 
-    MessageScreen(otherUserId: profileId),
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) => MessageScreen(otherUserId: profileId),
     ),
   );
 }

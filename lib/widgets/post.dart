@@ -1,16 +1,16 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:sm_app/pages/home.dart';
 import 'package:sm_app/pages/photo.dart';
+import 'package:sm_app/pages/report_post.dart';
 import 'package:sm_app/pages/search.dart';
 import 'package:sm_app/widgets/custom_image.dart';
 // import 'package:sm_app/widgets/custom_image.dart';
 import 'package:sm_app/widgets/progress.dart';
-
-// ignore: depend_on_referenced_packages
-import 'package:intl/intl.dart';
+import 'package:timeago/timeago.dart' as timeago;
 
 import '../models/user.dart';
 import '../pages/comments.dart';
@@ -180,9 +180,8 @@ class _PostState extends State<Post> {
             child: Row(
               children: [
                 Text(
-                  user.username,
+                  user.displayName,
                   style: const TextStyle(
-                    color: Colors.black,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -190,7 +189,7 @@ class _PostState extends State<Post> {
                 user.verified
                     ? Icon(
                         Icons.verified_sharp,
-                        color: Theme.of(context).primaryColor,
+                        color: Theme.of(context).colorScheme.primary,
                         size: 17.0,
                       )
                     : Text(""),
@@ -205,14 +204,11 @@ class _PostState extends State<Post> {
                       onPressed: () => handleDeletePost(context),
                       icon: Icon(Icons.more_horiz_outlined),
                     )
-                  : Text(''),
-              Text(
-                DateFormat.Hm().format(timestamp.toDate()),
-                style: const TextStyle(
-                  fontSize: 12.0,
-                  color: Colors.grey,
-                ),
-              ),
+                  : IconButton(
+                      onPressed: () => handleSignalPost(context),
+                      icon: Icon(Icons.more_horiz_outlined),
+                    ),
+              Text(timeago.format(timestamp.toDate(), locale: 'en_short')),
             ],
           ),
         );
@@ -221,7 +217,7 @@ class _PostState extends State<Post> {
   }
 
   handleDeletePost(BuildContext parentContext) {
-    return showDialog(
+    return showCupertinoDialog(
       context: parentContext,
       builder: (context) {
         return SimpleDialog(
@@ -234,6 +230,33 @@ class _PostState extends State<Post> {
               },
               child: const Text(
                 'Delete',
+                style: TextStyle(color: Colors.red),
+              ),
+            ),
+            SimpleDialogOption(
+              onPressed: () => Navigator.pop(context),
+              child: Text('Cancel'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  handleSignalPost(BuildContext parentContext) {
+    return showCupertinoDialog(
+      context: parentContext,
+      builder: (context) {
+        return SimpleDialog(
+          title: Text("Report this post ?"),
+          children: <Widget>[
+            SimpleDialogOption(
+              onPressed: () {
+                Navigator.pop(context);
+                showReport(context);
+              },
+              child: const Text(
+                'Report post',
                 style: TextStyle(color: Colors.red),
               ),
             ),
@@ -339,7 +362,7 @@ class _PostState extends State<Post> {
     if (currentUserId != ownerId) {
       activityFeedRef.doc(ownerId).collection("feedItems").doc(postId).set({
         "type": "like",
-        "username": currentUser.username,
+        "username": currentUser.displayName,
         "userId": currentUser.id,
         "userProfileImg": currentUser.photoUrl,
         "postId": postId,
@@ -392,20 +415,6 @@ class _PostState extends State<Post> {
     );
   }
 
-  List<String> getAllMentions(String text) {
-    final regexp = RegExp(r'\@[a-zA-Z0-9]+\b()');
-
-    List<String> mentions = [];
-
-    regexp.allMatches(text).forEach((element) {
-      if (element.group(0) != null) {
-        mentions.add(element.group(0).toString());
-      }
-    });
-
-    return mentions;
-  }
-
   RichText buildHighlightedText(String text) {
     List<String> mentionsList =
         mentions.values.map((value) => '@$value').toList().cast<String>();
@@ -420,7 +429,7 @@ class _PostState extends State<Post> {
       textSpans.add(TextSpan(
         text: segment,
         style: TextStyle(
-          color: Colors.black,
+          color: Theme.of(context).colorScheme.onBackground,
           fontWeight: FontWeight.w600,
           fontSize: 20.0,
         ),
@@ -434,7 +443,7 @@ class _PostState extends State<Post> {
                 () => showProfile(context, profileId: getKeyByValue(mention)),
           text: mention,
           style: TextStyle(
-            color: Colors.purple,
+            color: Theme.of(context).colorScheme.secondary,
             fontWeight: FontWeight.bold,
             fontSize: 20.0,
           ),
@@ -467,7 +476,7 @@ class _PostState extends State<Post> {
                     child: GestureDetector(
                       onDoubleTap: () => handleLikePost(),
                       child: Container(
-                        margin: const EdgeInsets.all(20.0),
+                        margin: const EdgeInsets.all(16.0),
                         child: buildHighlightedText(caption),
                       ),
                     ),
@@ -494,7 +503,7 @@ class _PostState extends State<Post> {
                 child: Icon(
                   isLiked ? Icons.favorite : Icons.favorite_border,
                   size: 28.0,
-                  color: Color.fromARGB(255, 244, 186, 184),
+                  color: Theme.of(context).colorScheme.secondary,
                 ),
               ),
             ),
@@ -512,8 +521,8 @@ class _PostState extends State<Post> {
                   Icons.chat,
                   size: 28.0,
                   color: (isCommented || isCommentedInstant)
-                      ? Color.fromARGB(255, 244, 186, 184)
-                      : Color.fromARGB(255, 89, 36, 99),
+                      ? Theme.of(context).colorScheme.secondary
+                      : Theme.of(context).colorScheme.primary,
                 ),
               ),
             ),
@@ -526,16 +535,14 @@ class _PostState extends State<Post> {
               margin: EdgeInsets.only(left: 20.0),
               child: Text(
                 "$likeCount likes",
-                style: const TextStyle(
-                    color: Colors.black, fontWeight: FontWeight.bold),
+                style: const TextStyle(fontWeight: FontWeight.bold),
               ),
             ),
             Container(
               margin: EdgeInsets.only(right: 40.0),
               child: Text(
                 "$commentCount",
-                style: const TextStyle(
-                    color: Colors.black, fontWeight: FontWeight.bold),
+                style: const TextStyle(fontWeight: FontWeight.bold),
               ),
             ),
           ],
@@ -572,6 +579,9 @@ class _PostState extends State<Post> {
                   color: Color.fromARGB(255, 244, 186, 184),
                   height: 0.0,
                 ),
+                const SizedBox(
+                  height: 8.0,
+                ),
                 buildPostHeader(),
                 buildPostFooter(),
                 const Divider(
@@ -584,13 +594,13 @@ class _PostState extends State<Post> {
             ? Column(
                 mainAxisSize: MainAxisSize.min,
                 children: <Widget>[
-                  const Divider(
-                    color: Color.fromARGB(255, 244, 186, 184),
+                  Divider(
+                    color: Theme.of(context).colorScheme.secondary,
                     height: 0.0,
                   ),
                   buildPostAlreadySeen(postHeight),
-                  const Divider(
-                    color: Colors.white,
+                  Divider(
+                    color: Theme.of(context).colorScheme.background,
                   ),
                 ],
               )
@@ -601,7 +611,7 @@ class _PostState extends State<Post> {
     return Container(
       height: height - 16,
       alignment: Alignment.center,
-      color: Color.fromARGB(255, 244, 186, 184),
+      color: Theme.of(context).colorScheme.secondary,
       child: const Text(
         "Post already seen",
         style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
@@ -648,6 +658,14 @@ class _PostState extends State<Post> {
         seenPost();
       }
     }
+  }
+
+  showReport(BuildContext context) {
+    Navigator.push(context, MaterialPageRoute(builder: (context) {
+      return ReportPost(
+        postId: postId,
+      );
+    }));
   }
 
   showComments(BuildContext context,
