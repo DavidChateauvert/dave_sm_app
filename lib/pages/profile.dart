@@ -4,6 +4,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:sm_app/api/firebase_api.dart';
 import 'package:sm_app/pages/edit_profile.dart';
 import 'package:sm_app/pages/friends.dart';
 import 'package:sm_app/pages/home.dart';
@@ -337,7 +338,7 @@ class _Profile extends State<Profile> {
           .doc(widget.profileId)
           .set({
         "message": "Vous pouvez maintenant vous envoyer des messages",
-        "username": user.username,
+        "username": user.displayName,
         "userId": widget.profileId,
         "lastUserSent": widget.profileId,
         "userProfileImg": user.photoUrl,
@@ -350,16 +351,21 @@ class _Profile extends State<Profile> {
           .doc(currentUserId)
           .set({
         "message": "Vous pouvez maintenant vous envoyer des messages",
-        "username": currentUser.username,
+        "username": currentUser.displayName,
         "userId": currentUserId,
         "lastUserSent": currentUserId,
         "userProfileImg": currentUser.photoUrl,
         "seen": false,
         "timestamp": DateTime.now(),
       });
+      FirebaseApi().sendAcceptRequestNotification(
+          widget.profileId, currentUser.displayName);
       setState(() {
         isFriend = true;
       });
+    } else {
+      FirebaseApi().sendFriendRequestNotification(
+          widget.profileId, currentUser.displayName);
     }
     // ActivityFeed
     activityFeedRef

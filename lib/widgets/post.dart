@@ -664,6 +664,7 @@ class _PostState extends State<Post> {
     Navigator.push(context, MaterialPageRoute(builder: (context) {
       return ReportPost(
         postId: postId,
+        reportSubject: "Post",
       );
     }));
   }

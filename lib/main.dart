@@ -4,6 +4,8 @@ import 'package:sm_app/pages/home.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:sm_app/providers/notification_provider.dart';
+import 'package:sm_app/providers/reload_provider.dart';
+import 'package:sm_app/providers/route_observer_provider.dart';
 // import 'package:sm_app/theme/theme.dart';
 import 'package:sm_app/providers/theme_provider.dart';
 
@@ -17,7 +19,8 @@ void main() async {
         providers: [
           ChangeNotifierProvider(create: (context) => ThemeProvider()),
           ChangeNotifierProvider(create: (context) => NotificationProvider()),
-          // Add more providers as needed
+          ChangeNotifierProvider(create: (context) => RouteObserverProvider()),
+          ChangeNotifierProvider(create: (context) => ReloadNotifier()),
         ],
         child: MyApp(),
       ),

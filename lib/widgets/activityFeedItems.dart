@@ -1,10 +1,12 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:sm_app/pages/home.dart';
 import 'package:sm_app/pages/message_screen.dart';
 import 'package:sm_app/pages/post_screen.dart';
 import 'package:sm_app/pages/profile.dart';
+import 'package:sm_app/providers/notification_provider.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
 late Widget mediaPreview;
@@ -137,8 +139,6 @@ class _ActivityFeedItem extends State<ActivityFeedItem> {
       showPost(context, type);
     } else if (type == "follow") {
       showProfile(context, profileId: userId);
-    } else if (type == "message") {
-      showMessageScreen(context, profileId: userId);
     } else {
       showProfile(context, profileId: userId);
     }
@@ -207,6 +207,8 @@ class _ActivityFeedItem extends State<ActivityFeedItem> {
                     .collection("feedItems")
                     .doc(document.id)
                     .update({"seen": true});
+                Provider.of<NotificationProvider>(context, listen: false)
+                    .seenNotificationActivityFeed(postId);
               }));
     }
     Navigator.push(
@@ -224,6 +226,8 @@ class _ActivityFeedItem extends State<ActivityFeedItem> {
           .collection("feedItems")
           .doc(userId)
           .update({"seen": true});
+      Provider.of<NotificationProvider>(context, listen: false)
+          .seenNotificationActivityFeed(userId);
     }
     Navigator.push(
       context,

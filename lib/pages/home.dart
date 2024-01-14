@@ -4,18 +4,20 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_app_badger/flutter_app_badger.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:provider/provider.dart';
 import 'package:sm_app/api/firebase_api.dart';
 import 'package:sm_app/api/notification_api.dart';
 import 'package:sm_app/pages/message_feed.dart';
 import 'package:sm_app/pages/message_screen.dart';
+import 'package:sm_app/pages/post_screen.dart';
 import 'package:sm_app/pages/profile.dart';
 import 'package:sm_app/pages/search.dart';
 import 'package:sm_app/pages/timeline.dart';
 import 'package:sm_app/pages/upload.dart';
 import 'package:sm_app/providers/notification_provider.dart';
+import 'package:sm_app/providers/reload_provider.dart';
+import 'package:sm_app/providers/route_observer_provider.dart';
 import '../models/user.dart';
 import 'activity_feed.dart';
 import 'create_account.dart';
@@ -57,7 +59,7 @@ class _HomeState extends State<Home> {
       handleNotificationInside(message);
     });
     FirebaseMessaging.onMessageOpenedApp.listen((message) {
-      handleNotificationOutside(message);
+      handleNotificationOnClick(message);
     });
     FirebaseMessaging.onBackgroundMessage(handleBackGroundMessage);
     googleSignIn.signIn();
@@ -76,15 +78,7 @@ class _HomeState extends State<Home> {
   }
 
   void initLocalNotifications() async {
-    await NotificationsApi.init();
-  }
-
-  Future<void> handleBackGroundMessage(RemoteMessage message) async {
-    final notificationProvider =
-        Provider.of<NotificationProvider>(context, listen: false);
-
-    notificationProvider.incrementNotificationCount();
-    FlutterAppBadger.updateBadgeCount(notificationProvider.notificationCount);
+    await NotificationsApi.init(context);
   }
 
   handleSignIn() async {
@@ -154,7 +148,6 @@ class _HomeState extends State<Home> {
       }
       currentUser = User.fromDocument(doc);
       await FirebaseApi().initMessaging(currentUser.id);
-      print("Init messaging");
     }
   }
 
@@ -178,31 +171,124 @@ class _HomeState extends State<Home> {
     });
   }
 
-  void handleNotificationInside(RemoteMessage message) {
-    String title = message.notification?.title ?? "";
-    String body = message.notification?.body ?? "";
-    NotificationsApi.showNotification(id: 1, title: title, body: body);
+  int typeToId(String type) {
+    switch (type) {
+      case "message":
+        return 1;
+      case "mentions":
+      case "friend request question":
+      case "friend request accept":
+        return 2;
+      default:
+        return 1;
+    }
   }
 
-  void handleNotificationOutside(RemoteMessage message) {
-    String screenValue = message.data['screen'] ?? "";
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (context) => Home()),
-      (route) => false,
-    );
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => MessageFeed(),
-      ),
-    );
-    if (screenValue != "") {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => MessageScreen(otherUserId: screenValue),
-        ),
+  bool checkIfUserIsAlreadyInPage(int typeId, String screenValue) {
+    final String currentRoute =
+        Provider.of<RouteObserverProvider>(context, listen: false).currentRoute;
+
+    if (currentRoute == screenValue) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  Future<void> handleBackGroundMessage(RemoteMessage message) async {
+    Provider.of<NotificationProvider>(context, listen: false)
+        .receiveNotificationHandler(message);
+  }
+
+  void handleNotificationInside(RemoteMessage message) {
+    Provider.of<NotificationProvider>(context, listen: false)
+        .receiveNotificationHandler(message);
+
+    String type = message.data['type'] ?? "";
+    int typeId = typeToId(type);
+    String screen = message.data['screen'] ?? "";
+    print("allo");
+    print(Provider.of<RouteObserverProvider>(context, listen: false)
+        .currentRoute);
+
+    if (!checkIfUserIsAlreadyInPage(typeId, screen)) {
+      String title = message.notification?.title ?? "";
+      String body = message.notification?.body ?? "";
+      NotificationsApi.showNotification(
+          id: typeId, title: title, body: body, payload: screen);
+      if (Provider.of<RouteObserverProvider>(context, listen: false)
+              .currentRoute ==
+          "message-feed") {
+        print("Call function here");
+        Provider.of<ReloadNotifier>(context, listen: false)
+            .setShouldReloadMessageFeed(true);
+      }
+    } else {
+      messagesRef
+          .doc(currentUser.id)
+          .collection("and")
+          .doc(screen)
+          .update({"seen": true});
+      Provider.of<NotificationProvider>(context, listen: false)
+          .seenNotificationMessage(screen);
+    }
+  }
+
+  void handleNotificationOnClick(RemoteMessage message) async {
+    String type = message.data['type'] ?? "";
+    if (type != "") {
+      String screenValue = message.data['screen'] ?? "";
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (context) => Home()),
+        (route) => false,
       );
+      if (type == "message") {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => MessageFeed(),
+          ),
+        );
+        Provider.of<RouteObserverProvider>(context, listen: false)
+            .setCurrentRoute("message-feed");
+        if (screenValue != "") {
+          Provider.of<RouteObserverProvider>(context, listen: false)
+              .setCurrentRoute(screenValue);
+          Provider.of<NotificationProvider>(context, listen: false)
+              .seenNotificationMessage(screenValue);
+          await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => MessageScreen(otherUserId: screenValue),
+            ),
+          );
+          Provider.of<RouteObserverProvider>(context, listen: false)
+              .setCurrentRoute("message-feed");
+        }
+      } else if (type == "mention") {
+        String senderId = message.data['senderId'] ?? "";
+        onTap(4);
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) =>
+                PostScreen(userId: senderId, postId: screenValue),
+          ),
+        );
+        Provider.of<NotificationProvider>(context, listen: false)
+            .seenNotificationActivityFeed(screenValue);
+      } else if (type == "friend request question" ||
+          type == "friend request accept") {
+        onTap(4);
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => Profile(profileId: screenValue),
+          ),
+        );
+        Provider.of<NotificationProvider>(context, listen: false)
+            .seenNotificationActivityFeed(screenValue);
+      }
     }
   }
 
@@ -249,6 +335,11 @@ class _HomeState extends State<Home> {
             label: "Notifications",
             icon: Badge(
               child: Icon(CupertinoIcons.bell),
+              isLabelVisible: Provider.of<NotificationProvider>(context)
+                          .notificationActivityCount ==
+                      0
+                  ? false
+                  : true,
             ),
           ),
         ],

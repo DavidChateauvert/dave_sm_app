@@ -193,8 +193,8 @@ class _UploadState extends State<Upload>
         // "mediaUrl": mediaUrl,
         "timestamp": DateTime.now(),
       });
-      FirebaseApi()
-          .sendMentionsNotification(mention.key, currentUser.displayName);
+      FirebaseApi().sendMentionsNotification(
+          mention.key, currentUser.displayName, postId);
     }
   }
 

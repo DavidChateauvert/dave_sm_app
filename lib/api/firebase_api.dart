@@ -79,12 +79,14 @@ class FirebaseApi {
               'status': 'done',
               'body': message,
               'title': "Vous avez recu un message",
-              'screen': "${currentUser.id}"
+              'screen': "${currentUser.id}",
+              'type': "message",
             },
             "notification": <String, dynamic>{
               "title": "$senderName",
               "body": message,
             },
+            "category": "message",
             "content_available": true,
             "to": userTokens,
           }));
@@ -93,11 +95,11 @@ class FirebaseApi {
     }
   }
 
-  sendMentionsNotification(String otherUserId, String senderName) async {
+  sendMentionsNotification(
+      String otherUserId, String senderName, String postId) async {
     String userTokens = await FirebaseApi().getToken(otherUserId) ?? "";
-    print(userTokens);
+
     try {
-      print("Rentrer");
       await http.post(Uri.parse('https://fcm.googleapis.com/fcm/send'),
           headers: <String, String>{
             'Content-type': 'application/json',
@@ -111,10 +113,77 @@ class FirebaseApi {
               'status': 'done',
               'body': "Dave",
               'title': "Dave",
+              'screen': "${postId}",
+              'senderId': "${currentUser.id}",
+              'type': "mention",
             },
             "notification": <String, dynamic>{
               "title": "Dave",
               "body": "$senderName vous a identifié dans un post",
+            },
+            "content_available": true,
+            "to": userTokens,
+          }));
+    } catch (e) {
+      print("erreur de send Notifcation");
+    }
+  }
+
+  sendFriendRequestNotification(String otherUserId, String senderName) async {
+    String userTokens = await FirebaseApi().getToken(otherUserId) ?? "";
+
+    try {
+      await http.post(Uri.parse('https://fcm.googleapis.com/fcm/send'),
+          headers: <String, String>{
+            'Content-type': 'application/json',
+            'Authorization':
+                'key=AAAA5hU-q8Q:APA91bEsFeg67RQ2qtOnphuadgkwsmZ4K3zgdwHEvtnoIfdTS1hUvPbe-kUhuyZe0NvJiYnGwaikAp339wIGD_DmvunTzNK5oMNwhwN-hbCsqm-PC1kiO3wJOiYfNSQHbw3LiRFV-Vkp',
+          },
+          body: jsonEncode(<String, dynamic>{
+            'priority': 'high',
+            'data': <String, dynamic>{
+              'click_action': 'FLUTTER_NOTIFICATION_CLICK',
+              'status': 'done',
+              'body': "Dave",
+              'title': "Dave",
+              'screen': "${currentUser.id}",
+              'type': "friend request question",
+            },
+            "notification": <String, dynamic>{
+              "title": "Dave",
+              "body": "$senderName has sent you a friend request",
+            },
+            "content_available": true,
+            "to": userTokens,
+          }));
+    } catch (e) {
+      print("erreur de send Notifcation");
+    }
+  }
+
+  sendAcceptRequestNotification(String otherUserId, String senderName) async {
+    String userTokens = await FirebaseApi().getToken(otherUserId) ?? "";
+
+    try {
+      await http.post(Uri.parse('https://fcm.googleapis.com/fcm/send'),
+          headers: <String, String>{
+            'Content-type': 'application/json',
+            'Authorization':
+                'key=AAAA5hU-q8Q:APA91bEsFeg67RQ2qtOnphuadgkwsmZ4K3zgdwHEvtnoIfdTS1hUvPbe-kUhuyZe0NvJiYnGwaikAp339wIGD_DmvunTzNK5oMNwhwN-hbCsqm-PC1kiO3wJOiYfNSQHbw3LiRFV-Vkp',
+          },
+          body: jsonEncode(<String, dynamic>{
+            'priority': 'high',
+            'data': <String, dynamic>{
+              'click_action': 'FLUTTER_NOTIFICATION_CLICK',
+              'status': 'done',
+              'body': "Dave",
+              'title': "Dave",
+              'screen': "${currentUser.id}",
+              'type': "friend request accept",
+            },
+            "notification": <String, dynamic>{
+              "title": "Dave",
+              "body": "$senderName has accepted your friend request",
             },
             "content_available": true,
             "to": userTokens,

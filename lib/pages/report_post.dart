@@ -7,8 +7,9 @@ import 'package:sm_app/widgets/header.dart';
 
 class ReportPost extends StatefulWidget {
   final String postId;
+  final String reportSubject;
 
-  ReportPost({required this.postId});
+  ReportPost({required this.postId, required this.reportSubject});
 
   @override
   _ReportPostState createState() => _ReportPostState();
@@ -46,7 +47,7 @@ class _ReportPostState extends State<ReportPost> {
               padding: EdgeInsets.only(left: 20.0, right: 20.0),
               child: Text(
                 textAlign: TextAlign.center,
-                "Our team is going to review your report and then decide what to do with the post",
+                "Our team is going to review your report and then decide what to do with the ${widget.reportSubject}",
               ),
             ),
             const SizedBox(
@@ -84,7 +85,7 @@ class _ReportPostState extends State<ReportPost> {
       {
         "to": ["david.chateauvert25@gmail.com"],
         "message": {
-          "subject": "Report for the post ${widget.postId}",
+          "subject": "Report for the ${widget.reportSubject} ${widget.postId}",
           "html": reportText,
         },
       },
@@ -107,7 +108,9 @@ class _ReportPostState extends State<ReportPost> {
           onSaved: (val) => reportText = val!,
           decoration: InputDecoration(
             labelStyle: TextStyle(fontSize: 15.0),
-            hintText: "Why should this post be reported ?",
+            hintText: widget.reportSubject == "post"
+                ? "Why should this post be reported ?"
+                : "Why should this user be reported ?",
           ),
         ),
       ],
@@ -119,7 +122,8 @@ class _ReportPostState extends State<ReportPost> {
     return Scaffold(
       key: _scaffoldKey,
       appBar: header(context,
-          titleText: "Report Post",
+          titleText:
+              widget.reportSubject == "post" ? "Report Post" : "Report User",
           removeBackButton: false,
           showMessageButton: false),
       body: ListView(children: <Widget>[
@@ -130,7 +134,9 @@ class _ReportPostState extends State<ReportPost> {
                 padding: EdgeInsets.only(top: 25.0),
                 child: Text(
                   textAlign: TextAlign.center,
-                  "Please tell us why your are reporting this post",
+                  widget.reportSubject == "post"
+                      ? "Please tell us why your are reporting this post"
+                      : "Please tell us why your are reporting this user",
                   style: TextStyle(fontSize: 25.0),
                 ),
               ),

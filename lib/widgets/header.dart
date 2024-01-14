@@ -3,11 +3,16 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sm_app/pages/home.dart';
 import 'package:sm_app/pages/message_feed.dart';
+import 'package:sm_app/pages/search_message.dart';
 import 'package:sm_app/pages/settings.dart';
 import 'package:sm_app/providers/notification_provider.dart';
+import 'package:sm_app/providers/route_observer_provider.dart';
 
 AppBar header(context,
-    {String? titleText, removeBackButton = false, showMessageButton = true}) {
+    {String? titleText,
+    removeBackButton = false,
+    showMessageButton = true,
+    showAddMessageButton = false}) {
   return AppBar(
     leading: (titleText == "Profile" && removeBackButton == true)
         ? IconButton(
@@ -35,23 +40,27 @@ AppBar header(context,
     actions: [
       showMessageButton
           ? IconButton(
-              onPressed: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => MessageFeed(),
-                  )),
+              onPressed: () {
+                Provider.of<RouteObserverProvider>(context, listen: false)
+                    .setCurrentRoute("message-feed");
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => MessageFeed(),
+                    ));
+              },
               icon: Badge(
                 isLabelVisible: Provider.of<NotificationProvider>(context)
-                            .notificationCount ==
+                            .notificationMessageCount ==
                         0
                     ? false
                     : true,
                 label: Text(Provider.of<NotificationProvider>(context)
-                    .notificationCount
+                    .notificationMessageCount
                     .toString()),
                 child: Icon(
                   Provider.of<NotificationProvider>(context)
-                              .notificationCount ==
+                              .notificationMessageCount ==
                           0
                       ? CupertinoIcons.bubble_right
                       : CupertinoIcons.bubble_right_fill,
@@ -59,7 +68,15 @@ AppBar header(context,
                 ),
               ),
             )
-          : Container(),
+          : showAddMessageButton
+              ? IconButton(
+                  onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => SearchMessage(),
+                      )),
+                  icon: Icon(CupertinoIcons.plus_bubble))
+              : Container(),
     ],
     backgroundColor: Theme.of(context).colorScheme.primary,
   );

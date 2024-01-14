@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:sm_app/pages/aboutUs.dart';
 import 'package:sm_app/pages/contactUs.dart';
 import 'package:sm_app/pages/home.dart';
+import 'package:sm_app/providers/notification_provider.dart';
 import 'package:sm_app/providers/theme_provider.dart';
 import 'package:sm_app/widgets/progress.dart';
 
@@ -68,6 +69,38 @@ class _SettingsPageState extends State<SettingsPage> {
                             "Change theme",
                             style: TextStyle(
                               color: Theme.of(context).colorScheme.secondary,
+                              fontSize: 20.0,
+                            ),
+                          ),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(top: 64.0),
+                        child: TextButton.icon(
+                          onPressed: () => Provider.of<NotificationProvider>(
+                                  context,
+                                  listen: false)
+                              .resetNotificationCount(),
+                          icon: Icon(CupertinoIcons.bell),
+                          label: Text(
+                            "Reset Notifications",
+                            style: TextStyle(
+                              fontSize: 20.0,
+                            ),
+                          ),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(top: 64.0),
+                        child: TextButton.icon(
+                          onPressed: () => Provider.of<NotificationProvider>(
+                                  context,
+                                  listen: false)
+                              .printNotificationCount(),
+                          icon: Icon(CupertinoIcons.bell),
+                          label: Text(
+                            "Print Notifications",
+                            style: TextStyle(
                               fontSize: 20.0,
                             ),
                           ),
