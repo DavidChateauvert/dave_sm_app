@@ -425,9 +425,8 @@ class _PostState extends State<Post> {
     List<String> segments = text.split(mentionRegex);
 
     for (int i = 0; i < segments.length; i++) {
-      String segment = segments[i];
       textSpans.add(TextSpan(
-        text: segment,
+        text: segments[i],
         style: TextStyle(
           color: Theme.of(context).colorScheme.onBackground,
           fontWeight: FontWeight.w600,
@@ -435,22 +434,23 @@ class _PostState extends State<Post> {
         ),
       ));
 
-      if (i < segments.length - 1) {
-        String? mention = mentionRegex.stringMatch(text);
-        textSpans.add(TextSpan(
-          recognizer: TapGestureRecognizer()
-            ..onTap =
-                () => showProfile(context, profileId: getKeyByValue(mention)),
-          text: mention,
-          style: TextStyle(
-            color: Theme.of(context).colorScheme.secondary,
-            fontWeight: FontWeight.bold,
-            fontSize: 20.0,
+      if (i < segments.length - 1 && mentionsList.isNotEmpty) {
+        String mention = mentionsList[i];
+        textSpans.add(
+          TextSpan(
+            recognizer: TapGestureRecognizer()
+              ..onTap =
+                  () => showProfile(context, profileId: getKeyByValue(mention)),
+            text: mention,
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.secondary,
+              fontWeight: FontWeight.bold,
+              fontSize: 20.0,
+            ),
           ),
-        ));
+        );
       }
     }
-
     return RichText(text: TextSpan(children: textSpans));
   }
 
@@ -555,7 +555,6 @@ class _PostState extends State<Post> {
 
   @override
   Widget build(BuildContext context) {
-    // super.build(context);
     isLiked = (likes[currentUserId] == true);
     isCommented = (comments[currentUserId] == true);
 
@@ -575,8 +574,8 @@ class _PostState extends State<Post> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
-                const Divider(
-                  color: Color.fromARGB(255, 244, 186, 184),
+                Divider(
+                  color: Theme.of(context).colorScheme.secondary,
                   height: 0.0,
                 ),
                 const SizedBox(
@@ -584,8 +583,8 @@ class _PostState extends State<Post> {
                 ),
                 buildPostHeader(),
                 buildPostFooter(),
-                const Divider(
-                  color: Color.fromARGB(255, 244, 186, 184),
+                Divider(
+                  color: Theme.of(context).colorScheme.secondary,
                 ),
               ],
             ),
@@ -612,9 +611,13 @@ class _PostState extends State<Post> {
       height: height - 16,
       alignment: Alignment.center,
       color: Theme.of(context).colorScheme.secondary,
-      child: const Text(
+      child: Text(
         "Post already seen",
-        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        style: TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+          color: Theme.of(context).colorScheme.primary,
+        ),
       ),
     );
   }

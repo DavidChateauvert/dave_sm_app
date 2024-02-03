@@ -2,6 +2,7 @@
 import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:image_size_getter/image_size_getter.dart';
 import 'package:image_size_getter/file_input.dart';
 // import 'package:textfield_tags/textfield_tags.dart';
@@ -46,8 +47,6 @@ class _UploadState extends State<Upload>
   void initState() {
     super.initState();
     getFriends();
-    // getFollowers();
-    // getFollowing();
   }
 
   getFriends() async {
@@ -127,26 +126,95 @@ class _UploadState extends State<Upload>
 
   selectImage(parentContext) {
     return showDialog(
-        context: parentContext,
-        builder: (context) {
-          return SimpleDialog(
-            title: Text("Create Post"),
-            children: <Widget>[
-              SimpleDialogOption(
-                onPressed: () => handleTakePhotoFunctions(),
-                child: Text("Photo with camera"),
-              ),
-              SimpleDialogOption(
-                onPressed: () => handleChooseFromGalleryFunctions(),
-                child: Text("Image from Gallery"),
-              ),
-              SimpleDialogOption(
-                child: Text("Cancel"),
-                onPressed: () => Navigator.pop(context),
-              ),
-            ],
-          );
-        });
+      context: parentContext,
+      builder: (context) {
+        return SimpleDialog(
+          title: Text(
+            "Add an image to the post",
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onBackground,
+            ),
+          ),
+          children: <Widget>[
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: <Widget>[
+                Flexible(
+                  child: TextButton(
+                    onPressed: () => handleTakePhotoFunctions(),
+                    child: Container(
+                      height: 100.0,
+                      child: Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Icon(
+                              CupertinoIcons.photo_camera,
+                              color: Theme.of(context).colorScheme.onBackground,
+                              size: 28.0,
+                            ),
+                            const SizedBox(
+                              height: 8,
+                            ),
+                            Text(
+                              "Photo with camera",
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color:
+                                    Theme.of(context).colorScheme.onBackground,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                Container(
+                  height: 100.0,
+                  width: 2.0,
+                  color: Theme.of(context).colorScheme.onBackground,
+                ),
+                Flexible(
+                  child: TextButton(
+                    onPressed: () => handleChooseFromGalleryFunctions(),
+                    child: Container(
+                      height: 100.0,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Icon(
+                            CupertinoIcons.photo_on_rectangle,
+                            color: Theme.of(context).colorScheme.onBackground,
+                            size: 28.0,
+                          ),
+                          const SizedBox(
+                            height: 8,
+                          ),
+                          Text(
+                            "Image from gallery",
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.onBackground,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            // SimpleDialogOption(
+            //   child: Text("Cancel"),
+            //   onPressed: () => Navigator.pop(context),
+            // ),
+          ],
+        );
+      },
+    );
   }
 
   clearImage() {
@@ -156,7 +224,6 @@ class _UploadState extends State<Upload>
   }
 
   createPostInFirestore({required String caption, required String mediaUrl}) {
-    captionFocusNode.unfocus();
     Map<String, String> mentionsMap =
         mentionsDataAdded.fold({}, (map, mention) {
       map[mention['id']!] = mention['display']!;
@@ -214,6 +281,7 @@ class _UploadState extends State<Upload>
   }
 
   handleSubmit() async {
+    captionFocusNode.unfocus();
     if ((_mentionsKey.currentState!.controller!.text.trim().isEmpty ||
             _mentionsKey.currentState!.controller!.text.trim() == "") &&
         file == null) {
@@ -275,146 +343,162 @@ class _UploadState extends State<Upload>
       size = ImageSizeGetter.getSize(FileInput(fileImage.file));
     }
     return Portal(
-      child: MaterialApp(
-        home: Scaffold(
-          backgroundColor: Theme.of(context).colorScheme.background,
-          appBar: AppBar(
-            backgroundColor: Theme.of(context).colorScheme.primary,
-            leading: IconButton(
-              icon: Icon(
-                Icons.add_a_photo_outlined,
-                color: Colors.white,
-                size: 30.0,
-              ),
-              onPressed: () => selectImage(context),
+      child: Scaffold(
+        backgroundColor: Theme.of(context).colorScheme.background,
+        appBar: AppBar(
+          backgroundColor: Theme.of(context).colorScheme.primary,
+          leading: IconButton(
+            icon: Icon(
+              Icons.add_a_photo_outlined,
+              color: Colors.white,
+              size: 30.0,
             ),
-            title: Text(
-              "Caption Post",
-              style: TextStyle(color: Colors.white, fontSize: 30.0),
-            ),
-            centerTitle: true,
-            actions: [
-              TextButton(
-                onPressed: isUploading ? null : () => handleSubmit(),
-                child: Text(
-                  "Post",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 22.0,
-                  ),
-                ),
-              ),
-            ],
+            onPressed: () => selectImage(context),
           ),
-          body: ListView(
-            children: <Widget>[
-              isUploading ? linearProgress() : Text(""),
-              Padding(
-                padding: EdgeInsets.only(top: 10.0),
-              ),
-              ListTile(
-                leading: CircleAvatar(
-                  backgroundImage:
-                      CachedNetworkImageProvider(widget.currentUser!.photoUrl),
+          title: Text(
+            "Caption Post",
+            style: TextStyle(color: Colors.white, fontSize: 30.0),
+          ),
+          centerTitle: true,
+          actions: [
+            TextButton(
+              onPressed: isUploading ? null : () => handleSubmit(),
+              child: Text(
+                "Post",
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 22.0,
                 ),
-                title: Container(
-                  width: 250.0,
-                  child: FlutterMentions(
-                    focusNode: captionFocusNode,
-                    key: _mentionsKey,
-                    style: TextStyle(
-                      overflow: TextOverflow.visible,
-                    ),
-                    decoration: InputDecoration(
-                      hintText: "Write a post...",
-                      border: InputBorder.none,
-                    ),
-                    suggestionListHeight: 200,
-                    suggestionListDecoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primary,
-                      borderRadius: BorderRadius.circular(7.0),
-                    ),
-                    maxLines: null,
-                    keyboardType: TextInputType.text,
-                    mentions: [
-                      Mention(
-                        trigger: '@',
-                        disableMarkup: false,
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
-                        data: mentionsData,
-                        matchAll: false,
-                        suggestionBuilder: (data) {
-                          return Container(
-                            decoration: BoxDecoration(
-                                color:
-                                    const Color.fromARGB(255, 244, 186, 184)),
-                            height: 50.0,
-                            width: 10.0,
-                            alignment: Alignment.centerLeft,
-                            child: Padding(
-                              padding: EdgeInsets.only(left: 10.0),
-                              child: Text(data['display']!),
-                            ),
-                          );
-                        },
-                      ),
-                    ],
-                    onSearchChanged: (String trigger, String query) async {
-                      await handleSearch(query);
-                    },
-                    onMentionAdd: (data) {
-                      mentionsDataAdded.add(
-                          {'id': data['id']!, 'display': data['display']!});
-                    },
+              ),
+            ),
+          ],
+        ),
+        body: ListView(
+          children: <Widget>[
+            isUploading ? linearProgress() : Text(""),
+            Padding(
+              padding: EdgeInsets.only(top: 10.0),
+            ),
+            ListTile(
+              leading: CircleAvatar(
+                backgroundImage:
+                    CachedNetworkImageProvider(widget.currentUser!.photoUrl),
+              ),
+              title: Container(
+                width: 250.0,
+                child: FlutterMentions(
+                  focusNode: captionFocusNode,
+                  key: _mentionsKey,
+                  style: TextStyle(
+                    overflow: TextOverflow.visible,
+                    color: Theme.of(context).colorScheme.onBackground,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 20.0,
                   ),
+                  decoration: InputDecoration(
+                    hintText: "Write a post...",
+                    hintStyle: TextStyle(
+                      color: Theme.of(context).colorScheme.secondaryContainer,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 20.0,
+                    ),
+                    border: InputBorder.none,
+                  ),
+                  suggestionListHeight: 206,
+                  suggestionListDecoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.secondary,
+                    borderRadius: BorderRadius.circular(8.0),
+                  ),
+                  maxLines: null,
+                  keyboardType: TextInputType.text,
+                  cursorColor: Theme.of(context).colorScheme.onBackground,
+                  mentions: [
+                    Mention(
+                      trigger: '@',
+                      disableMarkup: true,
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.secondary,
+                      ),
+                      data: mentionsData,
+                      matchAll: false,
+                      suggestionBuilder: (data) {
+                        return Padding(
+                          padding: EdgeInsets.only(left: 20.0),
+                          child: Column(
+                            children: [
+                              Container(
+                                height: 50.0,
+                                alignment: Alignment.centerLeft,
+                                child: Text(
+                                  data['display']!,
+                                  style: TextStyle(
+                                    color: Colors.black,
+                                  ),
+                                ),
+                              ),
+                              Divider(
+                                height: 2.0,
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                  onSearchChanged: (String trigger, String query) async {
+                    await handleSearch(query);
+                  },
+                  onMentionAdd: (data) {
+                    mentionsDataAdded
+                        .add({'id': data['id']!, 'display': data['display']!});
+                  },
                 ),
               ),
-              (file != null)
-                  ? Column(
-                      children: <Widget>[
-                        Padding(
-                          padding: EdgeInsets.only(top: 30.0),
-                          child: Container(
-                            // height: 500.0,
-                            width: MediaQuery.of(context).size.width,
-                            child: Center(
-                              child: AspectRatio(
-                                aspectRatio: handleRatio(),
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    image: DecorationImage(
-                                      fit: BoxFit.cover,
-                                      image: FileImage(file!),
-                                    ),
+            ),
+            (file != null)
+                ? Column(
+                    children: <Widget>[
+                      Padding(
+                        padding: EdgeInsets.only(top: 30.0),
+                        child: Container(
+                          // height: 500.0,
+                          width: MediaQuery.of(context).size.width,
+                          child: Center(
+                            child: AspectRatio(
+                              aspectRatio: handleRatio(),
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  image: DecorationImage(
+                                    fit: BoxFit.cover,
+                                    image: FileImage(file!),
                                   ),
                                 ),
                               ),
                             ),
                           ),
                         ),
-                        Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: TextButton.icon(
-                            onPressed: () => clearImage(),
-                            icon: const Icon(Icons.cancel_outlined,
-                                color: Color.fromARGB(255, 89, 36, 99)),
-                            label: const Text(
-                              "Remove Image",
-                              style: TextStyle(
-                                color: Color.fromARGB(255, 89, 36, 99),
-                                fontSize: 20.0,
-                              ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: TextButton.icon(
+                          onPressed: () => clearImage(),
+                          icon: const Icon(Icons.cancel_outlined,
+                              color: Color.fromARGB(255, 89, 36, 99)),
+                          label: const Text(
+                            "Remove Image",
+                            style: TextStyle(
+                              color: Color.fromARGB(255, 89, 36, 99),
+                              fontSize: 20.0,
                             ),
                           ),
                         ),
-                      ],
-                    )
-                  : Text("")
-            ],
-          ),
+                      ),
+                    ],
+                  )
+                : Text("")
+          ],
         ),
       ),
     );

@@ -31,7 +31,6 @@ class _MessageFeed extends State<MessageFeed> {
 
   @override
   Widget build(context) {
-    final reloadNotifier = Provider.of<ReloadNotifier>(context, listen: false);
     return Scaffold(
       appBar: header(context,
           titleText: "Messages",
@@ -39,7 +38,6 @@ class _MessageFeed extends State<MessageFeed> {
           showAddMessageButton: true),
       body: Container(
         child: FutureBuilder(
-          key: ValueKey<bool>(reloadNotifier.shouldReloadMessageFeed),
           future: getMessageFeed(),
           builder: (context, snapshot) {
             if (!snapshot.hasData) {

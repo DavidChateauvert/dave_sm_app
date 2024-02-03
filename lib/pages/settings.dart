@@ -39,126 +39,125 @@ class _SettingsPageState extends State<SettingsPage> {
     // Navigator.push(context, MaterialPageRoute(builder: (context) => Home()));
   }
 
+  setThemeInFirestore() async {
+    String currentTheme = Provider.of<ThemeProvider>(context, listen: false)
+        .getThemeDataFormatString();
+    await usersRef.doc(widget.currentUserId).update({
+      "theme": currentTheme,
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return Drawer(
       key: _scaffoldKey,
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        title: const Text(
-          "Settings",
-          style: const TextStyle(color: Colors.white, fontSize: 30.0),
-        ),
-      ),
-      body: isLoading
+      child: isLoading
           ? circularProgress()
           : ListView(
+              padding: EdgeInsets.zero,
               children: <Widget>[
+                DrawerHeader(
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                  child: Text(
+                    'Settings',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 32.0,
+                    ),
+                  ),
+                ),
                 Container(
                   child: Column(
                     children: <Widget>[
-                      Padding(
-                        padding: const EdgeInsets.only(top: 64.0),
-                        child: TextButton.icon(
-                          onPressed: () =>
-                              Provider.of<ThemeProvider>(context, listen: false)
-                                  .toggleTheme(),
-                          icon: Icon(CupertinoIcons.brightness_solid,
-                              color: Theme.of(context).colorScheme.secondary),
-                          label: Text(
+                      const SizedBox(
+                        height: 16.0,
+                      ),
+                      ListTile(
+                          leading: Icon(
+                            CupertinoIcons.brightness_solid,
+                            color: Theme.of(context).colorScheme.secondary,
+                          ),
+                          title: Text(
                             "Change theme",
                             style: TextStyle(
                               color: Theme.of(context).colorScheme.secondary,
                               fontSize: 20.0,
                             ),
                           ),
-                        ),
+                          onTap: () {
+                            Provider.of<ThemeProvider>(context, listen: false)
+                                .toggleTheme();
+                            setThemeInFirestore();
+                          }),
+                      const SizedBox(
+                        height: 16.0,
                       ),
-                      Padding(
-                        padding: const EdgeInsets.only(top: 64.0),
-                        child: TextButton.icon(
-                          onPressed: () => Provider.of<NotificationProvider>(
-                                  context,
-                                  listen: false)
-                              .resetNotificationCount(),
-                          icon: Icon(CupertinoIcons.bell),
-                          label: Text(
-                            "Reset Notifications",
-                            style: TextStyle(
-                              fontSize: 20.0,
-                            ),
+                      ListTile(
+                        leading: Icon(CupertinoIcons.bell),
+                        title: Text(
+                          "Reset Notifications",
+                          style: TextStyle(
+                            fontSize: 20.0,
                           ),
                         ),
+                        onTap: () => Provider.of<NotificationProvider>(context,
+                                listen: false)
+                            .resetNotificationCount(),
                       ),
-                      Padding(
-                        padding: const EdgeInsets.only(top: 64.0),
-                        child: TextButton.icon(
-                          onPressed: () => Provider.of<NotificationProvider>(
-                                  context,
-                                  listen: false)
-                              .printNotificationCount(),
-                          icon: Icon(CupertinoIcons.bell),
-                          label: Text(
-                            "Print Notifications",
-                            style: TextStyle(
-                              fontSize: 20.0,
-                            ),
+                      const SizedBox(
+                        height: 16.0,
+                      ),
+                      ListTile(
+                        leading: Icon(CupertinoIcons.info),
+                        title: Text(
+                          "About us",
+                          style: TextStyle(
+                            fontSize: 20.0,
                           ),
                         ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.only(top: 64.0),
-                        child: TextButton.icon(
-                          onPressed: () => logout(),
-                          icon: const Icon(Icons.cancel, color: Colors.red),
-                          label: const Text(
-                            "Log out",
-                            style: TextStyle(
-                              color: Colors.red,
-                              fontSize: 20.0,
-                            ),
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => AboutUs(),
                           ),
                         ),
                       ),
-                      Padding(
-                        padding: const EdgeInsets.only(top: 64.0),
-                        child: TextButton.icon(
-                          onPressed: () => Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => AboutUs(),
-                            ),
+                      const SizedBox(
+                        height: 16.0,
+                      ),
+                      ListTile(
+                        leading: Icon(CupertinoIcons.envelope),
+                        title: Text(
+                          "Contact us",
+                          style: TextStyle(
+                            fontSize: 20.0,
                           ),
-                          icon: Icon(
-                            CupertinoIcons.info,
-                          ),
-                          label: Text(
-                            "About us",
-                            style: TextStyle(
-                              fontSize: 20.0,
-                            ),
+                        ),
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ContactUs(),
                           ),
                         ),
                       ),
-                      Padding(
-                        padding: const EdgeInsets.only(top: 64.0),
-                        child: TextButton.icon(
-                          onPressed: () => Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => ContactUs(),
-                            ),
-                          ),
-                          icon: const Icon(
-                            CupertinoIcons.envelope,
-                          ),
-                          label: const Text(
-                            "Contact us",
-                            style: TextStyle(
-                              fontSize: 20.0,
-                            ),
+                      const SizedBox(
+                        height: 16.0,
+                      ),
+                      ListTile(
+                        leading: Icon(Icons.cancel, color: Colors.red),
+                        title: Text(
+                          "Log out",
+                          style: TextStyle(
+                            color: Colors.red,
+                            fontSize: 20.0,
                           ),
                         ),
+                        onTap: () => logout(),
+                      ),
+                      const SizedBox(
+                        height: 16.0,
                       ),
                     ],
                   ),

@@ -8,10 +8,12 @@ import 'package:sm_app/widgets/progress.dart';
 class PostScreen extends StatefulWidget {
   final String userId;
   final String postId;
+  final String type;
 
   PostScreen({
     required this.userId,
     required this.postId,
+    required this.type,
   });
 
   @override
@@ -33,40 +35,50 @@ class _ProfileScreen extends State<PostScreen> {
       isLoading = true;
     });
 
-    DocumentSnapshot snapshot = await timelineRef
-        .doc(currentUser.id)
-        .collection('timelinePosts')
-        .doc(widget.postId)
-        .get();
+    try {
+      DocumentSnapshot doc;
+      if (["like", "contains"].contains(widget.type)) {
+        doc = await postsRef
+            .doc(currentUser.id)
+            .collection('userPosts')
+            .doc(widget.postId)
+            .get();
+      } else {
+        doc = await timelineRef
+            .doc(currentUser.id)
+            .collection('timelinePosts')
+            .doc(widget.postId)
+            .get();
+      }
+
+      if (doc.exists) {
+        setState(() {
+          post = PostProfile.fromDocument(doc);
+        });
+      }
+    } catch (error) {
+      print("Error getting document: $error");
+      return "";
+    }
 
     setState(() {
       isLoading = false;
-      if (snapshot.exists) {
-        post = PostProfile.fromDocument(snapshot);
-      } else {
-        post = buildPostAlreadySeen();
-      }
     });
   }
 
   buildPostAlreadySeen() {
     return Container(
-      height: 100,
+      height: 400,
       alignment: Alignment.center,
       color: Theme.of(context).colorScheme.secondary,
-      child: const Text(
+      child: Text(
         "Post already seen",
-        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        style: TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+          color: Theme.of(context).colorScheme.primary,
+        ),
       ),
-    );
-  }
-
-  buildProfilePost() {
-    if (isLoading) {
-      return circularProgress();
-    }
-    return Container(
-      child: post,
     );
   }
 
@@ -79,7 +91,11 @@ class _ProfileScreen extends State<PostScreen> {
           Divider(
             height: 0.0,
           ),
-          buildProfilePost()
+          isLoading
+              ? circularProgress()
+              : post == null
+                  ? buildPostAlreadySeen()
+                  : post,
         ],
       ),
     );

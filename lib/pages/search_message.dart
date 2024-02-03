@@ -16,6 +16,7 @@ class _SearchMessageState extends State<SearchMessage>
     with AutomaticKeepAliveClientMixin<SearchMessage> {
   TextEditingController searchController = TextEditingController();
   Future<QuerySnapshot>? searchResultsFuture;
+  FocusNode searchFocusNode = FocusNode();
   List<String> allFriends = [];
   int friendBuilderCounter = 0;
 
@@ -37,14 +38,17 @@ class _SearchMessageState extends State<SearchMessage>
   }
 
   clearSearch() {
-    searchResultsFuture = null;
-    searchController.clear();
+    setState(() {
+      searchController.clear();
+    });
+    handleSearch(searchController.text);
+    searchFocusNode.unfocus();
   }
 
   AppBar buildSearchField() {
     return AppBar(
-      backgroundColor: Theme.of(context).colorScheme.primary,
       title: TextFormField(
+        focusNode: searchFocusNode,
         controller: searchController,
         style: TextStyle(color: Colors.white),
         decoration: InputDecoration(
@@ -132,7 +136,6 @@ class _SearchMessageState extends State<SearchMessage>
     super.build(context);
 
     return Scaffold(
-      backgroundColor: Color.fromARGB(255, 244, 186, 184),
       appBar: buildSearchField(),
       body:
           searchResultsFuture == null ? buildNoContent() : buildSearchResults(),
@@ -151,8 +154,8 @@ class UserResult extends StatelessWidget {
       color: Theme.of(context).colorScheme.primary.withOpacity(0.7),
       child: Column(
         children: <Widget>[
-          GestureDetector(
-            onTap: () => showMessageScreen(context, profileId: user.id),
+          TextButton(
+            onPressed: () => showMessageScreen(context, profileId: user.id),
             child: ListTile(
               leading: CircleAvatar(
                 backgroundColor: Colors.grey,
@@ -161,7 +164,7 @@ class UserResult extends StatelessWidget {
               title: Row(
                 children: [
                   Text(
-                    user.username,
+                    user.displayName,
                     style: TextStyle(
                         color: Colors.white, fontWeight: FontWeight.bold),
                   ),
@@ -174,10 +177,6 @@ class UserResult extends StatelessWidget {
                         )
                       : Text(""),
                 ],
-              ),
-              subtitle: Text(
-                user.displayName,
-                style: TextStyle(color: Colors.white),
               ),
             ),
           ),
@@ -192,6 +191,7 @@ class UserResult extends StatelessWidget {
 }
 
 showMessageScreen(BuildContext context, {required String profileId}) {
+  Navigator.pop(context);
   Navigator.push(
     context,
     MaterialPageRoute(

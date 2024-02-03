@@ -10,7 +10,6 @@ import 'package:sm_app/api/firebase_api.dart';
 import 'package:sm_app/api/notification_api.dart';
 import 'package:sm_app/pages/message_feed.dart';
 import 'package:sm_app/pages/message_screen.dart';
-import 'package:sm_app/pages/post_screen.dart';
 import 'package:sm_app/pages/profile.dart';
 import 'package:sm_app/pages/search.dart';
 import 'package:sm_app/pages/timeline.dart';
@@ -18,6 +17,7 @@ import 'package:sm_app/pages/upload.dart';
 import 'package:sm_app/providers/notification_provider.dart';
 import 'package:sm_app/providers/reload_provider.dart';
 import 'package:sm_app/providers/route_observer_provider.dart';
+import 'package:sm_app/providers/theme_provider.dart';
 import '../models/user.dart';
 import 'activity_feed.dart';
 import 'create_account.dart';
@@ -62,7 +62,7 @@ class _HomeState extends State<Home> {
       handleNotificationOnClick(message);
     });
     FirebaseMessaging.onBackgroundMessage(handleBackGroundMessage);
-    googleSignIn.signIn();
+    // googleSignIn.signIn();
     // Detects when user signed in
     googleSignIn.onCurrentUserChanged.listen((account) {
       handleSignIn();
@@ -103,6 +103,9 @@ class _HomeState extends State<Home> {
   }
 
   createUserInFirestore() async {
+    setState(() {
+      isCreatingUser = true;
+    });
     // 1 : Check if user exsits in users collection according to there id
     final GoogleSignInAccount? user = googleSignIn.currentUser;
     if (user != null) {
@@ -118,7 +121,6 @@ class _HomeState extends State<Home> {
                 builder: (context) => CreateAccount(
                       userId: user.id,
                     )));
-        print(newUser.displayName);
         // 3 : Get username from create account, use it to make new user document in users collection
         usersRef.doc(user.id).set({
           "id": user.id,
@@ -147,8 +149,13 @@ class _HomeState extends State<Home> {
         });
       }
       currentUser = User.fromDocument(doc);
+      Provider.of<ThemeProvider>(context, listen: false)
+          .toggleThemeToParam(currentUser.theme);
       await FirebaseApi().initMessaging(currentUser.id);
     }
+    setState(() {
+      isCreatingUser = false;
+    });
   }
 
   @override
@@ -236,6 +243,7 @@ class _HomeState extends State<Home> {
 
   void handleNotificationOnClick(RemoteMessage message) async {
     String type = message.data['type'] ?? "";
+    print(type);
     if (type != "") {
       String screenValue = message.data['screen'] ?? "";
       Navigator.of(context).pushAndRemoveUntil(
@@ -266,17 +274,17 @@ class _HomeState extends State<Home> {
               .setCurrentRoute("message-feed");
         }
       } else if (type == "mention") {
-        String senderId = message.data['senderId'] ?? "";
+        //String senderId = message.data['senderId'] ?? "";
         onTap(4);
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) =>
-                PostScreen(userId: senderId, postId: screenValue),
-          ),
-        );
-        Provider.of<NotificationProvider>(context, listen: false)
-            .seenNotificationActivityFeed(screenValue);
+        // Navigator.push(
+        //   context,
+        //   MaterialPageRoute(
+        //     builder: (context) =>
+        //         PostScreen(userId: senderId, postId: screenValue, type: type),
+        //   ),
+        // );
+        // Provider.of<NotificationProvider>(context, listen: false)
+        //     .seenNotificationActivityFeed(screenValue);
       } else if (type == "friend request question" ||
           type == "friend request accept") {
         onTap(4);

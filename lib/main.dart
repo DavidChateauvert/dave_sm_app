@@ -11,7 +11,8 @@ import 'package:sm_app/providers/theme_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  initializeFirebase();
+  await Firebase.initializeApp();
+  //initializeFirebase();
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp])
       .then((_) {
     runApp(

@@ -1,10 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:sm_app/pages/home.dart';
 import 'package:sm_app/pages/message_feed.dart';
 import 'package:sm_app/pages/search_message.dart';
-import 'package:sm_app/pages/settings.dart';
 import 'package:sm_app/providers/notification_provider.dart';
 import 'package:sm_app/providers/route_observer_provider.dart';
 
@@ -15,18 +13,16 @@ AppBar header(context,
     showAddMessageButton = false}) {
   return AppBar(
     leading: (titleText == "Profile" && removeBackButton == true)
-        ? IconButton(
-            icon: Icon(
-              Icons.settings_outlined,
-              size: 28,
-            ),
-            onPressed: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => SettingsPage(
-                    currentUserId: currentUser.id,
-                  ),
-                )),
+        ? Builder(
+            builder: (BuildContext context) {
+              return IconButton(
+                icon: Icon(
+                  Icons.settings_outlined,
+                  size: 28,
+                ),
+                onPressed: () => Scaffold.of(context).openDrawer(),
+              );
+            },
           )
         : null,
     automaticallyImplyLeading: removeBackButton ? false : true,
@@ -75,7 +71,7 @@ AppBar header(context,
                       MaterialPageRoute(
                         builder: (context) => SearchMessage(),
                       )),
-                  icon: Icon(CupertinoIcons.plus_bubble))
+                  icon: Icon(CupertinoIcons.search))
               : Container(),
     ],
     backgroundColor: Theme.of(context).colorScheme.primary,

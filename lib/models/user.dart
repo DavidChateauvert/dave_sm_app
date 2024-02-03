@@ -10,6 +10,7 @@ class User {
   final String displayName;
   final String bio;
   final bool verified;
+  final String theme;
 
   User(
       {required this.id,
@@ -20,7 +21,8 @@ class User {
       required this.lastName,
       required this.displayName,
       required this.bio,
-      required this.verified});
+      required this.verified,
+      required this.theme});
 
   factory User.fromDocument(DocumentSnapshot doc) {
     return User(
@@ -32,6 +34,7 @@ class User {
         lastName: doc['lastName'],
         displayName: doc['displayName'],
         bio: doc['bio'],
-        verified: doc['verified']);
+        verified: doc['verified'],
+        theme: doc['theme']);
   }
 }

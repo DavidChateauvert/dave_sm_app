@@ -8,6 +8,7 @@ import 'package:sm_app/api/firebase_api.dart';
 import 'package:sm_app/pages/edit_profile.dart';
 import 'package:sm_app/pages/friends.dart';
 import 'package:sm_app/pages/home.dart';
+import 'package:sm_app/pages/settings.dart';
 import 'package:sm_app/widgets/header.dart';
 import 'package:sm_app/widgets/post.dart';
 import 'package:sm_app/widgets/progress.dart';
@@ -207,8 +208,8 @@ class _Profile extends State<Profile> {
           alignment: Alignment.center,
           decoration: BoxDecoration(
             color: isFollowing
-                ? Colors.white
-                : Theme.of(context).colorScheme.primary,
+                ? Theme.of(context).colorScheme.background
+                : Theme.of(context).colorScheme.onBackground,
             border: Border.all(
               color: isFollowing
                   ? Colors.grey
@@ -219,7 +220,9 @@ class _Profile extends State<Profile> {
           child: Text(
             text!,
             style: TextStyle(
-              color: isFollowing ? Colors.black : Colors.white,
+              color: isFollowing
+                  ? Theme.of(context).colorScheme.onBackground
+                  : Theme.of(context).colorScheme.background,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -338,7 +341,7 @@ class _Profile extends State<Profile> {
           .doc(widget.profileId)
           .set({
         "message": "Vous pouvez maintenant vous envoyer des messages",
-        "username": user.displayName,
+        "username": user.firstName,
         "userId": widget.profileId,
         "lastUserSent": widget.profileId,
         "userProfileImg": user.photoUrl,
@@ -351,7 +354,7 @@ class _Profile extends State<Profile> {
           .doc(currentUserId)
           .set({
         "message": "Vous pouvez maintenant vous envoyer des messages",
-        "username": currentUser.displayName,
+        "username": currentUser.firstName,
         "userId": currentUserId,
         "lastUserSent": currentUserId,
         "userProfileImg": currentUser.photoUrl,
@@ -515,6 +518,9 @@ class _Profile extends State<Profile> {
           ),
           buildProfilePost()
         ],
+      ),
+      drawer: SettingsPage(
+        currentUserId: currentUserId,
       ),
     );
   }

@@ -1,9 +1,9 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:sm_app/pages/home.dart';
 // import 'package:sm_app/pages/search.dart';
 import 'package:sm_app/widgets/header.dart';
 import 'package:sm_app/widgets/post.dart';
-import 'package:sm_app/widgets/progress.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../models/user.dart';
@@ -23,6 +23,7 @@ class _TimelineState extends State<Timeline> {
   List<Post> posts = [];
   List<String> followingList = [];
   Key _listKey = UniqueKey();
+  bool timelineIsEmpty = false;
 
   @override
   void initState() {
@@ -35,7 +36,7 @@ class _TimelineState extends State<Timeline> {
     QuerySnapshot snapshot = await timelineRef
         .doc(widget.currentUser.id)
         .collection('timelinePosts')
-        .orderBy('timestamp', descending: true)
+        .orderBy('timestamp')
         .get();
 
     List<Post> posts = snapshot.docs
@@ -44,6 +45,9 @@ class _TimelineState extends State<Timeline> {
         .toList();
     setState(() {
       this.posts = posts;
+      if (posts.isEmpty) {
+        this.timelineIsEmpty = true;
+      }
       _listKey = UniqueKey();
     });
   }
@@ -58,94 +62,149 @@ class _TimelineState extends State<Timeline> {
     });
   }
 
-  buildTimeline() {
-    // ignore: unnecessary_null_comparison
-    if (posts == null) {
-      return circularProgress();
-    } else if (posts.isEmpty) {
-      return buildUserToFollow();
-    }
-    return NotificationListener<ScrollNotification>(
-      onNotification: (ScrollNotification scrollInfo) {
-        if (scrollInfo.metrics.pixels == scrollInfo.metrics.maxScrollExtent) {
-          // Load more data or handle the end of the list
-          return true;
-        }
-        return false;
-      },
-      child: RefreshIndicator.adaptive(
-        onRefresh: () => getTimeline(),
-        child: ListView.builder(
-          // reverse: true,
-          key: _listKey,
-          // physics: AlwaysScrollableScrollPhysics(),
-          itemCount: posts.length,
-          itemBuilder: (BuildContext context, int index) {
-            final reversedIndex = posts.length - 1 - index;
-            return posts[reversedIndex];
-          },
+  buildTimeline(context) {
+    if (!timelineIsEmpty) {
+      return NotificationListener<ScrollNotification>(
+        onNotification: (ScrollNotification scrollInfo) {
+          if (scrollInfo.metrics.pixels == scrollInfo.metrics.maxScrollExtent) {
+            // Load more data or handle the end of the list
+            return true;
+          }
+          return false;
+        },
+        child: RefreshIndicator.adaptive(
+          onRefresh: () => getTimeline(),
+          child: ListView.builder(
+            key: _listKey,
+            itemCount: posts.length,
+            itemBuilder: (BuildContext context, int index) {
+              return posts[index];
+            },
+          ),
         ),
-      ),
-    );
+      );
+    } else {
+      return buildEmptyTimeline(context);
+    }
   }
 
-  Widget buildContainer(userResults) {
+  buildEmptyTimeline(context) {
+    return followingList.isEmpty
+        ? buildUserToFollowForNewUser(context)
+        : buildUserToFollow(context);
+  }
+
+  buildUserToFollow(context) {
     return Container(
-      color: Color.fromARGB(255, 244, 186, 184).withOpacity(0.2),
+      alignment: Alignment.center,
       child: Column(
-        children: <Widget>[
-          Container(
-            padding: EdgeInsets.all(12.0),
-            child: const Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          const SizedBox(
+            height: 48,
+          ),
+          Expanded(
+            child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                Icon(
-                  Icons.person_add,
-                  color: Color.fromARGB(255, 89, 36, 99),
-                  size: 30.0,
-                ),
-                SizedBox(
-                  width: 8.0,
-                ),
+              children: [
                 Text(
-                  "Users to Follow",
+                  "Your timeline is empty for the moment.",
+                  textAlign: TextAlign.center,
                   style: TextStyle(
-                    color: Color.fromARGB(255, 89, 36, 99),
-                    fontSize: 30.0,
+                    fontSize: 24,
+                    fontWeight: FontWeight.w400,
+                    color: Theme.of(context).colorScheme.primaryContainer,
                   ),
                 ),
               ],
             ),
           ),
-          Column(children: userResults),
+          Text(
+            "Click here to start searching for people you know and have more post on your timeline",
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w400,
+              color: Theme.of(context).colorScheme.primaryContainer,
+            ),
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              SizedBox(width: MediaQuery.of(context).size.width / 4 * 0.96),
+              Icon(
+                CupertinoIcons.arrow_down,
+                color: Theme.of(context).colorScheme.primaryContainer,
+                size: 40,
+              ),
+            ],
+          ),
         ],
       ),
     );
   }
 
-  buildUserToFollow() {
-    return Text("");
-    // StreamBuilder(
-    //   stream: usersRef.orderBy('timestamp', descending: true).limit(3).snapshots(),
-    //   builder: (context, snapshot) {
-    //     if (!snapshot.hasData) {
-    //       return circularProgress();
-    //     }
-    //     List<UserResult> userResults = [];
-    //     snapshot.data?.docs.forEach((doc) {
-    //       User user = User.fromDocument(doc);
-    //       if (currentUser.id == user.id) {
-    //         return;
-    //       } else if (followingList.contains(user.id)) {
-    //         return;
-    //       } else {
-    //         UserResult userResult = UserResult(user);
-    //         userResults.add(userResult);
-    //       }
-    //     });
-    //       return buildContainer(userResults);
-    //   },
-    // );
+  buildUserToFollowForNewUser(context) {
+    return Container(
+      alignment: Alignment.center,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          const SizedBox(
+            height: 48,
+          ),
+          Expanded(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  "Welcome to Dave",
+                  style: TextStyle(
+                    fontSize: 32,
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).colorScheme.primaryContainer,
+                  ),
+                ),
+                const SizedBox(
+                  height: 24,
+                ),
+                Text(
+                  "Your timeline is empty for the moment.",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.w400,
+                    color: Theme.of(context).colorScheme.primaryContainer,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Text(
+            "Click here to start searching for people you know and you'll be able to see their post",
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w400,
+              color: Theme.of(context).colorScheme.primaryContainer,
+            ),
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              SizedBox(width: MediaQuery.of(context).size.width / 4 * 0.96),
+              Icon(
+                CupertinoIcons.arrow_down,
+                color: Theme.of(context).colorScheme.primaryContainer,
+                size: 40,
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -154,7 +213,7 @@ class _TimelineState extends State<Timeline> {
       appBar: header(context),
       body: RefreshIndicator.adaptive(
         onRefresh: () => getTimeline(),
-        child: buildTimeline(),
+        child: buildTimeline(context),
       ),
     );
   }

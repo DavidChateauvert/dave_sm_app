@@ -11,6 +11,7 @@ class FirebaseApi {
   Future<void> initMessaging(currentUserId) async {
     await _firebaseMessaging.requestPermission();
     final fCMToken = await _firebaseMessaging.getToken();
+    print(fCMToken);
 
     if (fCMToken != null) {
       tokensRef.doc(currentUserId).update({

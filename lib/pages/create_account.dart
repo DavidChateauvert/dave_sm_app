@@ -9,8 +9,10 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:provider/provider.dart';
 import 'package:sm_app/models/user.dart';
 import 'package:sm_app/pages/home.dart';
+import 'package:sm_app/providers/theme_provider.dart';
 import 'package:sm_app/widgets/header.dart';
 import 'package:image/image.dart' as Im;
 import 'package:sm_app/widgets/progress.dart';
@@ -41,15 +43,18 @@ class _CreateAccountState extends State<CreateAccount> {
       form.save();
 
       User user = User(
-          id: widget.userId,
-          username: "",
-          email: "",
-          photoUrl: photoUrl,
-          firstName: firstName,
-          lastName: lastName,
-          displayName: "${firstName} ${lastName}",
-          bio: bio,
-          verified: false);
+        id: widget.userId,
+        username: "",
+        email: "",
+        photoUrl: photoUrl,
+        firstName: firstName,
+        lastName: lastName,
+        displayName: "${firstName} ${lastName}",
+        bio: bio,
+        verified: false,
+        theme: Provider.of<ThemeProvider>(context, listen: false)
+            .getThemeDataFormatString(),
+      );
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Welcome ${user.displayName}!")),

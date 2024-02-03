@@ -9,9 +9,7 @@ import '../models/user.dart';
 import '../widgets/progress.dart';
 // ignore: depend_on_referenced_packages
 import 'package:chat_bubbles/chat_bubbles.dart';
-
-// ignore: depend_on_referenced_packages
-import 'package:intl/intl.dart';
+import 'package:timeago/timeago.dart' as timeago;
 
 class MessageScreen extends StatefulWidget {
   late final String otherUserId;
@@ -29,6 +27,7 @@ class _MessageScreen extends State<MessageScreen> {
   FocusNode messageFocusNode = FocusNode();
   final String currentUserId = currentUser.id;
   late String otherUserToken;
+  late User otherUser;
 
   @override
   void initState() {
@@ -51,6 +50,7 @@ class _MessageScreen extends State<MessageScreen> {
           .doc(widget.otherUserId)
           .collection("message")
           .orderBy("timestamp", descending: true)
+          .limit(10)
           .snapshots(),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
@@ -63,9 +63,12 @@ class _MessageScreen extends State<MessageScreen> {
 
         return GestureDetector(
           onTap: () => messageFocusNode.unfocus(),
+          onVerticalDragDown: (DragDownDetails details) =>
+              messageFocusNode.unfocus(),
           child: ListView(
             reverse: true,
             children: messages,
+            physics: NeverScrollableScrollPhysics(),
           ),
         );
       },
@@ -112,31 +115,57 @@ class _MessageScreen extends State<MessageScreen> {
     messageController.clear();
   }
 
-  // initMessegin() async {
-  //   await FirebaseApi().initMessaging(currentUserId);
-  // }
-
   addNotificationActivityFeed() async {
     try {
       await messagesRef
           .doc(widget.otherUserId)
           .collection("and")
           .doc(currentUserId)
-          .update({
-        "lastUserSent": currentUserId,
-        "message": messageController.text,
-        "seen": false,
-        "timestamp": DateTime.now(),
+          .get()
+          .then((doc) {
+        if (doc.exists) {
+          doc.reference.update({
+            "lastUserSent": currentUserId,
+            "message": messageController.text,
+            "seen": false,
+            "timestamp": DateTime.now(),
+          });
+        } else {
+          doc.reference.set({
+            "message": messageController.text,
+            "username": currentUser.firstName,
+            "userId": currentUserId,
+            "lastUserSent": currentUserId,
+            "userProfileImg": currentUser.photoUrl,
+            "seen": false,
+            "timestamp": DateTime.now(),
+          });
+        }
       });
       await messagesRef
           .doc(currentUserId)
           .collection("and")
           .doc(widget.otherUserId)
-          .update({
-        "lastUserSent": currentUserId,
-        "message": messageController.text,
-        "seen": true,
-        "timestamp": DateTime.now(),
+          .get()
+          .then((doc) {
+        if (doc.exists) {
+          doc.reference.update({
+            "lastUserSent": currentUserId,
+            "message": messageController.text,
+            "seen": true,
+            "timestamp": DateTime.now(),
+          });
+        } else {
+          doc.reference.set({
+            "message": messageController.text,
+            "username": otherUser.firstName,
+            "userId": widget.otherUserId,
+            "lastUserSent": currentUserId,
+            "userProfileImg": otherUser.photoUrl,
+            "seen": true,
+            "timestamp": DateTime.now(),
+          });
+        }
       });
     } catch (e) {
       print("Error: $e");
@@ -151,7 +180,7 @@ class _MessageScreen extends State<MessageScreen> {
           if (!snapshot.hasData) {
             return circularProgress();
           }
-          User otherUser =
+          otherUser =
               User.fromDocument(snapshot.data as DocumentSnapshot<Object?>);
           return Scaffold(
             appBar: AppBar(
@@ -216,6 +245,7 @@ class Message extends StatelessWidget {
   final String avatarUrl;
   final String message;
   final Timestamp timestamp;
+  final GlobalKey messageKey = GlobalKey();
 
   Message({
     required this.username,
@@ -241,6 +271,7 @@ class Message extends StatelessWidget {
     return Column(
       children: <Widget>[
         Padding(
+          key: messageKey,
           padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -260,7 +291,8 @@ class Message extends StatelessWidget {
                     ),
                     SizedBox(height: 4.0),
                     Text(
-                      DateFormat.Hm().format(timestamp.toDate()),
+                      timeago.format(timestamp.toDate(), locale: 'en_short'),
+                      // DateFormat.Hm().format(timestamp.toDate()),
                       style: const TextStyle(
                         fontSize: 12.0,
                         color: Colors.grey,
@@ -280,6 +312,7 @@ class Message extends StatelessWidget {
     return Column(
       children: <Widget>[
         Padding(
+          key: messageKey,
           padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -300,7 +333,7 @@ class Message extends StatelessWidget {
                     ),
                     SizedBox(height: 4.0),
                     Text(
-                      DateFormat.Hm().format(timestamp.toDate()),
+                      timeago.format(timestamp.toDate(), locale: 'en_short'),
                       style: const TextStyle(
                         fontSize: 12.0,
                         color: Colors.grey,
@@ -314,6 +347,12 @@ class Message extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  Offset getPositionOnScreen() {
+    RenderBox renderBox =
+        messageKey.currentContext!.findRenderObject() as RenderBox;
+    return renderBox.localToGlobal(Offset.zero);
   }
 
   @override

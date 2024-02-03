@@ -1,9 +1,10 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:provider/provider.dart';
 import 'package:sm_app/pages/home.dart';
-import 'package:sm_app/pages/message_screen.dart';
 import 'package:sm_app/pages/post_screen.dart';
 import 'package:sm_app/pages/profile.dart';
 import 'package:sm_app/providers/notification_provider.dart';
@@ -74,6 +75,7 @@ class _ActivityFeedItem extends State<ActivityFeedItem> {
   final String userProfileImg;
   final String commentData;
   bool seen = false;
+  bool deleteInstant = false;
   final Timestamp timestamp;
 
   _ActivityFeedItem({
@@ -88,28 +90,6 @@ class _ActivityFeedItem extends State<ActivityFeedItem> {
   });
 
   configureMediaPreview(context) {
-    // if (type == 'liker' || type == 'comment') {
-    //   mediaPreview = GestureDetector(
-    //     onTap: () => print('showing post'),
-    //     child: Container(
-    //       height: 50.0,
-    //       width: 50.0,
-    //       child: AspectRatio(
-    //         aspectRatio: 16 / 9,
-    //         child: Container(
-    //           decoration: BoxDecoration(
-    //             image: DecorationImage(
-    //               fit: BoxFit.cover,
-    //               image: CachedNetworkImageProvider(currentUser.photoUrl)
-    //             ),
-    //           ),
-    //         ),
-    //       ),
-    //     ),
-    //   );
-    // } else {
-    //   mediaPreview = Text('');
-    // }
     mediaPreview = Text('');
     if (type == "like") {
       activityItemText = "liked your post";
@@ -147,50 +127,115 @@ class _ActivityFeedItem extends State<ActivityFeedItem> {
     });
   }
 
+  deleteActivityFeedItems(context) async {
+    setState(() {
+      deleteInstant = true;
+    });
+    if (type == "follow") {
+      try {
+        activityFeedRef
+            .doc(currentUser.id)
+            .collection("feedItems")
+            .doc(userId)
+            .get()
+            .then((doc) => {
+                  if (doc.exists) {doc.reference.delete()}
+                });
+      } catch (e) {
+        print("Error : $e");
+      }
+    } else {
+      try {
+        activityFeedRef
+            .doc(currentUser.id)
+            .collection("feedItems")
+            .where("type", isEqualTo: type)
+            .where("postId", isEqualTo: postId)
+            .where("timestamp", isEqualTo: timestamp)
+            .get()
+            .then((doc) => doc.docs.forEach((document) {
+                  activityFeedRef
+                      .doc(currentUser.id)
+                      .collection("feedItems")
+                      .doc(document.id)
+                      .delete();
+                  if (!seen) {
+                    Provider.of<NotificationProvider>(context, listen: false)
+                        .seenNotificationActivityFeed(postId);
+                  }
+                }));
+      } catch (e) {
+        print("Error : $e");
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     configureMediaPreview(context);
 
-    return Padding(
-      padding: EdgeInsets.only(bottom: 2.0),
-      child: Container(
-        color: Colors.white54,
-        child: ListTile(
-          title: GestureDetector(
-            onTap: () => showNotification(context, type),
-            child: RichText(
-              overflow: TextOverflow.ellipsis,
-              text: TextSpan(
-                style: const TextStyle(
-                  fontSize: 14.0,
-                  color: Colors.black,
-                ),
-                children: [
-                  TextSpan(
-                    text: username,
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  TextSpan(
-                    text: ' $activityItemText',
-                    style: TextStyle(
-                      fontWeight: seen ? FontWeight.normal : FontWeight.bold,
-                    ),
-                  ),
-                ],
+    return deleteInstant
+        ? Container()
+        : Column(
+            children: [
+              Divider(
+                color: Theme.of(context).colorScheme.secondary,
+                height: 0.0,
               ),
-            ),
-          ),
-          leading: CircleAvatar(
-            backgroundImage: CachedNetworkImageProvider(userProfileImg),
-          ),
-          subtitle: Text(
-            timeago.format(timestamp.toDate()),
-            overflow: TextOverflow.ellipsis,
-          ),
-          trailing: mediaPreview,
-        ),
-      ),
-    );
+              Slidable(
+                endActionPane: ActionPane(
+                  motion: StretchMotion(),
+                  children: [
+                    SlidableAction(
+                      flex: 1,
+                      onPressed: ((context) =>
+                          deleteActivityFeedItems(context)),
+                      backgroundColor: Colors.red,
+                      foregroundColor: Colors.white,
+                      icon: CupertinoIcons.delete_simple,
+                      label: 'Delete',
+                    ),
+                  ],
+                ),
+                child: TextButton(
+                  onPressed: () => showNotification(context, type),
+                  child: ListTile(
+                    title: RichText(
+                      overflow: TextOverflow.ellipsis,
+                      text: TextSpan(
+                        style: TextStyle(
+                          fontSize: 14.0,
+                          color: Theme.of(context).colorScheme.onBackground,
+                        ),
+                        children: [
+                          TextSpan(
+                            text: username,
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          TextSpan(
+                            text: ' $activityItemText',
+                            style: TextStyle(
+                              fontWeight:
+                                  seen ? FontWeight.normal : FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    leading: CircleAvatar(
+                      backgroundImage:
+                          CachedNetworkImageProvider(userProfileImg),
+                    ),
+                    subtitle: Text(
+                      timeago.format(timestamp.toDate()),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    trailing: mediaPreview,
+                  ),
+                ),
+              ),
+            ],
+          );
   }
 
   showPost(context, type) {
@@ -214,7 +259,8 @@ class _ActivityFeedItem extends State<ActivityFeedItem> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => PostScreen(userId: userId, postId: postId),
+        builder: (context) =>
+            PostScreen(userId: userId, postId: postId, type: type),
       ),
     );
   }
@@ -250,17 +296,5 @@ class _ActivityFeedItem extends State<ActivityFeedItem> {
                   .doc(document.id)
                   .update({"seen": true});
             }));
-  }
-
-  showMessageScreen(BuildContext context, {required String profileId}) {
-    if (!seen) {
-      setSeenInFirebase();
-    }
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => MessageScreen(otherUserId: profileId),
-      ),
-    );
   }
 }

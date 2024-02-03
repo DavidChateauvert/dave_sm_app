@@ -62,6 +62,7 @@ class _MessageFeedItem extends State<MessageFeedItem> {
   final String userProfileImg;
   String message;
   bool seen = false;
+  bool deleteInstant = false;
   final Timestamp timestamp;
 
   _MessageFeedItem({
@@ -95,7 +96,10 @@ class _MessageFeedItem extends State<MessageFeedItem> {
       context: context,
       builder: (context) {
         return SimpleDialog(
-          title: Text("Report this post ?"),
+          title: Text(
+            "Report this post ?",
+            textAlign: TextAlign.center,
+          ),
           children: <Widget>[
             SimpleDialogOption(
               onPressed: () {
@@ -105,11 +109,15 @@ class _MessageFeedItem extends State<MessageFeedItem> {
               child: Text(
                 'Report this conversation with $username',
                 style: TextStyle(color: Colors.red),
+                textAlign: TextAlign.center,
               ),
             ),
             SimpleDialogOption(
               onPressed: () => Navigator.pop(context),
-              child: Text('Cancel'),
+              child: Text(
+                'Cancel',
+                textAlign: TextAlign.center,
+              ),
             ),
           ],
         );
@@ -122,7 +130,10 @@ class _MessageFeedItem extends State<MessageFeedItem> {
       context: context,
       builder: (context) {
         return SimpleDialog(
-          title: Text("Delete this conversation ?"),
+          title: Text(
+            "Delete this conversation ?",
+            textAlign: TextAlign.center,
+          ),
           children: <Widget>[
             SimpleDialogOption(
               onPressed: () {
@@ -132,11 +143,15 @@ class _MessageFeedItem extends State<MessageFeedItem> {
               child: Text(
                 'Delete this conversation with $username',
                 style: TextStyle(color: Colors.red),
+                textAlign: TextAlign.center,
               ),
             ),
             SimpleDialogOption(
               onPressed: () => Navigator.pop(context),
-              child: Text('Cancel'),
+              child: Text(
+                'Cancel',
+                textAlign: TextAlign.center,
+              ),
             ),
           ],
         );
@@ -144,8 +159,24 @@ class _MessageFeedItem extends State<MessageFeedItem> {
     );
   }
 
-  deleteMessageFeedItems(context) {
-    print("Delete");
+  deleteMessageFeedItems(context) async {
+    setState(() {
+      deleteInstant = true;
+    });
+    try {
+      await messagesRef
+          .doc(currentUser.id)
+          .collection("and")
+          .doc(userId)
+          .get()
+          .then((doc) {
+        if (doc.exists) {
+          doc.reference.delete();
+        }
+      });
+    } catch (e) {
+      print("Error: $e");
+    }
   }
 
   @override
@@ -154,68 +185,73 @@ class _MessageFeedItem extends State<MessageFeedItem> {
     if (lastUserSent == currentUser.id) {
       whoSent = "Me :";
     }
-    return Slidable(
-      endActionPane: ActionPane(
-        motion: StretchMotion(),
-        children: [
-          SlidableAction(
-            flex: 1,
-            onPressed: ((context) => showDialogReport(context)),
-            backgroundColor: Colors.orange,
-            foregroundColor: Colors.white,
-            icon: CupertinoIcons.flag,
-            label: 'Report',
-          ),
-          SlidableAction(
-            flex: 1,
-            onPressed: ((context) => showDialogDelete(context)),
-            backgroundColor: Colors.red,
-            foregroundColor: Colors.white,
-            icon: CupertinoIcons.delete_simple,
-            label: 'Delete',
-          ),
-        ],
-      ),
-      child: Padding(
-        padding: EdgeInsets.only(bottom: 2.0),
-        child: Container(
-          color: Colors.white54,
-          child: ListTile(
-            title: GestureDetector(
-              onTap: () => showMessage(context),
-              child: RichText(
-                overflow: TextOverflow.ellipsis,
-                text: TextSpan(
-                  style: const TextStyle(
-                    fontSize: 14.0,
-                    color: Colors.black,
-                  ),
+    return deleteInstant
+        ? Container()
+        : Column(
+            children: [
+              Divider(
+                color: Theme.of(context).colorScheme.secondary,
+                height: 0.0,
+              ),
+              Slidable(
+                endActionPane: ActionPane(
+                  motion: StretchMotion(),
                   children: [
-                    TextSpan(
-                      text: username,
-                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    SlidableAction(
+                      flex: 1,
+                      onPressed: ((context) => showDialogReport(context)),
+                      backgroundColor: Colors.orange,
+                      foregroundColor: Colors.white,
+                      icon: CupertinoIcons.flag,
+                      label: 'Report',
                     ),
-                    TextSpan(
-                      text: ' $whoSent $message',
-                      style: TextStyle(
-                        fontWeight: seen ? FontWeight.normal : FontWeight.bold,
-                      ),
+                    SlidableAction(
+                      flex: 1,
+                      onPressed: ((context) => showDialogDelete(context)),
+                      backgroundColor: Colors.red,
+                      foregroundColor: Colors.white,
+                      icon: CupertinoIcons.delete_simple,
+                      label: 'Delete',
                     ),
                   ],
                 ),
+                child: TextButton(
+                  onPressed: () => showMessage(context),
+                  child: ListTile(
+                    title: RichText(
+                      overflow: TextOverflow.ellipsis,
+                      text: TextSpan(
+                        style: TextStyle(
+                          fontSize: 14.0,
+                          color: Theme.of(context).colorScheme.onBackground,
+                        ),
+                        children: [
+                          TextSpan(
+                            text: username,
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          TextSpan(
+                            text: ' $whoSent $message',
+                            style: TextStyle(
+                              fontWeight:
+                                  seen ? FontWeight.normal : FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    leading: CircleAvatar(
+                      backgroundImage:
+                          CachedNetworkImageProvider(userProfileImg),
+                    ),
+                    subtitle: Text(
+                      timeago.format(timestamp.toDate(), locale: 'en_short'),
+                    ),
+                  ),
+                ),
               ),
-            ),
-            leading: CircleAvatar(
-              backgroundImage: CachedNetworkImageProvider(userProfileImg),
-            ),
-            subtitle: Text(
-              timeago.format(timestamp.toDate()),
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-        ),
-      ),
-    );
+            ],
+          );
   }
 
   setSeenInFirebase() {

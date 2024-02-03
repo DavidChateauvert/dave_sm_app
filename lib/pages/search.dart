@@ -4,8 +4,10 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:provider/provider.dart';
 import 'package:sm_app/pages/home.dart';
 import 'package:sm_app/pages/profile.dart';
+import 'package:sm_app/providers/theme_provider.dart';
 import 'package:sm_app/widgets/progress.dart';
 import '../models/user.dart';
 
@@ -32,11 +34,11 @@ class _SearchState extends State<Search>
   }
 
   clearSearch() {
+    searchFocusNode.unfocus();
     setState(() {
       searchController.clear();
+      searchResultsFuture = null;
     });
-    handleSearch(searchController.text);
-    searchFocusNode.unfocus();
   }
 
   AppBar buildSearchField() {
@@ -59,6 +61,7 @@ class _SearchState extends State<Search>
             onPressed: () => clearSearch(),
           ),
           hintStyle: TextStyle(color: Colors.white),
+          hintText: "Search an user",
         ),
         onChanged: (query) => handleSearch(query),
         onFieldSubmitted: (query) => handleSearch(query),
@@ -67,25 +70,33 @@ class _SearchState extends State<Search>
   }
 
   Container buildNoContent() {
-    final Orientation orientation = MediaQuery.of(context).orientation;
     return Container(
+      color: Theme.of(context).colorScheme.background,
       child: Center(
-        child: ListView(
-          shrinkWrap: true,
-          children: <Widget>[
-            SvgPicture.asset('assets/images/advanced_search.svg',
-                height: orientation == Orientation.portrait ? 300.0 : 200.0),
-            Text(
-              "Find Users",
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: Colors.black,
-                fontStyle: FontStyle.normal,
-                fontWeight: FontWeight.w600,
-                fontSize: 60.0,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              SvgPicture.asset(
+                Provider.of<ThemeProvider>(context).themeData.brightness ==
+                        Brightness.light
+                    ? 'assets/images/advanced_search.svg'
+                    : 'assets/images/advanced_search_white.svg',
+                height: 300.0,
               ),
-            ),
-          ],
+              SizedBox(height: 16.0), // Add spacing if needed
+              Text(
+                "Find Users",
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.primaryContainer,
+                  fontStyle: FontStyle.normal,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 60.0,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -111,14 +122,14 @@ class _SearchState extends State<Search>
     );
   }
 
-  bool get wantKeepAlive => true;
+  bool get wantKeepAlive => false;
 
   @override
   Widget build(context) {
     super.build(context);
 
     return Scaffold(
-      backgroundColor: Color.fromARGB(255, 244, 186, 184),
+      backgroundColor: Theme.of(context).colorScheme.background,
       appBar: buildSearchField(),
       body:
           searchResultsFuture == null ? buildNoContent() : buildSearchResults(),
@@ -137,8 +148,8 @@ class UserResult extends StatelessWidget {
       color: Theme.of(context).colorScheme.primary.withOpacity(0.7),
       child: Column(
         children: <Widget>[
-          GestureDetector(
-            onTap: () => showProfile(context, profileId: user.id),
+          TextButton(
+            onPressed: () => showProfile(context, profileId: user.id),
             child: ListTile(
               leading: CircleAvatar(
                 backgroundColor: Colors.grey,
@@ -147,7 +158,7 @@ class UserResult extends StatelessWidget {
               title: Row(
                 children: [
                   Text(
-                    user.username,
+                    user.displayName,
                     style: TextStyle(
                         color: Colors.white, fontWeight: FontWeight.bold),
                   ),
@@ -160,10 +171,6 @@ class UserResult extends StatelessWidget {
                         )
                       : Text(""),
                 ],
-              ),
-              subtitle: Text(
-                user.displayName,
-                style: TextStyle(color: Colors.white),
               ),
             ),
           ),
