@@ -1,5 +1,4 @@
 // ignore_for_file: prefer_const_constructors
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:sm_app/pages/home.dart';
@@ -33,7 +32,7 @@ class _Friends extends State<Friends> {
 
   getFriends() async {
     QuerySnapshot friendsSnapshot =
-        await friendsRef.doc(currentUser.id).collection('userFriends').get();
+        await friendsRef.doc(widget.profileId).collection('userFriends').get();
 
     List<String> userIds = [];
 
@@ -86,41 +85,37 @@ class _Friends extends State<Friends> {
   }
 }
 
-class UserResult extends StatelessWidget {
-  final User user;
+// class UserResult extends StatelessWidget {
+//   final User user;
 
-  UserResult(this.user);
+//   UserResult(this.user);
 
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      color: Theme.of(context).colorScheme.primary.withOpacity(0.7),
-      child: Column(
-        children: <Widget>[
-          GestureDetector(
-            onTap: () => showProfile(context, profileId: user.id),
-            child: ListTile(
-              leading: CircleAvatar(
-                backgroundColor: Colors.grey,
-                backgroundImage: CachedNetworkImageProvider(user.photoUrl),
-              ),
-              title: Text(
-                user.displayName,
-                style:
-                    TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-              ),
-              subtitle: Text(
-                user.username,
-                style: TextStyle(color: Colors.white),
-              ),
-            ),
-          ),
-          Divider(
-            height: 2.0,
-            color: Colors.white54,
-          )
-        ],
-      ),
-    );
-  }
-}
+//   @override
+//   Widget build(BuildContext context) {
+//     return Container(
+//       color: Theme.of(context).colorScheme.primary.withOpacity(0.7),
+//       child: Column(
+//         children: <Widget>[
+//           Divider(
+//             height: 2.0,
+//             color: Colors.white54,
+//           ),
+//           TextButton(
+//             onPressed: () => showProfile(context, profileId: user.id),
+//             child: ListTile(
+//               leading: CircleAvatar(
+//                 backgroundColor: Colors.grey,
+//                 backgroundImage: CachedNetworkImageProvider(user.photoUrl),
+//               ),
+//               title: Text(
+//                 user.displayName,
+//                 style:
+//                     TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+//               ),
+//             ),
+//           ),
+//         ],
+//       ),
+//     );
+//   }
+// }

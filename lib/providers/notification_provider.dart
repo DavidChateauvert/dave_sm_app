@@ -32,9 +32,13 @@ class NotificationProvider extends ChangeNotifier {
 
     if (type == "message") {
       receiveNotificationMessage(screen);
-    } else if (type == "mention" ||
-        type == "friend request question" ||
-        type == "friend request accept") {
+    } else if ([
+      "like",
+      "comment",
+      "mention",
+      "friend request question",
+      "friend request accept"
+    ].contains(type)) {
       receiveNotificationActivity(screen);
     }
   }

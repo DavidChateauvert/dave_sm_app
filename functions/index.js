@@ -15,30 +15,68 @@ admin.initializeApp();
 // https://firebase.google.com/docs/functions/get-started
 
 
-exports.onCreateFollower = functions.firestore
-    .document("/followers/{userId}/userFollowers/{followerId}")
+// exports.onCreateFollower = functions.firestore
+//     .document("/followers/{userId}/userFollowers/{followerId}")
+//     .onCreate(async (snapshot, context) => {
+//         console.log("Followers Created : ", snapshot.id);
+
+//         const userId = context.params.userId;
+//         const followerId = context.params.followerId;
+
+//         // Create followed users post ref
+//         const followedUserPostsRef = admin
+//             .firestore()
+//             .collection('posts')
+//             .doc(userId)
+//             .collection('userPosts');
+        
+//         // Create following user timeline ref
+//         const timelinePostsRef = admin
+//             .firestore()
+//             .collection('timeline')
+//             .doc(followerId)
+//             .collection('timelinePosts'); 
+
+//         // Get followed users posts
+//         const querySnapshot = await followedUserPostsRef.get();
+
+//         // Add each user post to following user's timeline
+//         querySnapshot.forEach(doc => {
+//             if (doc.exists) {
+//                 const postId = doc.id;
+//                 const postData = doc.data();
+//                 timelinePostsRef.doc(postId).set(postData);
+//             }
+//         });
+// });
+
+exports.onCreateFriend = functions.firestore
+    .document("/friends/{userId}/userFriends/{friendId}")
     .onCreate(async (snapshot, context) => {
-        console.log("Followers Created : ", snapshot.id);
+        console.log("Friends Created : ", snapshot.id);   
+        const lastWeekStartDate = new Date();
+        lastWeekStartDate.setDate(lastWeekStartDate.getDate() - 7);   
 
         const userId = context.params.userId;
-        const followerId = context.params.followerId;
+        const friendId = context.params.friendId;
 
         // Create followed users post ref
-        const followedUserPostsRef = admin
+        const friendUserPostsRef = admin
             .firestore()
             .collection('posts')
             .doc(userId)
-            .collection('userPosts');
+            .collection('userPosts')
+            .where("timestamp", ">=", lastWeekStartDate);
         
         // Create following user timeline ref
         const timelinePostsRef = admin
             .firestore()
             .collection('timeline')
-            .doc(followerId)
-            .collection('timelinePosts'); 
+            .doc(friendId)
+            .collection('timelinePosts');
 
         // Get followed users posts
-        const querySnapshot = await followedUserPostsRef.get();
+        const querySnapshot = await friendUserPostsRef.get();
 
         // Add each user post to following user's timeline
         querySnapshot.forEach(doc => {
@@ -50,18 +88,41 @@ exports.onCreateFollower = functions.firestore
         });
 });
 
-exports.onDeleteFollower = functions.firestore
-    .document("/followers/{userId}/userFollowers/{followerId}")
+// exports.onDeleteFollower = functions.firestore
+//     .document("/followers/{userId}/userFollowers/{followerId}")
+//     .onDelete(async (snapshot, context) => {
+//         console.log("Follower Deleted", snapshot.id);
+
+//         const userId = context.params.userId;
+//         const followerId = context.params.followerId;
+
+//         const timelinePostsRef = admin
+//             .firestore()
+//             .collection('timeline')
+//             .doc(followerId)
+//             .collection('timelinePosts')
+//             .where("ownerId", "==", userId);
+
+//         const querySnapshot = await timelinePostsRef.get();
+//         querySnapshot.docs.forEach(doc => {
+//             if (doc.exists) {
+//                 doc.ref.delete();
+//             }
+//         })
+// });
+
+exports.onDeleteFriend = functions.firestore
+    .document("/friends/{userId}/userFriends/{friendId}")
     .onDelete(async (snapshot, context) => {
-        console.log("Follower Deleted", snapshot.id);
+        console.log("Friend Deleted", snapshot.id);
 
         const userId = context.params.userId;
-        const followerId = context.params.followerId;
+        const friendId = context.params.friendId;
 
         const timelinePostsRef = admin
             .firestore()
             .collection('timeline')
-            .doc(followerId)
+            .doc(friendId)
             .collection('timelinePosts')
             .where("ownerId", "==", userId);
 
@@ -82,21 +143,31 @@ exports.onCreatePost = functions.firestore
         const postId = context.params.postId;
 
         // Get all followers who made follow the user who made the post
-        const userFollowersRef = admin.firestore()
-            .collection('followers')
+        const userFriendsRef = admin.firestore()
+            .collection('friends')
             .doc(userId)
-            .collection('userFollowers');
+            .collection('userFriends');
 
-        const querySnapshot = await userFollowersRef.get();
+        const querySnapshot = await userFriendsRef.get();
+
+        // The user
+
+        admin
+            .firestore()
+            .collection('timeline')
+            .doc(userId)
+            .collection('timelinePosts')
+            .doc(postId)
+            .set(postCreated)
 
         // Add post to each followers timeline
         querySnapshot.docs.forEach(doc => {
-            const followerId = doc.id;
+            const friendId = doc.id;
 
             admin
                 .firestore()
                 .collection('timeline')
-                .doc(followerId)
+                .doc(friendId)
                 .collection('timelinePosts')
                 .doc(postId)
                 .set(postCreated)
@@ -111,22 +182,35 @@ exports.onUpdatePost = functions.firestore
         const userId = context.params.userId;
         const postId = context.params.postId;
 
-        // Get all followers who made the post
-        const userFollowersRef = admin.firestore()
-        .collection('followers')
+        // Get all firend who have the post
+        const userFriendsRef = admin.firestore()
+        .collection('friends')
         .doc(userId)
-        .collection('userFollowers');
+        .collection('userFriends');
 
-        const querySnapshot = await userFollowersRef.get();
+        const querySnapshot = await userFriendsRef.get();
+
+        // And the user
+        admin
+            .firestore()
+            .collection('timeline')
+            .doc(userId)
+            .collection('timelinePosts')
+            .doc(postId)
+            .get().then(doc => {
+                if (doc.exists) {
+                    doc.ref.update(postUpdated);
+                }
+            });
 
         // Update post to each followers timeline
         querySnapshot.docs.forEach(doc => {
-            const followerId = doc.id;
+            const friendId = doc.id;
 
             admin
                 .firestore()
                 .collection('timeline')
-                .doc(followerId)
+                .doc(friendId)
                 .collection('timelinePosts')
                 .doc(postId)
                 .get().then(doc => {
@@ -144,22 +228,35 @@ exports.onDeletePost = functions.firestore
         const userId = context.params.userId;
         const postId = context.params.postId;
 
-        // Get all followers who made the post
-        const userFollowersRef = admin.firestore()
-        .collection('followers')
+        // Get all friend who made the post
+        const userFriendsRef = admin.firestore()
+        .collection('friends')
         .doc(userId)
-        .collection('userFollowers');
+        .collection('userFriends');
 
-        const querySnapshot = await userFollowersRef.get();
+        const querySnapshot = await userFriendsRef.get();
+
+        // For the user
+        admin
+            .firestore()
+            .collection('timeline')
+            .doc(userId)
+            .collection('timelinePosts')
+            .doc(postId)
+            .get().then(doc => {
+                if (doc.exists) {
+                    doc.ref.delete();
+                }
+            });
 
         // Delete post to each followers timeline
         querySnapshot.docs.forEach(doc => {
-            const followerId = doc.id;
+            const friendId = doc.id;
 
             admin
                 .firestore()
                 .collection('timeline')
-                .doc(followerId)
+                .doc(friendId)
                 .collection('timelinePosts')
                 .doc(postId)
                 .get().then(doc => {
@@ -167,7 +264,8 @@ exports.onDeletePost = functions.firestore
                         doc.ref.delete();
                     }
                 });
-        });
+        }); 
+
 });
 
 // Doit payer :(

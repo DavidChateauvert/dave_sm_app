@@ -37,7 +37,7 @@ class _ProfileScreen extends State<PostScreen> {
 
     try {
       DocumentSnapshot doc;
-      if (["like", "contains"].contains(widget.type)) {
+      if (["like", "comment"].contains(widget.type)) {
         doc = await postsRef
             .doc(currentUser.id)
             .collection('userPosts')

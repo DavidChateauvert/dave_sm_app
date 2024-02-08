@@ -43,19 +43,17 @@ class _Profile extends State<Profile> {
   void initState() {
     super.initState();
     getProfilePosts();
-    // getFollowers();
-    // getFollowing();
     getFriendsCount();
+    checkIfFriend();
     checkIfFollowing();
     checkIfFollowers();
-    checkIfFriend();
   }
 
   checkIfFollowing() async {
-    DocumentSnapshot doc = await followersRef
-        .doc(widget.profileId)
-        .collection('userFollowers')
+    DocumentSnapshot doc = await followingRef
         .doc(currentUserId)
+        .collection('userFollowing')
+        .doc(widget.profileId)
         .get();
     setState(() {
       isFollowing = doc.exists;
@@ -63,10 +61,10 @@ class _Profile extends State<Profile> {
   }
 
   checkIfFollowers() async {
-    DocumentSnapshot doc = await followingRef
-        .doc(widget.profileId)
-        .collection('userFollowing')
+    DocumentSnapshot doc = await followersRef
         .doc(currentUserId)
+        .collection('userFollowers')
+        .doc(widget.profileId)
         .get();
     setState(() {
       isFollowers = doc.exists;
@@ -83,26 +81,6 @@ class _Profile extends State<Profile> {
       isFriend = doc.exists;
     });
   }
-
-  // getFollowers() async {
-  //   QuerySnapshot snapshot = await followersRef
-  //     .doc(widget.profileId)
-  //     .collection('userFollowers')
-  //     .get();
-  //   setState(() {
-  //     followersCount = snapshot.docs.length;
-  //   });
-  // }
-
-  // getFollowing() async {
-  //   QuerySnapshot snapshot = await followingRef
-  //     .doc(widget.profileId)
-  //     .collection('userFollowing')
-  //     .get();
-  //   setState(() {
-  //     followingCount = snapshot.docs.length;
-  //   });
-  // }
 
   getFriendsCount() async {
     QuerySnapshot snapshot =
@@ -128,19 +106,20 @@ class _Profile extends State<Profile> {
         posts =
             snapshot.docs.map((doc) => PostProfile.fromDocument(doc)).toList();
       });
-    } else {
-      QuerySnapshot snapshot = await timelineRef
-          .doc(currentUserId)
-          .collection('timelinePosts')
-          .orderBy('timestamp', descending: true)
-          .where("ownerId", isEqualTo: widget.profileId)
-          .get();
-      setState(() {
-        isLoading = false;
-        postCount = snapshot.docs.length;
-        post = snapshot.docs.map((doc) => Post.fromDocument(doc)).toList();
-      });
     }
+    // else {
+    //   QuerySnapshot snapshot = await timelineRef
+    //       .doc(currentUserId)
+    //       .collection('timelinePosts')
+    //       .orderBy('timestamp', descending: true)
+    //       .where("ownerId", isEqualTo: widget.profileId)
+    //       .get();
+    //   setState(() {
+    //     isLoading = false;
+    //     postCount = snapshot.docs.length;
+    //     post = snapshot.docs.map((doc) => Post.fromDocument(doc)).toList();
+    //   });
+    // }
   }
 
   showFriends(BuildContext context, {required String profileId}) {
@@ -153,7 +132,10 @@ class _Profile extends State<Profile> {
   }
 
   handleNextPage(String label, int count) {
-    if (label == "Friends") showFriends(context, profileId: widget.profileId);
+    if (label == "Friends")
+      showFriends(context,
+          profileId: widget
+              .profileId); // Est-ce que tu devrais savoir avec qui la personne est ami ?
   }
 
   buildCountColumn(String label, int count) {
@@ -232,7 +214,7 @@ class _Profile extends State<Profile> {
   }
 
   buildProfileButton() {
-    // Viewing your own profile - shouls show edit profile button
+    // Viewing your own profile - should show edit profile button
     if (currentUserId == widget.profileId) {
       return buildButton(text: "Edit profile", function: editProfile);
     } else if (isFriend) {
@@ -241,7 +223,7 @@ class _Profile extends State<Profile> {
       return buildButton(text: "Request Sent", function: handleUnfollowUser);
     } else if (isFollowers && !isFollowing) {
       return buildButton(text: "Accept Request", function: handleFollowUser);
-    } else if (!isFollowing) {
+    } else {
       return buildButton(
           text: "Ask to be a friend", function: handleFollowUser);
     }
@@ -257,46 +239,42 @@ class _Profile extends State<Profile> {
         .doc(widget.profileId)
         .collection('userFollowers')
         .doc(currentUserId)
-        .get()
-        .then((doc) => {
-              if (doc.exists) {doc.reference.delete()}
-            });
+        .delete();
     // Remove following
     followingRef
         .doc(currentUserId)
         .collection('userFollowing')
         .doc(widget.profileId)
-        .get()
-        .then((doc) => {
-              if (doc.exists) {doc.reference.delete()}
-            });
+        .delete();
     // Delete friends if they were friends
     friendsRef
         .doc(currentUserId)
         .collection('userFriends')
         .doc(widget.profileId)
-        .get()
-        .then((doc) => {
-              if (doc.exists) {doc.reference.delete()}
-            });
+        .delete();
     friendsRef
         .doc(widget.profileId)
         .collection('userFriends')
         .doc(currentUserId)
-        .get()
-        .then((doc) => {
-              if (doc.exists) {doc.reference.delete()}
-            });
+        .delete();
     // Delete ActivityFeed
     activityFeedRef
         .doc(widget.profileId)
         .collection('feedItems')
         .doc(currentUserId)
-        .get()
-        .then((doc) => {
-              if (doc.exists) {doc.reference.delete()}
-            });
+        .delete();
     // Delete message Feed
+    messagesRef
+        .doc(currentUserId)
+        .collection("and")
+        .doc(widget.profileId)
+        .delete();
+    // Delete message Feed
+    messagesRef
+        .doc(widget.profileId)
+        .collection("and")
+        .doc(currentUserId)
+        .delete();
   }
 
   handleFollowUser() async {
@@ -319,9 +297,9 @@ class _Profile extends State<Profile> {
         .doc(widget.profileId)
         .set({});
     // Add to friends if user is also following
-    DocumentSnapshot doc = await followersRef
+    DocumentSnapshot doc = await followingRef
         .doc(widget.profileId)
-        .collection('userFollowers')
+        .collection('userFollowing')
         .doc(currentUserId)
         .get();
     if (doc.exists) {
@@ -361,12 +339,11 @@ class _Profile extends State<Profile> {
         "seen": false,
         "timestamp": DateTime.now(),
       });
+      print("accept request");
       FirebaseApi().sendAcceptRequestNotification(
           widget.profileId, currentUser.displayName);
-      setState(() {
-        isFriend = true;
-      });
     } else {
+      print("sent request");
       FirebaseApi().sendFriendRequestNotification(
           widget.profileId, currentUser.displayName);
     }
@@ -519,9 +496,11 @@ class _Profile extends State<Profile> {
           buildProfilePost()
         ],
       ),
-      drawer: SettingsPage(
-        currentUserId: currentUserId,
-      ),
+      drawer: currentUserId == widget.profileId
+          ? SettingsPage(
+              currentUserId: currentUserId,
+            )
+          : null,
     );
   }
 }

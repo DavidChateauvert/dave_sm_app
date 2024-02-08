@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:sm_app/api/firebase_api.dart';
 import 'package:sm_app/widgets/header.dart';
 import 'package:sm_app/widgets/progress.dart';
 import 'package:timeago/timeago.dart' as timeago;
@@ -71,6 +72,7 @@ class CommentsState extends State<Comments> {
 
   addComment() {
     updateCommentStatus();
+    commentFocusNode.unfocus();
     // Add to comments
     commentsRef.doc(postId).collection("comments").add({
       "username": currentUser.username,
@@ -101,8 +103,16 @@ class CommentsState extends State<Comments> {
       'comments.${currentUser.id}': true,
     });
 
+    if (postOwnerId != currentUser.id) {
+      sendNotification(commentController.text);
+    }
+
     commentController.clear();
-    commentFocusNode.unfocus();
+  }
+
+  sendNotification(String comment) async {
+    FirebaseApi().sendCommentNotification(
+        postOwnerId, currentUser.displayName, postId, comment);
   }
 
   @override

@@ -115,7 +115,7 @@ class _ActivityFeedItem extends State<ActivityFeedItem> {
   // }
 
   showNotification(context, type) {
-    if ((["like", "comment", "mention"].contains(type))) {
+    if (["like", "comment", "mention"].contains(type)) {
       showPost(context, type);
     } else if (type == "follow") {
       showProfile(context, profileId: userId);
@@ -131,6 +131,10 @@ class _ActivityFeedItem extends State<ActivityFeedItem> {
     setState(() {
       deleteInstant = true;
     });
+    if (seen == false) {
+      Provider.of<NotificationProvider>(context, listen: false)
+          .seenNotificationActivityFeed(postId);
+    }
     if (type == "follow") {
       try {
         activityFeedRef
@@ -246,7 +250,9 @@ class _ActivityFeedItem extends State<ActivityFeedItem> {
           .where("type", isEqualTo: type)
           .where("postId", isEqualTo: postId)
           .get()
-          .then((doc) => doc.docs.forEach((document) {
+          .then(
+            (doc) => doc.docs.forEach(
+              (document) {
                 activityFeedRef
                     .doc(currentUser.id)
                     .collection("feedItems")
@@ -254,7 +260,9 @@ class _ActivityFeedItem extends State<ActivityFeedItem> {
                     .update({"seen": true});
                 Provider.of<NotificationProvider>(context, listen: false)
                     .seenNotificationActivityFeed(postId);
-              }));
+              },
+            ),
+          );
     }
     Navigator.push(
       context,
@@ -265,7 +273,7 @@ class _ActivityFeedItem extends State<ActivityFeedItem> {
     );
   }
 
-  showProfile(BuildContext context, {required String profileId}) {
+  showProfile(BuildContext context, {required String profileId}) async {
     if (!seen) {
       activityFeedRef
           .doc(currentUser.id)
@@ -275,7 +283,7 @@ class _ActivityFeedItem extends State<ActivityFeedItem> {
       Provider.of<NotificationProvider>(context, listen: false)
           .seenNotificationActivityFeed(userId);
     }
-    Navigator.push(
+    await Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => Profile(profileId: profileId),

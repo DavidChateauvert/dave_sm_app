@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:sm_app/api/firebase_api.dart';
 import 'package:sm_app/pages/home.dart';
 import 'package:sm_app/pages/photo.dart';
 import 'package:sm_app/pages/report_post.dart';
@@ -358,9 +359,13 @@ class _PostState extends State<Post> {
     }
   }
 
-  addLikeToActivityFeed() {
+  addLikeToActivityFeed() async {
     if (currentUserId != ownerId) {
-      activityFeedRef.doc(ownerId).collection("feedItems").doc(postId).set({
+      await activityFeedRef
+          .doc(ownerId)
+          .collection("feedItems")
+          .doc(postId)
+          .set({
         "type": "like",
         "username": currentUser.displayName,
         "userId": currentUser.id,
@@ -371,6 +376,8 @@ class _PostState extends State<Post> {
         // "mediaUrl": mediaUrl,
         "timestamp": timestamp,
       });
+      await FirebaseApi()
+          .sendLikeNotification(ownerId, currentUser.displayName, postId);
     }
   }
 

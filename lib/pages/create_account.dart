@@ -208,31 +208,130 @@ class _CreateAccountState extends State<CreateAccount> {
     return downloadUrl;
   }
 
+  // selectImage(parentContext) {
+  //   showDialog(
+  //     context: parentContext,
+  //     builder: (context) {
+  //       return SimpleDialog(
+  //         title: Text("Create Post"),
+  //         children: <Widget>[
+  //           SimpleDialogOption(
+  //             onPressed: () {
+  //               handleTakePhoto();
+  //               Navigator.pop(context, "takePhoto");
+  //             },
+  //             child: Text("Photo with camera"),
+  //           ),
+  //           SimpleDialogOption(
+  //             onPressed: () {
+  //               handleChooseFromGallery();
+  //               Navigator.pop(context, "chooseFromGallery");
+  //             },
+  //             child: Text("Image from Gallery"),
+  //           ),
+  //           SimpleDialogOption(
+  //             child: Text("Cancel"),
+  //             onPressed: () => Navigator.pop(context, "cancel"),
+  //           ),
+  //         ],
+  //       );
+  //     },
+  //   );
+  // }
+
   selectImage(parentContext) {
-    showDialog(
+    return showDialog(
       context: parentContext,
       builder: (context) {
         return SimpleDialog(
-          title: Text("Create Post"),
+          title: Text(
+            "Add an image to the post",
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onBackground,
+            ),
+          ),
           children: <Widget>[
-            SimpleDialogOption(
-              onPressed: () {
-                handleTakePhoto();
-                Navigator.pop(context, "takePhoto");
-              },
-              child: Text("Photo with camera"),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: <Widget>[
+                Flexible(
+                  child: TextButton(
+                    onPressed: () {
+                      handleTakePhoto();
+                      Navigator.pop(context, "takePhoto");
+                    },
+                    child: Container(
+                      height: 100.0,
+                      child: Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Icon(
+                              CupertinoIcons.photo_camera,
+                              color: Theme.of(context).colorScheme.onBackground,
+                              size: 28.0,
+                            ),
+                            const SizedBox(
+                              height: 8,
+                            ),
+                            Text(
+                              "Photo with camera",
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color:
+                                    Theme.of(context).colorScheme.onBackground,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                Container(
+                  height: 100.0,
+                  width: 2.0,
+                  color: Theme.of(context).colorScheme.onBackground,
+                ),
+                Flexible(
+                  child: TextButton(
+                    onPressed: () {
+                      handleChooseFromGallery();
+                      Navigator.pop(context, "chooseFromGallery");
+                    },
+                    child: Container(
+                      height: 100.0,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Icon(
+                            CupertinoIcons.photo_on_rectangle,
+                            color: Theme.of(context).colorScheme.onBackground,
+                            size: 28.0,
+                          ),
+                          const SizedBox(
+                            height: 8,
+                          ),
+                          Text(
+                            "Image from gallery",
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.onBackground,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
-            SimpleDialogOption(
-              onPressed: () {
-                handleChooseFromGallery();
-                Navigator.pop(context, "chooseFromGallery");
-              },
-              child: Text("Image from Gallery"),
-            ),
-            SimpleDialogOption(
-              child: Text("Cancel"),
-              onPressed: () => Navigator.pop(context, "cancel"),
-            ),
+            // SimpleDialogOption(
+            //   child: Text("Cancel"),
+            //   onPressed: () => Navigator.pop(context),
+            // ),
           ],
         );
       },

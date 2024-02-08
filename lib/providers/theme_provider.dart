@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sm_app/providers/theme.dart';
 
 class ThemeProvider with ChangeNotifier {
-  ThemeData _themeData = darkMode;
+  ThemeData _themeData = lightMode;
 
   ThemeData get themeData => _themeData;
 
@@ -20,10 +20,10 @@ class ThemeProvider with ChangeNotifier {
   }
 
   void toggleThemeToParam(String theme) {
-    if (theme == "light") {
-      themeData = lightMode;
-    } else {
+    if (theme == "dark") {
       themeData = darkMode;
+    } else {
+      themeData = lightMode;
     }
   }
 

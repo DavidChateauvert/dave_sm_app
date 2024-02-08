@@ -265,13 +265,6 @@ class _UploadState extends State<Upload>
     }
   }
 
-  Future<void> initializeToken(String otherUserId) async {
-    String userTokens = await FirebaseApi().getToken(otherUserId) ?? "";
-    setState(() {
-      otherUserToken = userTokens;
-    });
-  }
-
   Future<String> uploadImage(imageFile) async {
     UploadTask uploadTask =
         storageRef.child("post_$postId.jpg").putFile(imageFile);

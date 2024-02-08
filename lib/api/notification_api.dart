@@ -36,11 +36,11 @@ class NotificationsApi {
   static void handleClick(context, NotificationResponse details) async {
     int type = details.id ?? 1;
     String screenValue = details.payload ?? "";
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (context) => Home()),
-      (route) => false,
-    );
     if (type == 1) {
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (context) => Home()),
+        (route) => false,
+      );
       Navigator.push(
         context,
         MaterialPageRoute(

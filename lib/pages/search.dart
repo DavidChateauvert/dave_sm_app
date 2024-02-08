@@ -61,7 +61,7 @@ class _SearchState extends State<Search>
             onPressed: () => clearSearch(),
           ),
           hintStyle: TextStyle(color: Colors.white),
-          hintText: "Search an user",
+          hintText: "Search a user",
         ),
         onChanged: (query) => handleSearch(query),
         onFieldSubmitted: (query) => handleSearch(query),
@@ -110,10 +110,11 @@ class _SearchState extends State<Search>
           return circularProgress();
         }
         List<UserResult> searchResults = [];
+        var currentUserId = currentUser.id;
         // ignore: avoid_function_literals_in_foreach_calls
         snapshot.data?.docs.forEach((doc) {
           User user = User.fromDocument(doc);
-          searchResults.add(UserResult(user));
+          if (user.id != currentUserId) searchResults.add(UserResult(user));
         });
         return ListView(
           children: searchResults,

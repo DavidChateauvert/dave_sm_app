@@ -134,6 +134,7 @@ class _HomeState extends State<Home> {
           "displayNameLower": newUser.displayName.toLowerCase(),
           "bio": newUser.bio,
           "timestamp": timestamp,
+          "theme": newUser.theme,
           "verified": false,
         });
         // Make new user their own follower
@@ -182,12 +183,14 @@ class _HomeState extends State<Home> {
     switch (type) {
       case "message":
         return 1;
-      case "mentions":
+      case "mention":
       case "friend request question":
       case "friend request accept":
+      case "like":
+      case "comment":
         return 2;
       default:
-        return 1;
+        return 2;
     }
   }
 
@@ -214,9 +217,6 @@ class _HomeState extends State<Home> {
     String type = message.data['type'] ?? "";
     int typeId = typeToId(type);
     String screen = message.data['screen'] ?? "";
-    print("allo");
-    print(Provider.of<RouteObserverProvider>(context, listen: false)
-        .currentRoute);
 
     if (!checkIfUserIsAlreadyInPage(typeId, screen)) {
       String title = message.notification?.title ?? "";
@@ -226,7 +226,6 @@ class _HomeState extends State<Home> {
       if (Provider.of<RouteObserverProvider>(context, listen: false)
               .currentRoute ==
           "message-feed") {
-        print("Call function here");
         Provider.of<ReloadNotifier>(context, listen: false)
             .setShouldReloadMessageFeed(true);
       }
@@ -243,7 +242,6 @@ class _HomeState extends State<Home> {
 
   void handleNotificationOnClick(RemoteMessage message) async {
     String type = message.data['type'] ?? "";
-    print(type);
     if (type != "") {
       String screenValue = message.data['screen'] ?? "";
       Navigator.of(context).pushAndRemoveUntil(
