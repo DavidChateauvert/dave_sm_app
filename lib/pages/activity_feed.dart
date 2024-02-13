@@ -1,7 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:sm_app/pages/home.dart';
-import 'package:sm_app/pages/search_message.dart';
+import 'package:sm_app/providers/reload_provider.dart';
 import 'package:sm_app/widgets/activityFeedItems.dart';
 import 'package:sm_app/widgets/header.dart';
 import 'package:sm_app/widgets/progress.dart';
@@ -23,6 +24,8 @@ class _ActivityFeed extends State<ActivityFeed> {
     snapshot.docs.forEach((doc) {
       feedItems.add(ActivityFeedItem.fromDocument(doc));
     });
+    Provider.of<ReloadNotifier>(context, listen: false)
+        .setShouldReloadActivityFeed(false);
     return feedItems;
   }
 
@@ -33,6 +36,8 @@ class _ActivityFeed extends State<ActivityFeed> {
           header(context, titleText: "Notifications", removeBackButton: true),
       body: Container(
         child: FutureBuilder(
+          key: ValueKey(
+              context.watch<ReloadNotifier>().shouldReloadActivityFeed),
           future: getActivityFeed(),
           builder: (context, snapshot) {
             if (!snapshot.hasData) {
@@ -46,12 +51,4 @@ class _ActivityFeed extends State<ActivityFeed> {
       ),
     );
   }
-}
-
-showSearchMessage(BuildContext context) {
-  Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => SearchMessage(),
-      ));
 }

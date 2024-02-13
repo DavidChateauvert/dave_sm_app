@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:sm_app/api/firebase_api.dart';
 import 'package:sm_app/pages/aboutUs.dart';
 import 'package:sm_app/pages/contactUs.dart';
 import 'package:sm_app/pages/home.dart';
@@ -28,6 +29,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
   logout() async {
     await googleSignIn.signOut();
+    FirebaseApi().deleteUserToken(currentUser.id);
     Navigator.pop(context);
     Navigator.pushReplacement(
       context,

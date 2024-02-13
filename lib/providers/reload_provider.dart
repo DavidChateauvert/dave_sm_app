@@ -13,7 +13,7 @@ class ReloadNotifier extends ChangeNotifier {
   }
 
   void setShouldReloadActivityFeed(bool value) {
-    _shouldReloadMessageFeed = value;
+    _shouldReloadActivityFeed = value;
     notifyListeners();
   }
 }

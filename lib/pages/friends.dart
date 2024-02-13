@@ -84,38 +84,3 @@ class _Friends extends State<Friends> {
     );
   }
 }
-
-// class UserResult extends StatelessWidget {
-//   final User user;
-
-//   UserResult(this.user);
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Container(
-//       color: Theme.of(context).colorScheme.primary.withOpacity(0.7),
-//       child: Column(
-//         children: <Widget>[
-//           Divider(
-//             height: 2.0,
-//             color: Colors.white54,
-//           ),
-//           TextButton(
-//             onPressed: () => showProfile(context, profileId: user.id),
-//             child: ListTile(
-//               leading: CircleAvatar(
-//                 backgroundColor: Colors.grey,
-//                 backgroundImage: CachedNetworkImageProvider(user.photoUrl),
-//               ),
-//               title: Text(
-//                 user.displayName,
-//                 style:
-//                     TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-//               ),
-//             ),
-//           ),
-//         ],
-//       ),
-//     );
-//   }
-// }

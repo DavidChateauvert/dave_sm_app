@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:sm_app/pages/home.dart';
+import 'package:sm_app/pages/likePost.dart';
 import 'package:sm_app/pages/search.dart';
 import 'package:sm_app/widgets/custom_image.dart';
 import 'package:sm_app/widgets/post.dart';
@@ -344,9 +345,9 @@ class _PostProfileState extends State<PostProfile> {
   }
 
   RichText buildHighlightedText(String text) {
-    List<String> mentionsList =
+    List<String> mentionsListReversed =
         mentions.values.map((value) => '@$value').toList().cast<String>();
-
+    List<String> mentionsList = mentionsListReversed.reversed.toList();
     List<TextSpan> textSpans = [];
 
     RegExp mentionRegex = RegExp(mentionsList.join('|'), caseSensitive: false);
@@ -363,8 +364,8 @@ class _PostProfileState extends State<PostProfile> {
         ),
       ));
 
-      if (i < segments.length - 1) {
-        String? mention = mentionRegex.stringMatch(text);
+      if (i < segments.length - 1 && mentionsList.isNotEmpty) {
+        String mention = mentionsList[i];
         textSpans.add(TextSpan(
           recognizer: TapGestureRecognizer()
             ..onTap =
@@ -390,6 +391,15 @@ class _PostProfileState extends State<PostProfile> {
       }
     }
     throw Exception("Value not found in the map");
+  }
+
+  showUserLikes(BuildContext context, String postId) {
+    Navigator.push(context, MaterialPageRoute(builder: (context) {
+      return LikePost(
+        postId: postId,
+        postOwnerId: widget.ownerId,
+      );
+    }));
   }
 
   buildPostFooter() {
@@ -459,12 +469,13 @@ class _PostProfileState extends State<PostProfile> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
-            Container(
-              margin: EdgeInsets.only(left: 20.0),
-              child: Text(
-                "$likeCount likes",
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
+            GestureDetector(
+              onTap: () => showUserLikes(context, postId),
+              child: Container(
+                margin: EdgeInsets.only(left: 20.0),
+                child: Text(
+                  "$likeCount likes",
+                  style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
               ),
             ),
@@ -543,7 +554,6 @@ class _PostProfileState extends State<PostProfile> {
         postId: postId,
         postOwnerId: ownerId,
         updateCommentStatus: updateCommentStatus,
-        // postMediaUrl: mediaUrl,
       );
     }));
   }

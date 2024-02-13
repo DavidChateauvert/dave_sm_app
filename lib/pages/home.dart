@@ -223,6 +223,9 @@ class _HomeState extends State<Home> {
       String body = message.notification?.body ?? "";
       NotificationsApi.showNotification(
           id: typeId, title: title, body: body, payload: screen);
+
+      Provider.of<ReloadNotifier>(context, listen: false)
+          .setShouldReloadActivityFeed(true);
       if (Provider.of<RouteObserverProvider>(context, listen: false)
               .currentRoute ==
           "message-feed") {

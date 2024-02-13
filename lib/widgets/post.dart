@@ -5,6 +5,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:sm_app/api/firebase_api.dart';
 import 'package:sm_app/pages/home.dart';
+import 'package:sm_app/pages/likePost.dart';
 import 'package:sm_app/pages/photo.dart';
 import 'package:sm_app/pages/report_post.dart';
 import 'package:sm_app/pages/search.dart';
@@ -374,10 +375,12 @@ class _PostState extends State<Post> {
         "seen": false,
         "commentData": "",
         // "mediaUrl": mediaUrl,
-        "timestamp": timestamp,
+        "timestamp": DateTime.now(),
       });
-      await FirebaseApi()
-          .sendLikeNotification(ownerId, currentUser.displayName, postId);
+      if (ownerId != currentUser.id) {
+        await FirebaseApi()
+            .sendLikeNotification(ownerId, currentUser.displayName, postId);
+      }
     }
   }
 
@@ -422,18 +425,19 @@ class _PostState extends State<Post> {
     );
   }
 
-  RichText buildHighlightedText(String text) {
-    List<String> mentionsList =
+  Widget buildHighlightedText(String text) {
+    List<String> mentionsListReversed =
         mentions.values.map((value) => '@$value').toList().cast<String>();
-
+    List<String> mentionsList = mentionsListReversed.reversed.toList();
     List<TextSpan> textSpans = [];
 
     RegExp mentionRegex = RegExp(mentionsList.join('|'), caseSensitive: false);
     List<String> segments = text.split(mentionRegex);
 
     for (int i = 0; i < segments.length; i++) {
+      String segment = segments[i];
       textSpans.add(TextSpan(
-        text: segments[i],
+        text: segment,
         style: TextStyle(
           color: Theme.of(context).colorScheme.onBackground,
           fontWeight: FontWeight.w600,
@@ -443,21 +447,20 @@ class _PostState extends State<Post> {
 
       if (i < segments.length - 1 && mentionsList.isNotEmpty) {
         String mention = mentionsList[i];
-        textSpans.add(
-          TextSpan(
-            recognizer: TapGestureRecognizer()
-              ..onTap =
-                  () => showProfile(context, profileId: getKeyByValue(mention)),
-            text: mention,
-            style: TextStyle(
-              color: Theme.of(context).colorScheme.secondary,
-              fontWeight: FontWeight.bold,
-              fontSize: 20.0,
-            ),
+        textSpans.add(TextSpan(
+          recognizer: TapGestureRecognizer()
+            ..onTap =
+                () => showProfile(context, profileId: getKeyByValue(mention)),
+          text: mention,
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.secondary,
+            fontWeight: FontWeight.bold,
+            fontSize: 20.0,
           ),
-        );
+        ));
       }
     }
+
     return RichText(text: TextSpan(children: textSpans));
   }
 
@@ -538,11 +541,14 @@ class _PostState extends State<Post> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
-            Container(
-              margin: EdgeInsets.only(left: 20.0),
-              child: Text(
-                "$likeCount likes",
-                style: const TextStyle(fontWeight: FontWeight.bold),
+            GestureDetector(
+              onTap: () => showUserLikes(context, postId),
+              child: Container(
+                margin: EdgeInsets.only(left: 20.0),
+                child: Text(
+                  "$likeCount likes",
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
               ),
             ),
             Container(
@@ -689,6 +695,15 @@ class _PostState extends State<Post> {
         postOwnerId: ownerId,
         updateCommentStatus: updateCommentStatus,
         // postMediaUrl: mediaUrl,
+      );
+    }));
+  }
+
+  showUserLikes(BuildContext context, String postId) {
+    Navigator.push(context, MaterialPageRoute(builder: (context) {
+      return LikePost(
+        postId: postId,
+        postOwnerId: widget.ownerId,
       );
     }));
   }

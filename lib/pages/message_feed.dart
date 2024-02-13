@@ -38,6 +38,8 @@ class _MessageFeed extends State<MessageFeed> {
           showAddMessageButton: true),
       body: Container(
         child: FutureBuilder(
+          key:
+              ValueKey(context.watch<ReloadNotifier>().shouldReloadMessageFeed),
           future: getMessageFeed(),
           builder: (context, snapshot) {
             if (!snapshot.hasData) {

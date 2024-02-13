@@ -20,6 +20,12 @@ class FirebaseApi {
     }
   }
 
+  deleteUserToken(currentUserId) async {
+    tokensRef.doc(currentUserId).set({
+      "token": "",
+    });
+  }
+
   requestPermissionText() async {
     FirebaseMessaging messaging = FirebaseMessaging.instance;
 
