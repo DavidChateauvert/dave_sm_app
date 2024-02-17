@@ -377,12 +377,18 @@ class _Profile extends State<Profile> {
             children: <Widget>[
               Row(
                 children: <Widget>[
-                  CircleAvatar(
+                  GestureDetector(
+                    onTap: user.photoUrl.isEmpty
+                        ? null
+                        : () => showPhoto(context, user.photoUrl, 1, "profile"),
+                    child: CircleAvatar(
                       radius: 40.0,
                       backgroundColor: Colors.grey,
                       backgroundImage: user.photoUrl.isEmpty
                           ? null
-                          : CachedNetworkImageProvider(user.photoUrl)),
+                          : CachedNetworkImageProvider(user.photoUrl),
+                    ),
+                  ),
                   const SizedBox(
                     width: 20,
                   ),

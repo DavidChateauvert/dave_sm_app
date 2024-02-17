@@ -85,7 +85,8 @@ class _ReportPostState extends State<ReportPost> {
       {
         "to": ["david.chateauvert25@gmail.com"],
         "message": {
-          "subject": "Report for the ${widget.reportSubject} ${widget.postId}",
+          "subject":
+              "Report for the ${widget.reportSubject} ${widget.postId} from ${currentUser.displayName}",
           "html": reportText,
         },
       },

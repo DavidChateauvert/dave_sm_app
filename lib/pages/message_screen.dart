@@ -13,34 +13,33 @@ import 'package:timeago/timeago.dart' as timeago;
 
 class MessageScreen extends StatefulWidget {
   late final String otherUserId;
+  late final Function(String) updateMessage;
 
   MessageScreen({
     required this.otherUserId,
+    required this.updateMessage,
   });
 
   @override
-  _MessageScreen createState() => _MessageScreen();
+  MessageScreeState createState() => MessageScreeState(
+        otherUserId: otherUserId,
+        updateMessage: updateMessage,
+      );
 }
 
-class _MessageScreen extends State<MessageScreen> {
+class MessageScreeState extends State<MessageScreen> {
   TextEditingController messageController = TextEditingController();
   FocusNode messageFocusNode = FocusNode();
   final String currentUserId = currentUser.id;
   late String otherUserToken;
   late User otherUser;
+  late final String otherUserId;
+  late final Function(String) updateMessage;
 
-  @override
-  void initState() {
-    super.initState();
-    initializeToken();
-  }
-
-  Future<void> initializeToken() async {
-    String userTokens = await FirebaseApi().getToken(widget.otherUserId) ?? "";
-    setState(() {
-      otherUserToken = userTokens;
-    });
-  }
+  MessageScreeState({
+    required this.otherUserId,
+    required this.updateMessage,
+  });
 
   buildMessages() {
     return StreamBuilder(
@@ -77,6 +76,7 @@ class _MessageScreen extends State<MessageScreen> {
 
   addMessageInFirestore() async {
     if (messageController.text.isNotEmpty) {
+      updateMessage(messageController.text);
       DateTime timestamp = DateTime.now();
 
       messagesRef

@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:sm_app/api/firebase_api.dart';
+import 'package:sm_app/pages/search.dart';
 import 'package:sm_app/widgets/header.dart';
 import 'package:sm_app/widgets/progress.dart';
 import 'package:timeago/timeago.dart' as timeago;
@@ -174,10 +175,13 @@ class Comment extends StatelessWidget {
     return Column(
       children: <Widget>[
         ListTile(
-          title: Text(
-            username,
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
+          title: GestureDetector(
+            onTap: () => showProfile(context, profileId: userId),
+            child: Text(
+              username,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
           subtitle: Text(
@@ -186,10 +190,27 @@ class Comment extends StatelessWidget {
               fontWeight: FontWeight.normal,
             ),
           ),
-          leading: CircleAvatar(
-            backgroundImage: CachedNetworkImageProvider(avatarUrl),
+          leading: GestureDetector(
+            onTap: () => showProfile(context, profileId: userId),
+            child: CircleAvatar(
+              backgroundImage: CachedNetworkImageProvider(avatarUrl),
+            ),
           ),
-          trailing: Text(timeago.format(timestamp.toDate())),
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(timeago.format(timestamp.toDate())),
+              SizedBox(width: 8.0),
+              IconButton(
+                onPressed: () => print("allo"),
+                icon: Icon(
+                  Icons.favorite_border,
+                  size: 28.0,
+                  color: Theme.of(context).colorScheme.secondary,
+                ),
+              ),
+            ],
+          ),
         ),
         Divider(),
       ],

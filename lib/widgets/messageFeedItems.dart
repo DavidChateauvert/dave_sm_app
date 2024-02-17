@@ -273,7 +273,14 @@ class _MessageFeedItem extends State<MessageFeedItem> {
     await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => MessageScreen(otherUserId: profileId),
+        builder: (context) => MessageScreen(
+          otherUserId: profileId,
+          updateMessage: (newMessage) {
+            setState(() {
+              message = newMessage;
+            });
+          },
+        ),
       ),
     );
     Provider.of<RouteObserverProvider>(context, listen: false)

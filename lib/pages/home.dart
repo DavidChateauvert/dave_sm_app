@@ -268,7 +268,10 @@ class _HomeState extends State<Home> {
           await Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => MessageScreen(otherUserId: screenValue),
+              builder: (context) => MessageScreen(
+                otherUserId: screenValue,
+                updateMessage: (newMessage) => null,
+              ),
             ),
           );
           Provider.of<RouteObserverProvider>(context, listen: false)

@@ -325,7 +325,7 @@ class _PostProfileState extends State<PostProfile> {
 
   buildPostImage() {
     return GestureDetector(
-      onTap: () => showPhoto(context, mediaUrl, handleRatio()),
+      onTap: () => showPhoto(context, mediaUrl, handleRatio(), "post"),
       onDoubleTap: () => handleLikePost(),
       child: Stack(
         alignment: Alignment.center,
@@ -344,43 +344,55 @@ class _PostProfileState extends State<PostProfile> {
     );
   }
 
-  RichText buildHighlightedText(String text) {
-    List<String> mentionsListReversed =
-        mentions.values.map((value) => '@$value').toList().cast<String>();
-    List<String> mentionsList = mentionsListReversed.reversed.toList();
-    List<TextSpan> textSpans = [];
-
-    RegExp mentionRegex = RegExp(mentionsList.join('|'), caseSensitive: false);
-    List<String> segments = text.split(mentionRegex);
-
-    for (int i = 0; i < segments.length; i++) {
-      String segment = segments[i];
-      textSpans.add(TextSpan(
-        text: segment,
+  Widget buildHighlightedText(String text) {
+    if (mentions.isEmpty) {
+      return Text(
+        text,
         style: TextStyle(
           color: Theme.of(context).colorScheme.onBackground,
           fontWeight: FontWeight.w600,
           fontSize: 20.0,
         ),
-      ));
+      );
+    } else {
+      List<String> mentionsListReversed =
+          mentions.values.map((value) => '@$value').toList().cast<String>();
+      List<String> mentionsList = mentionsListReversed.reversed.toList();
+      List<TextSpan> textSpans = [];
 
-      if (i < segments.length - 1 && mentionsList.isNotEmpty) {
-        String mention = mentionsList[i];
+      RegExp mentionRegex =
+          RegExp(mentionsList.join('|'), caseSensitive: false);
+      List<String> segments = text.split(mentionRegex);
+
+      for (int i = 0; i < segments.length; i++) {
+        String segment = segments[i];
         textSpans.add(TextSpan(
-          recognizer: TapGestureRecognizer()
-            ..onTap =
-                () => showProfile(context, profileId: getKeyByValue(mention)),
-          text: mention,
+          text: segment,
           style: TextStyle(
-            color: Theme.of(context).colorScheme.secondary,
-            fontWeight: FontWeight.bold,
+            color: Theme.of(context).colorScheme.onBackground,
+            fontWeight: FontWeight.w600,
             fontSize: 20.0,
           ),
         ));
-      }
-    }
 
-    return RichText(text: TextSpan(children: textSpans));
+        if (i < segments.length - 1 && mentionsList.isNotEmpty) {
+          String mention = mentionsList[i];
+          textSpans.add(TextSpan(
+            recognizer: TapGestureRecognizer()
+              ..onTap =
+                  () => showProfile(context, profileId: getKeyByValue(mention)),
+            text: mention,
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.secondary,
+              fontWeight: FontWeight.bold,
+              fontSize: 20.0,
+            ),
+          ));
+        }
+      }
+
+      return RichText(text: TextSpan(children: textSpans));
+    }
   }
 
   String getKeyByValue(String? value) {

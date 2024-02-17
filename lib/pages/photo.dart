@@ -4,10 +4,12 @@ import 'package:sm_app/widgets/custom_image.dart';
 class Photo extends StatefulWidget {
   final String photoUrl;
   final double aspectRatio;
+  final String type;
 
   Photo({
     required this.photoUrl,
     required this.aspectRatio,
+    required this.type,
   });
 
   @override
@@ -15,9 +17,9 @@ class Photo extends StatefulWidget {
 }
 
 class _PhotoState extends State<Photo> {
-
- @override
+  @override
   Widget build(BuildContext context) {
+    print(widget.type);
     return Stack(
       children: [
         Center(
@@ -25,7 +27,11 @@ class _PhotoState extends State<Photo> {
             clipBehavior: Clip.none,
             minScale: 1,
             maxScale: 3,
-            child: cachedNetworkImage(widget.photoUrl),
+            child: widget.type == "profile"
+                ? ClipOval(
+                    child: cachedNetworkImage(widget.photoUrl),
+                  )
+                : cachedNetworkImage(widget.photoUrl),
           ),
         ),
         Positioned(

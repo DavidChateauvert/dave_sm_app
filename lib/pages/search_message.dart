@@ -195,7 +195,10 @@ showMessageScreen(BuildContext context, {required String profileId}) {
   Navigator.push(
     context,
     MaterialPageRoute(
-      builder: (context) => MessageScreen(otherUserId: profileId),
+      builder: (context) => MessageScreen(
+        otherUserId: profileId,
+        updateMessage: (newMessage) => null,
+      ),
     ),
   );
 }
