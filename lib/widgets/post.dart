@@ -380,10 +380,8 @@ class _PostState extends State<Post> {
         // "mediaUrl": mediaUrl,
         "timestamp": DateTime.now(),
       });
-      if (ownerId != currentUser.id) {
-        await FirebaseApi()
-            .sendLikeNotification(ownerId, currentUser.displayName, postId);
-      }
+      await FirebaseApi()
+          .sendLikeNotification(ownerId, currentUser.displayName, postId);
     }
   }
 
@@ -551,6 +549,9 @@ class _PostState extends State<Post> {
               ),
             ),
           ],
+        ),
+        const SizedBox(
+          height: 8.0,
         ),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,

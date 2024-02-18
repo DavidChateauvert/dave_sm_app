@@ -478,6 +478,9 @@ class _PostProfileState extends State<PostProfile> {
             ),
           ],
         ),
+        const SizedBox(
+          height: 8.0,
+        ),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[

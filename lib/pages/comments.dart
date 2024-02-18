@@ -1,11 +1,10 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:sm_app/api/firebase_api.dart';
-import 'package:sm_app/pages/search.dart';
+import 'package:sm_app/widgets/comment.dart';
 import 'package:sm_app/widgets/header.dart';
 import 'package:sm_app/widgets/progress.dart';
-import 'package:timeago/timeago.dart' as timeago;
+import 'package:uuid/uuid.dart';
 
 import 'home.dart';
 
@@ -37,6 +36,7 @@ class CommentsState extends State<Comments> {
   late final String postId;
   late final String postOwnerId;
   late final Function() updateCommentStatus;
+  bool isCommentNotEmpty = false;
   // late final String mediaUrl;
 
   CommentsState({
@@ -59,7 +59,7 @@ class CommentsState extends State<Comments> {
         }
         List<Comment> comments = [];
         snapshot.data?.docs.forEach((doc) {
-          comments.add(Comment.fromDocument(doc));
+          comments.add(Comment.fromDocument(doc, widget.postId));
         });
         return GestureDetector(
           onTap: () => commentFocusNode.unfocus(),
@@ -72,43 +72,48 @@ class CommentsState extends State<Comments> {
   }
 
   addComment() {
-    updateCommentStatus();
-    commentFocusNode.unfocus();
-    // Add to comments
-    commentsRef.doc(postId).collection("comments").add({
-      "username": currentUser.username,
-      "comment": commentController.text,
-      "timestamp": DateTime.now(),
-      "avatarUrl": currentUser.photoUrl,
-      "userId": currentUser.id,
-    });
-
-    // Add to activity feed
-    if (postOwnerId != currentUser.id) {
-      activityFeedRef.doc(postOwnerId).collection("feedItems").add({
-        "type": "comment",
-        "commentData": commentController.text,
-        "username": currentUser.displayName,
-        "userId": currentUser.id,
-        "userProfileImg": currentUser.photoUrl,
-        "postId": postId,
-        "seen": false,
-        // "mediaUrl": mediaUrl,
+    String commentTrim = commentController.text.trim();
+    if (commentTrim.isNotEmpty) {
+      updateCommentStatus();
+      commentFocusNode.unfocus();
+      String uuid = Uuid().v4();
+      // Add to comments
+      commentsRef.doc(postId).collection("comments").doc(uuid).set({
+        "commentId": uuid,
+        "username": currentUser.username,
+        "comment": commentTrim,
         "timestamp": DateTime.now(),
+        "avatarUrl": currentUser.photoUrl,
+        "userId": currentUser.id,
+        "likes": {},
       });
+
+      // Add to activity feed
+      if (postOwnerId != currentUser.id) {
+        activityFeedRef.doc(postOwnerId).collection("feedItems").add({
+          "type": "comment",
+          "commentData": commentTrim,
+          "username": currentUser.displayName,
+          "userId": currentUser.id,
+          "userProfileImg": currentUser.photoUrl,
+          "postId": postId,
+          "seen": false,
+          // "mediaUrl": mediaUrl,
+          "timestamp": DateTime.now(),
+        });
+      }
+      // Update post
+      postsRef.doc(postOwnerId).collection('userPosts').doc(postId).update({
+        "commentCount": FieldValue.increment(1),
+        'comments.${currentUser.id}': true,
+      });
+
+      if (postOwnerId != currentUser.id) {
+        sendNotification(commentTrim);
+      }
+
+      commentController.clear();
     }
-
-    // Update post
-    postsRef.doc(postOwnerId).collection('userPosts').doc(postId).update({
-      "commentCount": FieldValue.increment(1),
-      'comments.${currentUser.id}': true,
-    });
-
-    if (postOwnerId != currentUser.id) {
-      sendNotification(commentController.text);
-    }
-
-    commentController.clear();
   }
 
   sendNotification(String comment) async {
@@ -130,90 +135,25 @@ class CommentsState extends State<Comments> {
               controller: commentController,
               focusNode: commentFocusNode,
               decoration: InputDecoration(labelText: "Write a comment..."),
+              onChanged: (value) {
+                setState(() {
+                  isCommentNotEmpty = value.trim().isNotEmpty;
+                });
+              },
             ),
             trailing: OutlinedButton(
-              onPressed: () => addComment(),
+              onPressed: isCommentNotEmpty ? () => addComment() : null,
               style: OutlinedButton.styleFrom(
                 side: BorderSide.none,
+                foregroundColor: isCommentNotEmpty
+                    ? Theme.of(context).colorScheme.primary
+                    : Colors.grey,
               ),
               child: Text("Post"),
             ),
           ),
         ],
       ),
-    );
-  }
-}
-
-class Comment extends StatelessWidget {
-  final String username;
-  final String userId;
-  final String avatarUrl;
-  final String comment;
-  final Timestamp timestamp;
-
-  Comment({
-    required this.username,
-    required this.userId,
-    required this.avatarUrl,
-    required this.comment,
-    required this.timestamp,
-  });
-
-  factory Comment.fromDocument(DocumentSnapshot doc) {
-    return Comment(
-      username: doc['username'],
-      userId: doc['userId'],
-      comment: doc['comment'],
-      timestamp: doc['timestamp'],
-      avatarUrl: doc['avatarUrl'],
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: <Widget>[
-        ListTile(
-          title: GestureDetector(
-            onTap: () => showProfile(context, profileId: userId),
-            child: Text(
-              username,
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-          subtitle: Text(
-            comment,
-            style: const TextStyle(
-              fontWeight: FontWeight.normal,
-            ),
-          ),
-          leading: GestureDetector(
-            onTap: () => showProfile(context, profileId: userId),
-            child: CircleAvatar(
-              backgroundImage: CachedNetworkImageProvider(avatarUrl),
-            ),
-          ),
-          trailing: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(timeago.format(timestamp.toDate())),
-              SizedBox(width: 8.0),
-              IconButton(
-                onPressed: () => print("allo"),
-                icon: Icon(
-                  Icons.favorite_border,
-                  size: 28.0,
-                  color: Theme.of(context).colorScheme.secondary,
-                ),
-              ),
-            ],
-          ),
-        ),
-        Divider(),
-      ],
     );
   }
 }

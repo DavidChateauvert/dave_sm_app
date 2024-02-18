@@ -91,7 +91,7 @@ class FirebaseApi {
             },
             "notification": <String, dynamic>{
               "title": "$senderName",
-              "body": message,
+              "body": message != "" ? message : "Sent you a photo",
             },
             "category": "message",
             "content_available": true,
@@ -225,6 +225,40 @@ class FirebaseApi {
             "notification": <String, dynamic>{
               "title": "Dave",
               "body": "$senderName has liked your post",
+            },
+            "content_available": true,
+            "to": userTokens,
+          }));
+    } catch (e) {
+      print("erreur de send Notifcation");
+    }
+  }
+
+  sendCommentLikeNotification(String otherUserId, String senderName,
+      String postId, String comment) async {
+    String userTokens = await FirebaseApi().getToken(otherUserId) ?? "";
+
+    try {
+      await http.post(Uri.parse('https://fcm.googleapis.com/fcm/send'),
+          headers: <String, String>{
+            'Content-type': 'application/json',
+            'Authorization':
+                'key=AAAA5hU-q8Q:APA91bEsFeg67RQ2qtOnphuadgkwsmZ4K3zgdwHEvtnoIfdTS1hUvPbe-kUhuyZe0NvJiYnGwaikAp339wIGD_DmvunTzNK5oMNwhwN-hbCsqm-PC1kiO3wJOiYfNSQHbw3LiRFV-Vkp',
+          },
+          body: jsonEncode(<String, dynamic>{
+            'priority': 'high',
+            'data': <String, dynamic>{
+              'click_action': 'FLUTTER_NOTIFICATION_CLICK',
+              'status': 'done',
+              'body': "Dave",
+              'title': "Dave",
+              'screen': "${postId}",
+              'senderId': "${currentUser.id}",
+              'type': "commentLike",
+            },
+            "notification": <String, dynamic>{
+              "title": "Dave",
+              "body": "$senderName has liked your comment : $comment",
             },
             "content_available": true,
             "to": userTokens,

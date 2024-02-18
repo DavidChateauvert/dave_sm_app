@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:sm_app/widgets/custom_image.dart';
 
@@ -29,6 +31,7 @@ class _PhotoState extends State<Photo> {
             maxScale: 3,
             child: widget.type == "profile"
                 ? ClipOval(
+                    clipper: Circle(),
                     child: cachedNetworkImage(widget.photoUrl),
                   )
                 : cachedNetworkImage(widget.photoUrl),
@@ -48,5 +51,18 @@ class _PhotoState extends State<Photo> {
         ),
       ],
     );
+  }
+}
+
+class Circle extends CustomClipper<Rect> {
+  Rect getClip(Size size) {
+    return Rect.fromCircle(
+      center: Offset(size.width / 2, size.height / 2),
+      radius: min(size.width / 2, size.height / 2),
+    );
+  }
+
+  bool shouldReclip(oldClipper) {
+    return false;
   }
 }

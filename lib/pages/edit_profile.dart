@@ -164,6 +164,10 @@ class _EditProfileState extends State<EditProfile> {
       final scaffoldMessenger = ScaffoldMessenger.of(context);
       final snackBar = SnackBar(content: Text('Profile Updated!'));
       scaffoldMessenger.showSnackBar(snackBar);
+
+      Future.delayed(Duration(seconds: 1), () {
+        Navigator.pop(context);
+      });
     }
   }
 
@@ -231,37 +235,6 @@ class _EditProfileState extends State<EditProfile> {
     String downloadUrl = await storageSnap.ref.getDownloadURL();
     return downloadUrl;
   }
-
-  // selectImage(parentContext) {
-  //   showDialog(
-  //     context: parentContext,
-  //     builder: (context) {
-  //       return SimpleDialog(
-  //         title: Text("Create Post"),
-  //         children: <Widget>[
-  //           SimpleDialogOption(
-  //             onPressed: () {
-  //               handleTakePhoto();
-  //               Navigator.pop(context, "takePhoto");
-  //             },
-  //             child: Text("Photo with camera"),
-  //           ),
-  //           SimpleDialogOption(
-  //             onPressed: () {
-  //               handleChooseFromGallery();
-  //               Navigator.pop(context, "chooseFromGallery");
-  //             },
-  //             child: Text("Image from Gallery"),
-  //           ),
-  //           SimpleDialogOption(
-  //             child: Text("Cancel"),
-  //             onPressed: () => Navigator.pop(context, "cancel"),
-  //           ),
-  //         ],
-  //       );
-  //     },
-  //   );
-  // }
 
   selectImage(parentContext) {
     return showDialog(
@@ -378,7 +351,7 @@ class _EditProfileState extends State<EditProfile> {
         ),
         actions: <Widget>[
           IconButton(
-            onPressed: () => Navigator.pop(context, user),
+            onPressed: () => updateProfileData(),
             icon: Icon(Icons.done),
             iconSize: 30.0,
             color: Colors.green,
@@ -438,57 +411,7 @@ class _EditProfileState extends State<EditProfile> {
                             buildBioField(),
                           ],
                         ),
-                      ),
-                      ElevatedButton(
-                        onPressed: () => updateProfileData(),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.white,
-                          foregroundColor:
-                              Theme.of(context).colorScheme.primary,
-                          textStyle: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        child: Text(
-                          "Update Profile",
-                          style: TextStyle(
-                            color: Theme.of(context).colorScheme.primary,
-                            fontSize: 20.0,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                      // Padding(
-                      //   padding: const EdgeInsets.only(top: 16.0),
-                      //   child: TextButton.icon(
-                      //     onPressed: () =>
-                      //         Provider.of<ThemeProvider>(context, listen: false)
-                      //             .toggleTheme(),
-                      //     icon: Icon(CupertinoIcons.brightness_solid,
-                      //         color: Theme.of(context).colorScheme.secondary),
-                      //     label: Text(
-                      //       "Change theme",
-                      //       style: TextStyle(
-                      //         color: Theme.of(context).colorScheme.secondary,
-                      //         fontSize: 20.0,
-                      //       ),
-                      //     ),
-                      //   ),
-                      // ),
-                      // Padding(
-                      //   padding: const EdgeInsets.only(top: 16.0),
-                      //   child: TextButton.icon(
-                      //     onPressed: () => logout(),
-                      //     icon: const Icon(Icons.cancel, color: Colors.red),
-                      //     label: const Text(
-                      //       "Logout",
-                      //       style: TextStyle(
-                      //         color: Colors.red,
-                      //         fontSize: 20.0,
-                      //       ),
-                      //     ),
-                      //   ),
-                      // ),
+                      )
                     ],
                   ),
                 ),

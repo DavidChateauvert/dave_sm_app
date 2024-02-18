@@ -101,6 +101,8 @@ class _ActivityFeedItem extends State<ActivityFeedItem> {
       activityItemText = "sent you a new message";
     } else if (type == "mention") {
       activityItemText = "has tagged you in a post";
+    } else if (type == "commentLike") {
+      activityItemText = "liked your comment";
     } else {
       activityItemText = "Error: Unkown type '$type'";
     }
@@ -115,7 +117,7 @@ class _ActivityFeedItem extends State<ActivityFeedItem> {
   // }
 
   showNotification(context, type) {
-    if (["like", "comment", "mention"].contains(type)) {
+    if (["like", "comment", "mention", "commentLike"].contains(type)) {
       showPost(context, type);
     } else if (type == "follow") {
       showProfile(context, profileId: userId);
