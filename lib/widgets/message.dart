@@ -112,6 +112,7 @@ class Message extends StatelessWidget {
                       key: imageKey,
                       id: messageId,
                       image: cachedNetworkImage(mediaUrl),
+                      isSender: isSender,
                     ),
                     SizedBox(height: 4.0),
                     Text(
@@ -150,6 +151,7 @@ class Message extends StatelessWidget {
                       key: imageKey,
                       id: messageId,
                       image: cachedNetworkImage(mediaUrl),
+                      isSender: isSender,
                     ),
                     BubbleSpecialThree(
                       key: messageKey,

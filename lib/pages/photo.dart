@@ -43,7 +43,7 @@ class Photo extends StatelessWidget {
               child: Icon(
                 Icons.close,
                 size: 30,
-                color: Colors.white,
+                color: Theme.of(context).colorScheme.onBackground,
               ),
             ),
           ),
