@@ -8,9 +8,9 @@ import 'package:sm_app/pages/home.dart';
 import 'package:sm_app/pages/likePost.dart';
 import 'package:sm_app/pages/search.dart';
 import 'package:sm_app/widgets/custom_image.dart';
-import 'package:sm_app/widgets/post.dart';
 import 'package:sm_app/widgets/progress.dart';
 import 'package:timeago/timeago.dart' as timeago;
+import 'package:zoom_pinch_overlay/zoom_pinch_overlay.dart';
 
 import '../models/user.dart';
 import '../pages/comments.dart';
@@ -325,21 +325,25 @@ class _PostProfileState extends State<PostProfile> {
 
   buildPostImage() {
     return GestureDetector(
-      onTap: () => showPhoto(context, mediaUrl, handleRatio(), "post"),
       onDoubleTap: () => handleLikePost(),
-      child: Stack(
-        alignment: Alignment.center,
-        children: <Widget>[
-          Container(
-            width: MediaQuery.of(context).size.width,
-            child: Center(
-              child: AspectRatio(
-                aspectRatio: handleRatio(),
+      child: Center(
+        child: Container(
+          width: MediaQuery.of(context).size.width,
+          child: Center(
+            child: AspectRatio(
+              aspectRatio: handleRatio(),
+              child: ZoomOverlay(
+                modalBarrierColor: Colors.black12,
+                minScale: 0.8,
+                maxScale: 3.0,
+                animationCurve: Curves.fastOutSlowIn,
+                animationDuration: Duration(milliseconds: 300),
+                twoTouchOnly: true,
                 child: cachedNetworkImage(mediaUrl),
               ),
             ),
-          )
-        ],
+          ),
+        ),
       ),
     );
   }
@@ -516,33 +520,20 @@ class _PostProfileState extends State<PostProfile> {
     isCommented = (comments[currentUserId] == true);
 
     return (!deleteInstant)
-        ? GestureDetector(
-            onHorizontalDragEnd: (DragEndDetails details) {
-              if (details.primaryVelocity! < 0) {
-                showComments(context, postId: postId, ownerId: ownerId,
-                    updateCommentStatus: () {
-                  setState(() {
-                    isCommentedInstant == true;
-                    commentCount++;
-                  });
-                });
-              }
-            },
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                const Divider(
-                  color: Color.fromARGB(255, 244, 186, 184),
-                  height: 0.0,
-                ),
-                const SizedBox(height: 8.0),
-                buildPostHeader(),
-                buildPostFooter(),
-                const Divider(
-                  color: Color.fromARGB(255, 244, 186, 184),
-                ),
-              ],
-            ),
+        ? Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              const Divider(
+                color: Color.fromARGB(255, 244, 186, 184),
+                height: 0.0,
+              ),
+              const SizedBox(height: 8.0),
+              buildPostHeader(),
+              buildPostFooter(),
+              const Divider(
+                color: Color.fromARGB(255, 244, 186, 184),
+              ),
+            ],
           )
         : !deleteInstant
             ? Column(

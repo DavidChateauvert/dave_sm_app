@@ -367,7 +367,7 @@ class _UploadState extends State<Upload>
           ),
           body: ListView(
             children: <Widget>[
-              isUploading ? linearProgress() : Container(),
+              isUploading ? linearProgress() : Text(""),
               Padding(
                 padding: EdgeInsets.only(top: 10.0),
               ),

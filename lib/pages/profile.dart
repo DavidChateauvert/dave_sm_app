@@ -8,6 +8,7 @@ import 'package:sm_app/api/firebase_api.dart';
 import 'package:sm_app/pages/edit_profile.dart';
 import 'package:sm_app/pages/friends.dart';
 import 'package:sm_app/pages/home.dart';
+import 'package:sm_app/pages/photo.dart';
 import 'package:sm_app/pages/settings.dart';
 import 'package:sm_app/widgets/header.dart';
 import 'package:sm_app/widgets/post.dart';
@@ -380,13 +381,26 @@ class _Profile extends State<Profile> {
                   GestureDetector(
                     onTap: user.photoUrl.isEmpty
                         ? null
-                        : () => showPhoto(context, user.photoUrl, 1, "profile"),
-                    child: CircleAvatar(
-                      radius: 40.0,
-                      backgroundColor: Colors.grey,
-                      backgroundImage: user.photoUrl.isEmpty
-                          ? null
-                          : CachedNetworkImageProvider(user.photoUrl),
+                        : () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => Photo(
+                                  photoUrl: user.photoUrl,
+                                  aspectRatio: 1,
+                                  type: "profile",
+                                ),
+                              ),
+                            ),
+                    child: Hero(
+                      tag: user
+                          .photoUrl, // Unique identifier for the Hero animation
+                      child: CircleAvatar(
+                        radius: 40.0,
+                        backgroundColor: Colors.grey,
+                        backgroundImage: user.photoUrl.isEmpty
+                            ? null
+                            : CachedNetworkImageProvider(user.photoUrl),
+                      ),
                     ),
                   ),
                   const SizedBox(
@@ -509,4 +523,26 @@ class _Profile extends State<Profile> {
           : null,
     );
   }
+}
+
+showPhoto(
+    BuildContext context, String photoUrl, double aspectRatio, String type) {
+  Navigator.push(
+    context,
+    PageRouteBuilder(
+      // transitionDuration: Duration(
+      //     milliseconds: 200), // Adjust the transition duration as desired
+      pageBuilder: (_, __, ___) => Photo(
+        photoUrl: photoUrl,
+        aspectRatio: aspectRatio,
+        type: type,
+      ),
+      transitionsBuilder: (_, animation, __, child) {
+        return FadeTransition(
+          opacity: animation,
+          child: child,
+        );
+      },
+    ),
+  );
 }

@@ -108,6 +108,7 @@ class Message extends StatelessWidget {
                       : CrossAxisAlignment.start,
                   children: <Widget>[
                     BubbleNormalImage(
+                      color: Theme.of(context).colorScheme.background,
                       key: imageKey,
                       id: messageId,
                       image: cachedNetworkImage(mediaUrl),
@@ -145,6 +146,7 @@ class Message extends StatelessWidget {
                       : CrossAxisAlignment.start,
                   children: <Widget>[
                     BubbleNormalImage(
+                      color: Theme.of(context).colorScheme.background,
                       key: imageKey,
                       id: messageId,
                       image: cachedNetworkImage(mediaUrl),

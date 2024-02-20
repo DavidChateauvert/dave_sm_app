@@ -6,13 +6,13 @@ import 'package:flutter/material.dart';
 import 'package:sm_app/api/firebase_api.dart';
 import 'package:sm_app/pages/home.dart';
 import 'package:sm_app/pages/likePost.dart';
-import 'package:sm_app/pages/photo.dart';
 import 'package:sm_app/pages/report_post.dart';
 import 'package:sm_app/pages/search.dart';
 import 'package:sm_app/widgets/custom_image.dart';
 // import 'package:sm_app/widgets/custom_image.dart';
 import 'package:sm_app/widgets/progress.dart';
 import 'package:timeago/timeago.dart' as timeago;
+import 'package:zoom_pinch_overlay/zoom_pinch_overlay.dart';
 
 import '../models/user.dart';
 import '../pages/comments.dart';
@@ -407,21 +407,25 @@ class _PostState extends State<Post> {
 
   buildPostImage() {
     return GestureDetector(
-      onTap: () => showPhoto(context, mediaUrl, handleRatio(), "post"),
       onDoubleTap: () => handleLikePost(),
-      child: Stack(
-        alignment: Alignment.center,
-        children: <Widget>[
-          Container(
-            width: MediaQuery.of(context).size.width,
-            child: Center(
-              child: AspectRatio(
-                aspectRatio: handleRatio(),
+      child: Center(
+        child: Container(
+          width: MediaQuery.of(context).size.width,
+          child: Center(
+            child: AspectRatio(
+              aspectRatio: handleRatio(),
+              child: ZoomOverlay(
+                modalBarrierColor: Colors.black12,
+                minScale: 0.8,
+                maxScale: 3.0,
+                animationCurve: Curves.fastOutSlowIn,
+                animationDuration: Duration(milliseconds: 300),
+                twoTouchOnly: true,
                 child: cachedNetworkImage(mediaUrl),
               ),
             ),
-          )
-        ],
+          ),
+        ),
       ),
     );
   }
@@ -579,43 +583,28 @@ class _PostState extends State<Post> {
     );
   }
 
-  // bool get wantKeepAlive => !seen;
-
   @override
   Widget build(BuildContext context) {
     isLiked = (likes[currentUserId] == true);
     isCommented = (comments[currentUserId] == true);
 
     return (!seen && !deleteInstant)
-        ? GestureDetector(
-            onHorizontalDragEnd: (DragEndDetails details) {
-              if (details.primaryVelocity! < 0) {
-                showComments(context, postId: postId, ownerId: ownerId,
-                    updateCommentStatus: () {
-                  setState(() {
-                    isCommentedInstant == true;
-                    commentCount++;
-                  });
-                });
-              }
-            },
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                Divider(
-                  color: Theme.of(context).colorScheme.secondary,
-                  height: 0.0,
-                ),
-                const SizedBox(
-                  height: 8.0,
-                ),
-                buildPostHeader(),
-                buildPostFooter(),
-                Divider(
-                  color: Theme.of(context).colorScheme.secondary,
-                ),
-              ],
-            ),
+        ? Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              Divider(
+                color: Theme.of(context).colorScheme.secondary,
+                height: 0.0,
+              ),
+              const SizedBox(
+                height: 8.0,
+              ),
+              buildPostHeader(),
+              buildPostFooter(),
+              Divider(
+                color: Theme.of(context).colorScheme.secondary,
+              ),
+            ],
           )
         : !deleteInstant
             ? Column(
@@ -722,26 +711,4 @@ class _PostState extends State<Post> {
       );
     }));
   }
-}
-
-showPhoto(
-    BuildContext context, String photoUrl, double aspectRatio, String type) {
-  Navigator.push(
-    context,
-    PageRouteBuilder(
-      transitionDuration: Duration(
-          milliseconds: 200), // Adjust the transition duration as desired
-      pageBuilder: (_, __, ___) => Photo(
-        photoUrl: photoUrl,
-        aspectRatio: aspectRatio,
-        type: type,
-      ),
-      transitionsBuilder: (_, animation, __, child) {
-        return FadeTransition(
-          opacity: animation,
-          child: child,
-        );
-      },
-    ),
-  );
 }

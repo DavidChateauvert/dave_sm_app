@@ -166,7 +166,7 @@ class _EditProfileState extends State<EditProfile> {
       scaffoldMessenger.showSnackBar(snackBar);
 
       Future.delayed(Duration(seconds: 1), () {
-        Navigator.pop(context);
+        Navigator.pop(context, user);
       });
     }
   }
