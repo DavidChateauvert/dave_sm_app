@@ -19,6 +19,7 @@ import 'package:uuid/uuid.dart';
 import 'package:sm_app/models/user.dart';
 import 'package:flutter_mentions/flutter_mentions.dart';
 import 'package:image/image.dart' as Im;
+import 'package:video_player/video_player.dart';
 
 class Upload extends StatefulWidget {
   final User? currentUser;
@@ -42,6 +43,8 @@ class _UploadState extends State<Upload>
   List<Map<String, String>> mentionsData = [];
   List<Map<String, String>> mentionsDataAdded = [];
   late String otherUserToken;
+  VideoPlayerController? _controller;
+  String? _videoUrl;
 
   @override
   void initState() {
@@ -95,6 +98,31 @@ class _UploadState extends State<Upload>
     });
   }
 
+  handleTakeVideoFunctions() async {
+    _videoUrl = await handleTakeVideo();
+    _initializeVideoPlayer();
+  }
+
+  handleTakeVideo() async {
+    Navigator.pop(context);
+    XFile? xfile;
+    try {
+      final ImagePicker _imagePicker = ImagePicker();
+      xfile = await _imagePicker.pickVideo(
+        source: ImageSource.camera,
+        maxDuration: Duration(seconds: 7),
+      );
+      return xfile!.path;
+    } catch (e) {
+      print("Erreur picking video: $e");
+    }
+
+    // setState(() {
+    //   file = File(xfile!.path);
+    //   _videoUrl = xfile.path;
+    // });
+  }
+
   handleChooseFromGalleryFunctions() async {
     await handleChooseFromGallery();
     await compressImage();
@@ -111,6 +139,76 @@ class _UploadState extends State<Upload>
     setState(() {
       file = File(xfile!.path);
     });
+  }
+
+  handleChooseVideoFromGalleryFunctions() async {
+    _videoUrl = await handleChooseVideoFromGallery();
+    _initializeVideoPlayer();
+  }
+
+  handleChooseVideoFromGallery() async {
+    Navigator.pop(context);
+    XFile? xfile;
+    try {
+      ImagePicker _imagePicker = ImagePicker();
+      xfile = await _imagePicker.pickVideo(
+        source: ImageSource.gallery,
+        maxDuration: Duration(seconds: 7),
+      );
+      return xfile!.path;
+    } catch (e) {
+      print("Erreur choosing a video : $e");
+    }
+
+    // setState(() {
+    //   file = File(xfile!.path);
+    //   _videoUrl = xfile.path;
+    // });
+  }
+
+  void _initializeVideoPlayer() {
+    _controller = VideoPlayerController.file(File(_videoUrl!))
+      ..initialize().then((_) {
+        setState(() {
+          _controller!.play();
+        });
+      });
+  }
+
+  @override
+  void dispose() {
+    _controller?.dispose();
+    super.dispose();
+  }
+
+  Widget _videoPreviewWidget() {
+    if (_controller != null) {
+      return Column(
+        children: [
+          AspectRatio(
+            aspectRatio: _controller!.value.aspectRatio,
+            child: VideoPlayer(_controller!),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: TextButton.icon(
+              onPressed: () => clearImage(),
+              icon: const Icon(Icons.cancel_outlined,
+                  color: Color.fromARGB(255, 89, 36, 99)),
+              label: const Text(
+                "Remove Image",
+                style: TextStyle(
+                  color: Color.fromARGB(255, 89, 36, 99),
+                  fontSize: 20.0,
+                ),
+              ),
+            ),
+          ),
+        ],
+      );
+    } else {
+      return circularProgress();
+    }
   }
 
   compressImage() async {
@@ -141,7 +239,7 @@ class _UploadState extends State<Upload>
               children: <Widget>[
                 Flexible(
                   child: TextButton(
-                    onPressed: () => handleTakePhotoFunctions(),
+                    onPressed: () => handleTakeVideoFunctions(),
                     child: Container(
                       height: 100.0,
                       child: Center(
@@ -178,7 +276,7 @@ class _UploadState extends State<Upload>
                 ),
                 Flexible(
                   child: TextButton(
-                    onPressed: () => handleChooseFromGalleryFunctions(),
+                    onPressed: () => handleChooseVideoFromGalleryFunctions(),
                     child: Container(
                       height: 100.0,
                       child: Column(
@@ -216,6 +314,8 @@ class _UploadState extends State<Upload>
   clearImage() {
     setState(() {
       file = null;
+      _controller = null;
+      _videoUrl = null;
     });
   }
 
@@ -269,6 +369,14 @@ class _UploadState extends State<Upload>
     return downloadUrl;
   }
 
+  Future<String> uploadVideo(String videoUrl) async {
+    Reference ref =
+        await storageRef.child("/video/$postId-${DateTime.now()}.mp4");
+    await ref.putFile(File(videoUrl));
+    String downloadUrl = await ref.getDownloadURL();
+    return downloadUrl;
+  }
+
   handleSubmit() async {
     captionFocusNode.unfocus();
     if ((_mentionsKey.currentState!.controller!.text.trim().isEmpty ||
@@ -288,10 +396,10 @@ class _UploadState extends State<Upload>
             caption: _mentionsKey.currentState!.controller!.text, mediaUrl: '');
       } else {
         // await compressImage();
-        String mediaUrl = await uploadImage(file);
-        createPostInFirestore(
-            caption: _mentionsKey.currentState!.controller!.text,
-            mediaUrl: mediaUrl);
+        // String mediaUrl = await uploadImage(file);
+        // createPostInFirestore(
+        //     caption: _mentionsKey.currentState!.controller!.text,
+        //     mediaUrl: mediaUrl);
       }
 
       setState(() {
@@ -488,7 +596,8 @@ class _UploadState extends State<Upload>
                         ),
                       ],
                     )
-                  : Text("")
+                  : Text(""),
+              (_videoUrl != null) ? _videoPreviewWidget() : Text("No video"),
             ],
           ),
         ),

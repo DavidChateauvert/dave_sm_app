@@ -2,6 +2,7 @@
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:sm_app/api/firebase_api.dart';
@@ -107,20 +108,14 @@ class _Profile extends State<Profile> {
         posts =
             snapshot.docs.map((doc) => PostProfile.fromDocument(doc)).toList();
       });
+    } else {
+      QuerySnapshot snapshot =
+          await postsRef.doc(widget.profileId).collection('userPosts').get();
+      setState(() {
+        isLoading = false;
+        postCount = snapshot.docs.length;
+      });
     }
-    // else {
-    //   QuerySnapshot snapshot = await timelineRef
-    //       .doc(currentUserId)
-    //       .collection('timelinePosts')
-    //       .orderBy('timestamp', descending: true)
-    //       .where("ownerId", isEqualTo: widget.profileId)
-    //       .get();
-    //   setState(() {
-    //     isLoading = false;
-    //     postCount = snapshot.docs.length;
-    //     post = snapshot.docs.map((doc) => Post.fromDocument(doc)).toList();
-    //   });
-    // }
   }
 
   showFriends(BuildContext context, {required String profileId}) {
@@ -501,6 +496,12 @@ class _Profile extends State<Profile> {
     );
   }
 
+  buildProfilePhoto() {
+    return Center(
+      child: Text("Second"),
+    );
+  }
+
   @override
   Widget build(context) {
     return Scaffold(
@@ -513,7 +514,48 @@ class _Profile extends State<Profile> {
           Divider(
             height: 0.0,
           ),
-          buildProfilePost()
+          DefaultTabController(
+            length: 2,
+            child: Column(
+              children: [
+                TabBar(
+                  tabs: [
+                    Tab(
+                      icon: Icon(
+                        CupertinoIcons.text_justify,
+                        color: Theme.of(context).colorScheme.primaryContainer,
+                      ),
+                    ),
+                    Tab(
+                      icon: Icon(
+                        CupertinoIcons.rectangle_grid_2x2,
+                        color: Theme.of(context).colorScheme.primaryContainer,
+                      ),
+                    ),
+                  ],
+                ),
+                Container(
+                  height: MediaQuery.of(context).size.height -
+                      kToolbarHeight -
+                      kBottomNavigationBarHeight,
+                  child: TabBarView(
+                    children: [
+                      ListView(
+                        children: <Widget>[
+                          buildProfilePost(),
+                        ],
+                      ),
+                      ListView(
+                        children: <Widget>[
+                          buildProfilePhoto(),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
       drawer: currentUserId == widget.profileId
