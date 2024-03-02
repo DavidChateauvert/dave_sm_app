@@ -496,9 +496,102 @@ class _Profile extends State<Profile> {
     );
   }
 
-  buildProfilePhoto() {
-    return Center(
-      child: Text("Second"),
+  buildProfileVisit() {
+    return FutureBuilder(
+      future: usersRef.doc(widget.profileId).get(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return linearProgress();
+        }
+        user = User.fromDocument(snapshot.data as DocumentSnapshot<Object?>);
+        return Padding(
+          padding: EdgeInsets.all(16.0),
+          child: Column(
+            children: <Widget>[
+              Row(
+                children: <Widget>[
+                  GestureDetector(
+                    onTap: user.photoUrl.isEmpty
+                        ? null
+                        : () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => Photo(
+                                  photoUrl: user.photoUrl,
+                                  aspectRatio: 1,
+                                  type: "profile",
+                                ),
+                              ),
+                            ),
+                    child: Hero(
+                      tag: user.photoUrl,
+                      child: CircleAvatar(
+                        radius: 40.0,
+                        backgroundColor: Colors.grey,
+                        backgroundImage: user.photoUrl.isEmpty
+                            ? null
+                            : CachedNetworkImageProvider(user.photoUrl),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(
+                    width: 20,
+                  ),
+                  Expanded(
+                    flex: 1,
+                    child: Column(
+                      children: <Widget>[
+                        Row(
+                          mainAxisSize: MainAxisSize.max,
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: <Widget>[
+                            buildCountColumn("Posts", postCount),
+                            buildCountColumn("Friends", friendsCount),
+                          ],
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: <Widget>[buildProfileButton()],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              Container(
+                alignment: Alignment.centerLeft,
+                padding: EdgeInsets.only(top: 12.0),
+                child: Row(
+                  children: [
+                    Text(
+                      user.displayName,
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16.0,
+                      ),
+                    ),
+                    SizedBox(width: 4.0),
+                    user.verified
+                        ? Icon(
+                            Icons.verified_sharp,
+                            color: Theme.of(context).colorScheme.primary,
+                            size: 18.0,
+                          )
+                        : Text(""),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 4.0),
+              Container(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  user.bio,
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -508,56 +601,59 @@ class _Profile extends State<Profile> {
       appBar: header(context,
           titleText: "Profile",
           removeBackButton: currentUserId == widget.profileId),
-      body: ListView(
-        children: <Widget>[
-          buildProfileHeader(),
-          Divider(
-            height: 0.0,
-          ),
-          DefaultTabController(
-            length: 2,
-            child: Column(
-              children: [
-                TabBar(
-                  tabs: [
-                    Tab(
-                      icon: Icon(
-                        CupertinoIcons.text_justify,
-                        color: Theme.of(context).colorScheme.primaryContainer,
-                      ),
-                    ),
-                    Tab(
-                      icon: Icon(
-                        CupertinoIcons.rectangle_grid_2x2,
-                        color: Theme.of(context).colorScheme.primaryContainer,
-                      ),
-                    ),
-                  ],
+      body: currentUserId == widget.profileId
+          ? ListView(
+              children: <Widget>[
+                buildProfileHeader(),
+                Divider(
+                  height: 0.0,
                 ),
-                Container(
-                  height: MediaQuery.of(context).size.height -
-                      kToolbarHeight -
-                      kBottomNavigationBarHeight,
-                  child: TabBarView(
-                    children: [
-                      ListView(
-                        children: <Widget>[
-                          buildProfilePost(),
-                        ],
-                      ),
-                      ListView(
-                        children: <Widget>[
-                          buildProfilePhoto(),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
+                buildProfilePost(),
+                // DefaultTabController(
+                //   length: 2,
+                //   child: Column(
+                //     children: [
+                //       TabBar(
+                //         tabs: [
+                //           Tab(
+                //             icon: Icon(
+                //               CupertinoIcons.text_justify,
+                //               color: Theme.of(context).colorScheme.primaryContainer,
+                //             ),
+                //           ),
+                //           Tab(
+                //             icon: Icon(
+                //               CupertinoIcons.rectangle_grid_2x2,
+                //               color: Theme.of(context).colorScheme.primaryContainer,
+                //             ),
+                //           ),
+                //         ],
+                //       ),
+                //       Container(
+                //         height: MediaQuery.of(context).size.height -
+                //             kToolbarHeight -
+                //             kBottomNavigationBarHeight,
+                //         child: TabBarView(
+                //           children: [
+                //             ListView(
+                //               children: <Widget>[
+                //                 buildProfilePost(),
+                //               ],
+                //             ),
+                //             ListView(
+                //               children: <Widget>[
+                //                 buildProfilePhoto(),
+                //               ],
+                //             ),
+                //           ],
+                //         ),
+                //       ),
+                //     ],
+                //   ),
+                // ),
               ],
-            ),
-          ),
-        ],
-      ),
+            )
+          : buildProfileVisit(),
       drawer: currentUserId == widget.profileId
           ? SettingsPage(
               currentUserId: currentUserId,

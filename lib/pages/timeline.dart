@@ -1,7 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:sm_app/pages/home.dart';
-// import 'package:sm_app/pages/search.dart';
+import 'package:sm_app/providers/post_counter.dart';
 import 'package:sm_app/widgets/header.dart';
 import 'package:sm_app/widgets/post.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -44,6 +45,8 @@ class _TimelineState extends State<Timeline> {
             doc, MediaQuery.of(context).padding.top + kToolbarHeight))
         .toList();
     setState(() {
+      Provider.of<PostCounterProvider>(context, listen: false).postCounter =
+          posts.length;
       this.posts = posts;
       if (posts.isEmpty) {
         this.timelineIsEmpty = true;
@@ -210,7 +213,7 @@ class _TimelineState extends State<Timeline> {
   @override
   Widget build(context) {
     return Scaffold(
-      appBar: header(context),
+      appBar: header(context, showPostCounter: true),
       body: RefreshIndicator.adaptive(
         onRefresh: () => getTimeline(),
         child: buildTimeline(context),

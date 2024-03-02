@@ -3,17 +3,17 @@ import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:image_size_getter/image_size_getter.dart';
+import 'package:flutter_ffmpeg/flutter_ffmpeg.dart';
 import 'package:image_size_getter/file_input.dart';
-// import 'package:textfield_tags/textfield_tags.dart';
-
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:image_size_getter/image_size_getter.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sm_app/api/firebase_api.dart';
 import 'package:sm_app/pages/home.dart';
+import 'package:sm_app/widgets/playVideo.dart';
 import 'package:sm_app/widgets/progress.dart';
 import 'package:uuid/uuid.dart';
 import 'package:sm_app/models/user.dart';
@@ -34,6 +34,7 @@ class _UploadState extends State<Upload>
     with AutomaticKeepAliveClientMixin<Upload> {
   File? file;
   bool isUploading = false;
+  bool mediaIsLoading = false;
   String postId = Uuid().v4();
   GlobalKey<FlutterMentionsState> _mentionsKey =
       GlobalKey<FlutterMentionsState>();
@@ -43,8 +44,9 @@ class _UploadState extends State<Upload>
   List<Map<String, String>> mentionsData = [];
   List<Map<String, String>> mentionsDataAdded = [];
   late String otherUserToken;
-  VideoPlayerController? _controller;
-  String? _videoUrl;
+  String type = "text";
+  late VideoPlayerController _controller;
+  final FlutterFFmpeg _flutterFFmpeg = FlutterFFmpeg();
 
   @override
   void initState() {
@@ -82,7 +84,6 @@ class _UploadState extends State<Upload>
 
   handleTakePhotoFunctions() async {
     await handleTakePhoto();
-    await compressImage();
   }
 
   handleTakePhoto() async {
@@ -93,215 +94,353 @@ class _UploadState extends State<Upload>
       maxHeight: 960.0,
       maxWidth: 675.0,
     ));
-    setState(() {
-      file = File(xfile!.path);
-    });
+    if (xfile != null) {
+      setState(() {
+        mediaIsLoading = true;
+      });
+      File compressImageFile = await compressImage(File(xfile.path));
+      setState(() {
+        type = "photo";
+        file = compressImageFile;
+        mediaIsLoading = false;
+      });
+    }
   }
 
   handleTakeVideoFunctions() async {
-    _videoUrl = await handleTakeVideo();
-    _initializeVideoPlayer();
+    await handleTakeVideo();
   }
 
   handleTakeVideo() async {
     Navigator.pop(context);
     XFile? xfile;
-    try {
-      final ImagePicker _imagePicker = ImagePicker();
-      xfile = await _imagePicker.pickVideo(
-        source: ImageSource.camera,
-        maxDuration: Duration(seconds: 7),
-      );
-      return xfile!.path;
-    } catch (e) {
-      print("Erreur picking video: $e");
-    }
+    String croppedPath = "";
+    final ImagePicker _imagePicker = ImagePicker();
+    xfile = await _imagePicker.pickVideo(source: ImageSource.camera);
 
-    // setState(() {
-    //   file = File(xfile!.path);
-    //   _videoUrl = xfile.path;
-    // });
+    if (xfile != null) {
+      setState(() {
+        mediaIsLoading = true;
+      });
+      _controller = VideoPlayerController.file(File(xfile.path));
+      await _controller.initialize();
+
+      croppedPath = await cropVideo(File(xfile.path));
+
+      setState(() {
+        type = "video";
+        file = File(croppedPath);
+        mediaIsLoading = false;
+      });
+    }
   }
 
   handleChooseFromGalleryFunctions() async {
     await handleChooseFromGallery();
-    await compressImage();
   }
 
   handleChooseFromGallery() async {
     Navigator.pop(context);
     ImagePicker _imagePicker = ImagePicker();
-    XFile? xfile = (await _imagePicker.pickImage(
-      source: ImageSource.gallery,
+    XFile? xfile = (await _imagePicker.pickMedia(
       maxHeight: 675.0,
       maxWidth: 960,
     ));
-    setState(() {
-      file = File(xfile!.path);
-    });
-  }
-
-  handleChooseVideoFromGalleryFunctions() async {
-    _videoUrl = await handleChooseVideoFromGallery();
-    _initializeVideoPlayer();
-  }
-
-  handleChooseVideoFromGallery() async {
-    Navigator.pop(context);
-    XFile? xfile;
-    try {
-      ImagePicker _imagePicker = ImagePicker();
-      xfile = await _imagePicker.pickVideo(
-        source: ImageSource.gallery,
-        maxDuration: Duration(seconds: 7),
-      );
-      return xfile!.path;
-    } catch (e) {
-      print("Erreur choosing a video : $e");
-    }
-
-    // setState(() {
-    //   file = File(xfile!.path);
-    //   _videoUrl = xfile.path;
-    // });
-  }
-
-  void _initializeVideoPlayer() {
-    _controller = VideoPlayerController.file(File(_videoUrl!))
-      ..initialize().then((_) {
-        setState(() {
-          _controller!.play();
-        });
+    if (xfile != null) {
+      setState(() {
+        mediaIsLoading = true;
       });
+      String extension = xfile.path.split('.').last.toLowerCase();
+      if (extension == 'mp4' || extension == 'mov' || extension == 'MOV') {
+        _controller = VideoPlayerController.file(File(xfile.path));
+        await _controller.initialize();
+
+        String croppedPath = await cropVideo(File(xfile.path));
+
+        setState(() {
+          type = "video";
+          file = File(croppedPath);
+          mediaIsLoading = false;
+        });
+      } else {
+        File compressImageFile = await compressImage(File(xfile.path));
+        setState(() {
+          type = "photo";
+          file = compressImageFile;
+          mediaIsLoading = false;
+        });
+      }
+    }
   }
 
   @override
   void dispose() {
-    _controller?.dispose();
     super.dispose();
   }
 
-  Widget _videoPreviewWidget() {
-    if (_controller != null) {
-      return Column(
-        children: [
-          AspectRatio(
-            aspectRatio: _controller!.value.aspectRatio,
-            child: VideoPlayer(_controller!),
+  videoPreviewWidget() {
+    return Column(
+      children: [
+        Padding(
+          padding: EdgeInsets.only(top: 30.0),
+          child: PlayVideo(
+            videoUrl: "",
+            type: "upload",
+            file: file,
+            height: _controller.value.size.height.round(),
           ),
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: TextButton.icon(
-              onPressed: () => clearImage(),
-              icon: const Icon(Icons.cancel_outlined,
-                  color: Color.fromARGB(255, 89, 36, 99)),
-              label: const Text(
-                "Remove Image",
-                style: TextStyle(
-                  color: Color.fromARGB(255, 89, 36, 99),
-                  fontSize: 20.0,
+        ),
+        Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: TextButton.icon(
+            onPressed: () => clearImage(),
+            icon: const Icon(Icons.cancel_outlined,
+                color: Color.fromARGB(255, 89, 36, 99)),
+            label: const Text(
+              "Remove Video",
+              style: TextStyle(
+                color: Color.fromARGB(255, 89, 36, 99),
+                fontSize: 20.0,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  photoPreviewWidget() {
+    return Column(
+      children: <Widget>[
+        Padding(
+          padding: EdgeInsets.only(top: 30.0),
+          child: Container(
+            width: MediaQuery.of(context).size.width,
+            child: Center(
+              child: AspectRatio(
+                aspectRatio: handleRatio(),
+                child: Container(
+                  decoration: BoxDecoration(
+                    image: DecorationImage(
+                      fit: BoxFit.cover,
+                      image: FileImage(file!),
+                    ),
+                  ),
                 ),
               ),
             ),
           ),
-        ],
-      );
-    } else {
-      return circularProgress();
+        ),
+        Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: TextButton.icon(
+            onPressed: () => clearImage(),
+            icon: const Icon(Icons.cancel_outlined,
+                color: Color.fromARGB(255, 89, 36, 99)),
+            label: const Text(
+              "Remove Image",
+              style: TextStyle(
+                color: Color.fromARGB(255, 89, 36, 99),
+                fontSize: 20.0,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  compressImage(File file) async {
+    final tempDir = await getTemporaryDirectory();
+    final path = tempDir.path;
+    Im.Image? imageFile = Im.decodeImage(file.readAsBytesSync());
+    final compressedImageFile = File('$path/img_${file.hashCode}.jpg')
+      ..writeAsBytesSync(Im.encodeJpg(imageFile!, quality: 85));
+    return compressedImageFile;
+  }
+
+  String getOutputPath(String filePath) {
+    final fileName = filePath.split('/').last;
+    final fileNameWithoutExtension = fileName.split('.').first;
+    final fileExtension = fileName.split('.').last;
+
+    final newFileName = '$fileNameWithoutExtension-cropped.$fileExtension';
+    final directoryPath = filePath.substring(0, filePath.lastIndexOf('/'));
+
+    return '$directoryPath/$newFileName';
+  }
+
+  Future<String> cropVideo(File file) async {
+    String outputPath = getOutputPath(file.path);
+
+    final int maxHeight = 1500;
+
+    try {
+      final int originalWidth = _controller.value.size.width.round();
+      final int originalHeight = _controller.value.size.height.round();
+
+      final int cropHeight =
+          originalHeight > maxHeight ? maxHeight : originalHeight;
+      final int topPadding = (originalHeight - cropHeight) ~/ 2;
+
+      final String command =
+          '-i ${file.path} -vf crop=$originalWidth:$cropHeight:0:$topPadding -c:a copy $outputPath';
+
+      await _flutterFFmpeg.execute(command);
+      return outputPath;
+    } catch (e) {
+      print("Cropped video failed : $e");
+      return "";
     }
   }
 
-  compressImage() async {
-    final tempDir = await getTemporaryDirectory();
-    final path = tempDir.path;
-    Im.Image? imageFile = Im.decodeImage(file!.readAsBytesSync());
-    final compressedImageFile = File('$path/img_$postId.jpg')
-      ..writeAsBytesSync(Im.encodeJpg(imageFile!, quality: 85));
-    setState(() {
-      file = compressedImageFile;
-    });
-  }
-
   selectImage(parentContext) {
+    const width = 150.0;
+    const height = 100.0;
     return showDialog(
       context: parentContext,
       builder: (context) {
         return SimpleDialog(
-          title: Text(
-            "Add an image to the post",
-            style: TextStyle(
-              color: Theme.of(context).colorScheme.onBackground,
+          title: Center(
+            child: Text(
+              "Add a media to the post",
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onBackground,
+              ),
             ),
           ),
           children: <Widget>[
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: <Widget>[
-                Flexible(
-                  child: TextButton(
-                    onPressed: () => handleTakeVideoFunctions(),
-                    child: Container(
-                      height: 100.0,
-                      child: Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Icon(
-                              CupertinoIcons.photo_camera,
-                              color: Theme.of(context).colorScheme.onBackground,
-                              size: 28.0,
+            Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: <Widget>[
+                    Flexible(
+                      child: TextButton(
+                        onPressed: () => handleTakePhotoFunctions(),
+                        child: Container(
+                          width: width,
+                          height: height,
+                          child: Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  CupertinoIcons.photo_camera,
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onBackground,
+                                  size: 28.0,
+                                ),
+                                const SizedBox(
+                                  height: 8,
+                                ),
+                                Text(
+                                  "Photo with Camera",
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onBackground,
+                                  ),
+                                ),
+                              ],
                             ),
-                            const SizedBox(
-                              height: 8,
-                            ),
-                            Text(
-                              "Photo with camera",
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                color:
-                                    Theme.of(context).colorScheme.onBackground,
-                              ),
-                            ),
-                          ],
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                ),
-                Container(
-                  height: 100.0,
-                  width: 2.0,
-                  color: Theme.of(context).colorScheme.onBackground,
-                ),
-                Flexible(
-                  child: TextButton(
-                    onPressed: () => handleChooseVideoFromGalleryFunctions(),
-                    child: Container(
+                    Container(
                       height: 100.0,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Icon(
-                            CupertinoIcons.photo_on_rectangle,
-                            color: Theme.of(context).colorScheme.onBackground,
-                            size: 28.0,
-                          ),
-                          const SizedBox(
-                            height: 8,
-                          ),
-                          Text(
-                            "Image from gallery",
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              color: Theme.of(context).colorScheme.onBackground,
+                      width: 2.0,
+                      color: Theme.of(context).colorScheme.onBackground,
+                    ),
+                    Flexible(
+                      child: TextButton(
+                        onPressed: () => handleTakeVideoFunctions(),
+                        child: Container(
+                          width: width,
+                          height: height,
+                          child: Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.videocam_outlined,
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onBackground,
+                                  size: 28.0,
+                                ),
+                                const SizedBox(
+                                  height: 8,
+                                ),
+                                Text(
+                                  "Video with Camera",
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onBackground,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                        ],
+                        ),
                       ),
                     ),
-                  ),
+                  ],
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      height: 2.0,
+                      width: 275.0,
+                      color: Theme.of(context).colorScheme.onBackground,
+                    ),
+                  ],
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    Flexible(
+                      child: TextButton(
+                        onPressed: () => handleChooseFromGalleryFunctions(),
+                        child: Container(
+                          width: 2 * width,
+                          height: height,
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Icon(
+                                CupertinoIcons.photo_on_rectangle,
+                                color:
+                                    Theme.of(context).colorScheme.onBackground,
+                                size: 28.0,
+                              ),
+                              const SizedBox(
+                                height: 8,
+                              ),
+                              Text(
+                                "Image or Video from Gallery",
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onBackground,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -314,17 +453,24 @@ class _UploadState extends State<Upload>
   clearImage() {
     setState(() {
       file = null;
-      _controller = null;
-      _videoUrl = null;
+      type = "text";
     });
   }
 
-  createPostInFirestore({required String caption, required String mediaUrl}) {
+  createPostInFirestore(
+      {required String caption,
+      required String type,
+      required String mediaUrl}) {
     Map<String, String> mentionsMap =
         mentionsDataAdded.fold({}, (map, mention) {
       map[mention['id']!] = mention['display']!;
       return map;
     });
+
+    if (type == "video") {
+      size = Size(_controller.value.size.width.round(),
+          _controller.value.size.height.round());
+    }
 
     postsRef
         .doc(widget.currentUser?.id)
@@ -343,6 +489,7 @@ class _UploadState extends State<Upload>
       "comments": {},
       "commentCount": 0,
       "mentions": mentionsMap,
+      "type": type,
     });
 
     for (var mention in mentionsMap.entries) {
@@ -361,19 +508,21 @@ class _UploadState extends State<Upload>
     }
   }
 
-  Future<String> uploadImage(imageFile) async {
-    UploadTask uploadTask =
-        storageRef.child("post_$postId.jpg").putFile(imageFile);
+  Future<String> uploadImage(File? imageFile) async {
+    UploadTask uploadTask = storageRef
+        .child("/photo/${DateTime.now()}_$postId.jpg")
+        .putFile(imageFile!);
     TaskSnapshot storageSnap = await uploadTask;
     String downloadUrl = await storageSnap.ref.getDownloadURL();
     return downloadUrl;
   }
 
-  Future<String> uploadVideo(String videoUrl) async {
-    Reference ref =
-        await storageRef.child("/video/$postId-${DateTime.now()}.mp4");
-    await ref.putFile(File(videoUrl));
-    String downloadUrl = await ref.getDownloadURL();
+  Future<String> uploadVideo(File? videoFile) async {
+    UploadTask uploadTask = storageRef
+        .child("/video/${DateTime.now()}_$postId.mp4")
+        .putFile(videoFile!);
+    TaskSnapshot storageSnap = await uploadTask;
+    String downloadUrl = await storageSnap.ref.getDownloadURL();
     return downloadUrl;
   }
 
@@ -393,19 +542,27 @@ class _UploadState extends State<Upload>
       });
       if (file == null) {
         createPostInFirestore(
-            caption: _mentionsKey.currentState!.controller!.text, mediaUrl: '');
+            caption: _mentionsKey.currentState!.controller!.text,
+            type: "text",
+            mediaUrl: '');
       } else {
-        // await compressImage();
-        // String mediaUrl = await uploadImage(file);
-        // createPostInFirestore(
-        //     caption: _mentionsKey.currentState!.controller!.text,
-        //     mediaUrl: mediaUrl);
+        String mediaUrl;
+        if (type == "photo") {
+          mediaUrl = await uploadImage(file);
+        } else {
+          mediaUrl = await uploadVideo(file);
+        }
+        createPostInFirestore(
+            caption: _mentionsKey.currentState!.controller!.text,
+            type: type,
+            mediaUrl: mediaUrl);
       }
 
       setState(() {
         file = null;
         isUploading = false;
         postId = Uuid().v4();
+        type = "text";
       });
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text("Post Successfully Created")));
@@ -435,7 +592,7 @@ class _UploadState extends State<Upload>
   }
 
   buildUploadForm() {
-    if (file != null) {
+    if (file != null && type == "photo") {
       final fileImage = FileImage(file!);
       size = ImageSizeGetter.getSize(FileInput(fileImage.file));
     }
@@ -455,7 +612,7 @@ class _UploadState extends State<Upload>
               onPressed: () => selectImage(context),
             ),
             title: Text(
-              "Caption Post",
+              "Make a Post",
               style: TextStyle(color: Colors.white, fontSize: 30.0),
             ),
             centerTitle: true,
@@ -556,48 +713,18 @@ class _UploadState extends State<Upload>
                   ),
                 ),
               ),
-              (file != null)
-                  ? Column(
-                      children: <Widget>[
-                        Padding(
-                          padding: EdgeInsets.only(top: 30.0),
-                          child: Container(
-                            // height: 500.0,
-                            width: MediaQuery.of(context).size.width,
-                            child: Center(
-                              child: AspectRatio(
-                                aspectRatio: handleRatio(),
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    image: DecorationImage(
-                                      fit: BoxFit.cover,
-                                      image: FileImage(file!),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: TextButton.icon(
-                            onPressed: () => clearImage(),
-                            icon: const Icon(Icons.cancel_outlined,
-                                color: Color.fromARGB(255, 89, 36, 99)),
-                            label: const Text(
-                              "Remove Image",
-                              style: TextStyle(
-                                color: Color.fromARGB(255, 89, 36, 99),
-                                fontSize: 20.0,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
+              mediaIsLoading
+                  ? Container(
+                      height: 325,
+                      child: Center(
+                        child: circularProgress(),
+                      ),
                     )
-                  : Text(""),
-              (_videoUrl != null) ? _videoPreviewWidget() : Text("No video"),
+                  : (file != null && type == "photo")
+                      ? photoPreviewWidget()
+                      : (file != null && type == "video")
+                          ? videoPreviewWidget()
+                          : Text(""),
             ],
           ),
         ),

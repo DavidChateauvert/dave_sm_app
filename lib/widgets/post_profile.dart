@@ -11,6 +11,7 @@ import 'package:sm_app/widgets/custom_image.dart';
 import 'package:sm_app/widgets/progress.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import 'package:zoom_pinch_overlay/zoom_pinch_overlay.dart';
+import 'package:sm_app/widgets/playVideo.dart';
 
 import '../models/user.dart';
 import '../pages/comments.dart';
@@ -28,6 +29,7 @@ class PostProfile extends StatefulWidget {
   final dynamic mentions;
   final int commentCount;
   final Timestamp timestamp;
+  final String type;
 
   PostProfile({
     required this.postId,
@@ -42,9 +44,12 @@ class PostProfile extends StatefulWidget {
     required this.commentCount,
     required this.mentions,
     required this.timestamp,
+    required this.type,
   });
 
   factory PostProfile.fromDocument(DocumentSnapshot doc) {
+    final String type =
+        doc.data().toString().contains('type') ? doc['type'] : "";
     return PostProfile(
       postId: doc['postId'],
       ownerId: doc['ownerId'],
@@ -58,6 +63,7 @@ class PostProfile extends StatefulWidget {
       commentCount: doc['commentCount'],
       mentions: doc['mentions'],
       timestamp: doc['timestamp'],
+      type: type,
     );
   }
 
@@ -90,6 +96,7 @@ class PostProfile extends StatefulWidget {
         likeCount: getLikeCount(likes),
         mentions: mentions,
         timestamp: timestamp,
+        type: type,
       );
 }
 
@@ -116,6 +123,7 @@ class _PostProfileState extends State<PostProfile> {
   double postHeight = 100.0;
   bool postHeightIsSet = false;
   bool deleteInstant = false;
+  String type;
 
   _PostProfileState({
     required this.postId,
@@ -131,6 +139,7 @@ class _PostProfileState extends State<PostProfile> {
     required this.commentCount,
     required this.mentions,
     required this.timestamp,
+    required this.type,
   });
 
   buildPostHeader() {
@@ -443,7 +452,17 @@ class _PostProfileState extends State<PostProfile> {
                 children: <Widget>[
                   Padding(
                     padding: const EdgeInsets.only(bottom: 20.0),
-                    child: buildPostImage(),
+                    child: type == "video"
+                        ? Container(
+                            width: MediaQuery.of(context).size.width,
+                            child: PlayVideo(
+                              videoUrl: mediaUrl,
+                              type: "post",
+                              file: null,
+                              height: mediaUrlHeight,
+                            ),
+                          )
+                        : buildPostImage(),
                   ),
                 ],
               ),

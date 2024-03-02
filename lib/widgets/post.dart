@@ -3,12 +3,15 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:sm_app/api/firebase_api.dart';
 import 'package:sm_app/pages/home.dart';
 import 'package:sm_app/pages/likePost.dart';
 import 'package:sm_app/pages/report_post.dart';
 import 'package:sm_app/pages/search.dart';
+import 'package:sm_app/providers/post_counter.dart';
 import 'package:sm_app/widgets/custom_image.dart';
+import 'package:sm_app/widgets/playVideo.dart';
 // import 'package:sm_app/widgets/custom_image.dart';
 import 'package:sm_app/widgets/progress.dart';
 import 'package:timeago/timeago.dart' as timeago;
@@ -31,6 +34,7 @@ class Post extends StatefulWidget {
   final int commentCount;
   final double appBarSize;
   final Timestamp timestamp;
+  final String type;
 
   Post({
     required this.postId,
@@ -46,9 +50,12 @@ class Post extends StatefulWidget {
     required this.mentions,
     required this.appBarSize,
     required this.timestamp,
+    required this.type,
   });
 
   factory Post.fromDocument(DocumentSnapshot doc) {
+    final String type =
+        doc.data().toString().contains('type') ? doc['type'] : "";
     return Post(
       postId: doc['postId'],
       ownerId: doc['ownerId'],
@@ -63,11 +70,14 @@ class Post extends StatefulWidget {
       mentions: doc['mentions'],
       timestamp: doc['timestamp'],
       appBarSize: 112.0,
+      type: type,
     );
   }
 
   factory Post.fromDocumentForTimeline(
       DocumentSnapshot doc, double appBarSize) {
+    final String? type =
+        doc.data().toString().contains('type') ? doc["type"] : "";
     return Post(
       postId: doc['postId'],
       ownerId: doc['ownerId'],
@@ -82,6 +92,7 @@ class Post extends StatefulWidget {
       mentions: doc['mentions'],
       timestamp: doc['timestamp'],
       appBarSize: appBarSize,
+      type: type!,
     );
   }
 
@@ -115,6 +126,7 @@ class Post extends StatefulWidget {
         likeCount: getLikeCount(likes),
         appBarSize: appBarSize,
         timestamp: timestamp,
+        type: type,
       );
 }
 
@@ -144,6 +156,7 @@ class _PostState extends State<Post> {
   double postHeight = 100.0;
   bool postHeightIsSet = false;
   bool deleteInstant = false;
+  String type;
 
   _PostState({
     required this.postId,
@@ -160,6 +173,7 @@ class _PostState extends State<Post> {
     required this.mentions,
     required this.appBarSize,
     required this.timestamp,
+    required this.type,
   });
 
   buildPostHeader() {
@@ -284,6 +298,7 @@ class _PostState extends State<Post> {
   }
 
   seenPost() {
+    Provider.of<PostCounterProvider>(context, listen: false).seenPost(postId);
     setState(() {
       seen = true;
     });
@@ -515,7 +530,17 @@ class _PostState extends State<Post> {
                 children: <Widget>[
                   Padding(
                     padding: const EdgeInsets.only(bottom: 20.0),
-                    child: buildPostImage(),
+                    child: type == "video"
+                        ? Container(
+                            width: MediaQuery.of(context).size.width,
+                            child: PlayVideo(
+                              videoUrl: mediaUrl,
+                              type: "post",
+                              file: null,
+                              height: mediaUrlHeight,
+                            ),
+                          )
+                        : buildPostImage(),
                   ),
                 ],
               ),

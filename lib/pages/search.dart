@@ -82,7 +82,7 @@ class _SearchState extends State<Search>
                         Brightness.light
                     ? 'assets/images/advanced_search.svg'
                     : 'assets/images/advanced_search_white.svg',
-                height: 300.0,
+                height: 250.0,
               ),
               SizedBox(height: 16.0), // Add spacing if needed
               Text(
@@ -92,7 +92,7 @@ class _SearchState extends State<Search>
                   color: Theme.of(context).colorScheme.primaryContainer,
                   fontStyle: FontStyle.normal,
                   fontWeight: FontWeight.w600,
-                  fontSize: 60.0,
+                  fontSize: 48.0,
                 ),
               ),
             ],
