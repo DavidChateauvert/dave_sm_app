@@ -457,6 +457,10 @@ class _UploadState extends State<Upload>
     });
   }
 
+  confirmMentionInCaption(Map<String, String> mentionsMap, String caption) {
+    mentionsMap.removeWhere((key, value) => !caption.contains('@$value'));
+  }
+
   createPostInFirestore(
       {required String caption,
       required String type,
@@ -466,6 +470,9 @@ class _UploadState extends State<Upload>
       map[mention['id']!] = mention['display']!;
       return map;
     });
+
+    // Confirm the mention is still there
+    mentionsMap.removeWhere((key, value) => !caption.contains('@$value'));
 
     if (type == "video") {
       size = Size(_controller.value.size.width.round(),

@@ -11,6 +11,7 @@ class User {
   final String bio;
   final bool verified;
   final String theme;
+  final Timestamp joinedAt;
 
   User(
       {required this.id,
@@ -22,19 +23,25 @@ class User {
       required this.displayName,
       required this.bio,
       required this.verified,
-      required this.theme});
+      required this.theme,
+      required this.joinedAt});
 
   factory User.fromDocument(DocumentSnapshot doc) {
+    final Timestamp joinedAt =
+        doc.data().toString().contains('joined_at') ? doc["joined_at"] : "";
+
     return User(
-        id: doc['id'],
-        username: doc['username'],
-        email: doc['email'],
-        photoUrl: doc['photoUrl'],
-        firstName: doc['firstName'],
-        lastName: doc['lastName'],
-        displayName: doc['displayName'],
-        bio: doc['bio'],
-        verified: doc['verified'],
-        theme: doc['theme']);
+      id: doc['id'],
+      username: doc['username'],
+      email: doc['email'],
+      photoUrl: doc['photoUrl'],
+      firstName: doc['firstName'],
+      lastName: doc['lastName'],
+      displayName: doc['displayName'],
+      bio: doc['bio'],
+      verified: doc['verified'],
+      theme: doc['theme'],
+      joinedAt: joinedAt,
+    );
   }
 }

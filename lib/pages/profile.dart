@@ -2,9 +2,9 @@
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:intl/intl.dart';
 import 'package:sm_app/api/firebase_api.dart';
 import 'package:sm_app/pages/edit_profile.dart';
 import 'package:sm_app/pages/friends.dart';
@@ -209,6 +209,40 @@ class _Profile extends State<Profile> {
     );
   }
 
+  Container buildMessageButton() {
+    return Container(
+      padding: EdgeInsets.only(top: 2.0),
+      child: TextButton(
+        onPressed: () => null,
+        child: Container(
+          width: 200.0,
+          height: 26.0,
+          alignment: Alignment.center,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                "Send message",
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.primaryContainer,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 20.0,
+                ),
+              ),
+              const SizedBox(
+                width: 8.0,
+              ),
+              Icon(
+                Icons.send_outlined,
+                color: Theme.of(context).colorScheme.primaryContainer,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   buildProfileButton() {
     // Viewing your own profile - should show edit profile button
     if (currentUserId == widget.profileId) {
@@ -359,6 +393,11 @@ class _Profile extends State<Profile> {
     });
   }
 
+  String formatTimestamp(Timestamp timestamp) {
+    DateTime dateTime = timestamp.toDate();
+    return DateFormat.yMMMMd().format(dateTime);
+  }
+
   buildProfileHeader() {
     return FutureBuilder(
       future: usersRef.doc(widget.profileId).get(),
@@ -371,7 +410,11 @@ class _Profile extends State<Profile> {
           padding: EdgeInsets.all(16.0),
           child: Column(
             children: <Widget>[
+              const SizedBox(
+                height: 24,
+              ),
               Row(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
                   GestureDetector(
                     onTap: user.photoUrl.isEmpty
@@ -387,10 +430,9 @@ class _Profile extends State<Profile> {
                               ),
                             ),
                     child: Hero(
-                      tag: user
-                          .photoUrl, // Unique identifier for the Hero animation
+                      tag: user.photoUrl,
                       child: CircleAvatar(
-                        radius: 40.0,
+                        radius: 55.0,
                         backgroundColor: Colors.grey,
                         backgroundImage: user.photoUrl.isEmpty
                             ? null
@@ -398,60 +440,68 @@ class _Profile extends State<Profile> {
                       ),
                     ),
                   ),
-                  const SizedBox(
-                    width: 20,
-                  ),
-                  Expanded(
-                    flex: 1,
-                    child: Column(
-                      children: <Widget>[
-                        Row(
-                          mainAxisSize: MainAxisSize.max,
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: <Widget>[
-                            buildCountColumn("Posts", postCount),
-                            buildCountColumn("Friends", friendsCount),
-                          ],
-                        ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: <Widget>[buildProfileButton()],
-                        ),
-                      ],
-                    ),
-                  ),
                 ],
               ),
-              Container(
-                alignment: Alignment.centerLeft,
-                padding: EdgeInsets.only(top: 12.0),
-                child: Row(
-                  children: [
-                    Text(
-                      user.displayName,
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16.0,
-                      ),
-                    ),
-                    SizedBox(width: 4.0),
-                    user.verified
-                        ? Icon(
-                            Icons.verified_sharp,
-                            color: Theme.of(context).colorScheme.primary,
-                            size: 18.0,
-                          )
-                        : Text(""),
-                  ],
-                ),
+              const SizedBox(
+                height: 24,
               ),
-              const SizedBox(height: 4.0),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    user.displayName,
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 24.0,
+                    ),
+                  ),
+                  SizedBox(width: 4.0),
+                  user.verified
+                      ? Icon(
+                          Icons.verified_sharp,
+                          color: Theme.of(context).colorScheme.primary,
+                          size: 24.0,
+                        )
+                      : Text(""),
+                ],
+              ),
+              const SizedBox(height: 24.0),
               Container(
-                alignment: Alignment.centerLeft,
+                alignment: Alignment.center,
                 child: Text(
                   user.bio,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontWeight: FontWeight.normal,
+                    fontSize: 18.0,
+                  ),
                 ),
               ),
+              const SizedBox(height: 24.0),
+              Container(
+                alignment: Alignment.center,
+                child: Text(
+                  'Joined Dave on ${formatTimestamp(user.joinedAt)}',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16.0,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24.0),
+              Row(
+                mainAxisSize: MainAxisSize.max,
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: <Widget>[
+                  buildCountColumn("Posts", postCount),
+                  buildCountColumn("Friends", friendsCount),
+                ],
+              ),
+              const SizedBox(height: 24.0),
+              buildProfileButton(),
+              const SizedBox(height: 24.0),
+              isFriend ? buildMessageButton() : Container(),
             ],
           ),
         );
@@ -496,105 +546,6 @@ class _Profile extends State<Profile> {
     );
   }
 
-  buildProfileVisit() {
-    return FutureBuilder(
-      future: usersRef.doc(widget.profileId).get(),
-      builder: (context, snapshot) {
-        if (!snapshot.hasData) {
-          return linearProgress();
-        }
-        user = User.fromDocument(snapshot.data as DocumentSnapshot<Object?>);
-        return Padding(
-          padding: EdgeInsets.all(16.0),
-          child: Column(
-            children: <Widget>[
-              Row(
-                children: <Widget>[
-                  GestureDetector(
-                    onTap: user.photoUrl.isEmpty
-                        ? null
-                        : () => Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => Photo(
-                                  photoUrl: user.photoUrl,
-                                  aspectRatio: 1,
-                                  type: "profile",
-                                ),
-                              ),
-                            ),
-                    child: Hero(
-                      tag: user.photoUrl,
-                      child: CircleAvatar(
-                        radius: 40.0,
-                        backgroundColor: Colors.grey,
-                        backgroundImage: user.photoUrl.isEmpty
-                            ? null
-                            : CachedNetworkImageProvider(user.photoUrl),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(
-                    width: 20,
-                  ),
-                  Expanded(
-                    flex: 1,
-                    child: Column(
-                      children: <Widget>[
-                        Row(
-                          mainAxisSize: MainAxisSize.max,
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: <Widget>[
-                            buildCountColumn("Posts", postCount),
-                            buildCountColumn("Friends", friendsCount),
-                          ],
-                        ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: <Widget>[buildProfileButton()],
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              Container(
-                alignment: Alignment.centerLeft,
-                padding: EdgeInsets.only(top: 12.0),
-                child: Row(
-                  children: [
-                    Text(
-                      user.displayName,
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16.0,
-                      ),
-                    ),
-                    SizedBox(width: 4.0),
-                    user.verified
-                        ? Icon(
-                            Icons.verified_sharp,
-                            color: Theme.of(context).colorScheme.primary,
-                            size: 18.0,
-                          )
-                        : Text(""),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 4.0),
-              Container(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  user.bio,
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
   @override
   Widget build(context) {
     return Scaffold(
@@ -609,51 +560,11 @@ class _Profile extends State<Profile> {
                   height: 0.0,
                 ),
                 buildProfilePost(),
-                // DefaultTabController(
-                //   length: 2,
-                //   child: Column(
-                //     children: [
-                //       TabBar(
-                //         tabs: [
-                //           Tab(
-                //             icon: Icon(
-                //               CupertinoIcons.text_justify,
-                //               color: Theme.of(context).colorScheme.primaryContainer,
-                //             ),
-                //           ),
-                //           Tab(
-                //             icon: Icon(
-                //               CupertinoIcons.rectangle_grid_2x2,
-                //               color: Theme.of(context).colorScheme.primaryContainer,
-                //             ),
-                //           ),
-                //         ],
-                //       ),
-                //       Container(
-                //         height: MediaQuery.of(context).size.height -
-                //             kToolbarHeight -
-                //             kBottomNavigationBarHeight,
-                //         child: TabBarView(
-                //           children: [
-                //             ListView(
-                //               children: <Widget>[
-                //                 buildProfilePost(),
-                //               ],
-                //             ),
-                //             ListView(
-                //               children: <Widget>[
-                //                 buildProfilePhoto(),
-                //               ],
-                //             ),
-                //           ],
-                //         ),
-                //       ),
-                //     ],
-                //   ),
-                // ),
               ],
             )
-          : buildProfileVisit(),
+          : ListView(children: <Widget>[
+              buildProfileHeader(),
+            ]),
       drawer: currentUserId == widget.profileId
           ? SettingsPage(
               currentUserId: currentUserId,

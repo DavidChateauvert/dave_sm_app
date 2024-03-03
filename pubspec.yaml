@@ -71,6 +71,7 @@ dependencies:
   video_compress: ^3.1.2
   flutter_ffmpeg: ^0.4.2
   flutter_animate: ^4.5.0
+  intl: ^0.18.1
 
 dev_dependencies:
   flutter_test:
