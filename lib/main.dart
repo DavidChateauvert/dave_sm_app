@@ -7,6 +7,7 @@ import 'package:sm_app/providers/notification_provider.dart';
 import 'package:sm_app/providers/post_counter.dart';
 import 'package:sm_app/providers/reload_provider.dart';
 import 'package:sm_app/providers/route_observer_provider.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 // import 'package:sm_app/theme/theme.dart';
 import 'package:sm_app/providers/theme_provider.dart';
 
@@ -53,7 +54,8 @@ class MyApp extends StatelessWidget {
       title: 'Dave',
       debugShowCheckedModeBanner: false,
       theme: Provider.of<ThemeProvider>(context).themeData,
-      //darkTheme: darkMode,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
       home: Home(),
     );
   }

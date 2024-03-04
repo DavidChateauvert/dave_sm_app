@@ -71,6 +71,8 @@ dependencies:
   video_compress: ^3.1.2
   flutter_ffmpeg: ^0.4.2
   flutter_animate: ^4.5.0
+  flutter_localizations:
+    sdk: flutter
   intl: ^0.18.1
 
 dev_dependencies:
@@ -95,7 +97,7 @@ flutter_launcher_icons  :
 
 # The following section is specific to Flutter packages.
 flutter:
-
+  generate: true
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.

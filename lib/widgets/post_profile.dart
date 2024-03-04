@@ -357,20 +357,76 @@ class _PostProfileState extends State<PostProfile> {
     );
   }
 
-  Widget buildHighlightedText(String text) {
-    if (mentions.isEmpty) {
-      return Text(
-        text,
+  transformIntoHashTag(String text) {
+    List<TextSpan> textSpans = [];
+
+    List<String> parts = text.split('#');
+
+    textSpans.add(
+      TextSpan(
+        text: parts[0],
         style: TextStyle(
           color: Theme.of(context).colorScheme.onBackground,
           fontWeight: FontWeight.w600,
           fontSize: 20.0,
         ),
+      ),
+    );
+
+    for (int i = 1; i < parts.length; i++) {
+      List<String> words = parts[i].split(' ');
+
+      textSpans.add(
+        TextSpan(
+          text: '#${words.first} ',
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.secondary,
+            fontWeight: FontWeight.bold,
+            fontSize: 20.0,
+          ),
+        ),
       );
-    } else {
-      List<String> mentionsListReversed =
-          mentions.values.map((value) => '@$value').toList().cast<String>();
-      List<String> mentionsList = mentionsListReversed.reversed.toList();
+
+      if (words.length > 1) {
+        textSpans.add(
+          TextSpan(
+            text: words.sublist(1).join(' '),
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onBackground,
+              fontWeight: FontWeight.w600,
+              fontSize: 20.0,
+            ),
+          ),
+        );
+      }
+    }
+    return RichText(text: TextSpan(children: textSpans));
+  }
+
+  getMentionsListInText(text) {
+    List<String> mentionsList = [];
+
+    List<String> words = caption.split(' ');
+
+    for (int i = 0; i < words.length; i++) {
+      if (words[i].startsWith('@')) {
+        String mentionKey = words[i].substring(1) + " " + words[i + 1];
+
+        mentions.values.forEach((value) {
+          if (mentionKey == value) {
+            mentionsList.add('@${value}');
+          }
+        });
+      }
+    }
+    return mentionsList;
+  }
+
+  Widget buildHighlightedText(String text) {
+    if (text.contains("#") && mentions.isEmpty) {
+      return transformIntoHashTag(text);
+    } else if (mentions.isNotEmpty) {
+      List<String> mentionsList = getMentionsListInText(text);
       List<TextSpan> textSpans = [];
 
       RegExp mentionRegex =
@@ -379,32 +435,87 @@ class _PostProfileState extends State<PostProfile> {
 
       for (int i = 0; i < segments.length; i++) {
         String segment = segments[i];
-        textSpans.add(TextSpan(
-          text: segment,
-          style: TextStyle(
-            color: Theme.of(context).colorScheme.onBackground,
-            fontWeight: FontWeight.w600,
-            fontSize: 20.0,
-          ),
-        ));
+        if (segment.contains("#")) {
+          List<String> parts = segment.split('#');
+
+          textSpans.add(
+            TextSpan(
+              text: parts[0],
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onBackground,
+                fontWeight: FontWeight.w600,
+                fontSize: 20.0,
+              ),
+            ),
+          );
+
+          for (int i = 1; i < parts.length; i++) {
+            List<String> words = parts[i].split(' ');
+
+            textSpans.add(
+              TextSpan(
+                text: '#${words.first} ',
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.secondary,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 20.0,
+                ),
+              ),
+            );
+
+            if (words.length > 1) {
+              textSpans.add(
+                TextSpan(
+                  text: words.sublist(1).join(' '),
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onBackground,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 20.0,
+                  ),
+                ),
+              );
+            }
+          }
+        } else {
+          textSpans.add(
+            TextSpan(
+              text: segment,
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onBackground,
+                fontWeight: FontWeight.w600,
+                fontSize: 20.0,
+              ),
+            ),
+          );
+        }
 
         if (i < segments.length - 1 && mentionsList.isNotEmpty) {
           String mention = mentionsList[i];
-          textSpans.add(TextSpan(
-            recognizer: TapGestureRecognizer()
-              ..onTap =
-                  () => showProfile(context, profileId: getKeyByValue(mention)),
-            text: mention,
-            style: TextStyle(
-              color: Theme.of(context).colorScheme.secondary,
-              fontWeight: FontWeight.bold,
-              fontSize: 20.0,
+          textSpans.add(
+            TextSpan(
+              recognizer: TapGestureRecognizer()
+                ..onTap = () =>
+                    showProfile(context, profileId: getKeyByValue(mention)),
+              text: mention,
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.secondary,
+                fontWeight: FontWeight.bold,
+                fontSize: 20.0,
+              ),
             ),
-          ));
+          );
         }
       }
-
       return RichText(text: TextSpan(children: textSpans));
+    } else {
+      return Text(
+        text,
+        style: TextStyle(
+          color: Theme.of(context).colorScheme.onBackground,
+          fontWeight: FontWeight.w600,
+          fontSize: 20.0,
+        ),
+      );
     }
   }
 

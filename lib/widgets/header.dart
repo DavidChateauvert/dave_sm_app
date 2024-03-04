@@ -61,10 +61,11 @@ AppBar header(
                 Provider.of<RouteObserverProvider>(context, listen: false)
                     .setCurrentRoute("message-feed");
                 Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => MessageFeed(),
-                    ));
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => MessageFeed(),
+                  ),
+                );
               },
               icon: Badge(
                 isLabelVisible: Provider.of<NotificationProvider>(context)

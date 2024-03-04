@@ -9,6 +9,7 @@ import 'package:sm_app/api/firebase_api.dart';
 import 'package:sm_app/pages/edit_profile.dart';
 import 'package:sm_app/pages/friends.dart';
 import 'package:sm_app/pages/home.dart';
+import 'package:sm_app/pages/message_screen.dart';
 import 'package:sm_app/pages/photo.dart';
 import 'package:sm_app/pages/settings.dart';
 import 'package:sm_app/widgets/header.dart';
@@ -181,7 +182,7 @@ class _Profile extends State<Profile> {
       child: TextButton(
         onPressed: function as void Function()?,
         child: Container(
-          width: 200.0,
+          width: 180.0,
           height: 26.0,
           alignment: Alignment.center,
           decoration: BoxDecoration(
@@ -193,7 +194,7 @@ class _Profile extends State<Profile> {
                   ? Colors.grey
                   : Theme.of(context).colorScheme.primary,
             ),
-            borderRadius: BorderRadius.circular(5.0),
+            borderRadius: BorderRadius.circular(100.0),
           ),
           child: Text(
             text!,
@@ -213,7 +214,15 @@ class _Profile extends State<Profile> {
     return Container(
       padding: EdgeInsets.only(top: 2.0),
       child: TextButton(
-        onPressed: () => null,
+        onPressed: () => Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => MessageScreen(
+              otherUserId: widget.profileId,
+              updateMessage: (newMessage) {},
+            ),
+          ),
+        ),
         child: Container(
           width: 200.0,
           height: 26.0,
@@ -465,18 +474,20 @@ class _Profile extends State<Profile> {
                       : Text(""),
                 ],
               ),
-              const SizedBox(height: 24.0),
-              Container(
-                alignment: Alignment.center,
-                child: Text(
-                  user.bio,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontWeight: FontWeight.normal,
-                    fontSize: 18.0,
-                  ),
-                ),
-              ),
+              user.bio != "" ? const SizedBox(height: 24.0) : Container(),
+              user.bio != ""
+                  ? Container(
+                      alignment: Alignment.center,
+                      child: Text(
+                        user.bio,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontWeight: FontWeight.normal,
+                          fontSize: 18.0,
+                        ),
+                      ),
+                    )
+                  : Container(),
               const SizedBox(height: 24.0),
               Container(
                 alignment: Alignment.center,
@@ -551,7 +562,8 @@ class _Profile extends State<Profile> {
     return Scaffold(
       appBar: header(context,
           titleText: "Profile",
-          removeBackButton: currentUserId == widget.profileId),
+          removeBackButton: currentUserId == widget.profileId,
+          showMessageButton: currentUserId == widget.profileId),
       body: currentUserId == widget.profileId
           ? ListView(
               children: <Widget>[

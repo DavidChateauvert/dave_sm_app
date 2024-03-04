@@ -457,26 +457,49 @@ class _UploadState extends State<Upload>
     });
   }
 
-  confirmMentionInCaption(Map<String, String> mentionsMap, String caption) {
+  Map<String, String> getOrderedMentionsMap(
+      Map<String, String> mentionsMap, String caption) {
     mentionsMap.removeWhere((key, value) => !caption.contains('@$value'));
+
+    Map<String, String> orderedMentionsMap = {};
+
+    List<String> words = caption.split(' ');
+
+    for (int i = 0; i < words.length; i++) {
+      if (words[i].startsWith('@')) {
+        String mentionKey = words[i].substring(1) + " " + words[i + 1];
+
+        for (MapEntry<String, String> entry in mentionsMap.entries) {
+          if (mentionKey == entry.value) {
+            orderedMentionsMap[entry.key] = entry.value;
+            break;
+          }
+        }
+      }
+    }
+
+    return orderedMentionsMap;
   }
 
   createPostInFirestore(
       {required String caption,
       required String type,
       required String mediaUrl}) {
+    print(mentionsDataAdded);
     Map<String, String> mentionsMap =
         mentionsDataAdded.fold({}, (map, mention) {
       map[mention['id']!] = mention['display']!;
       return map;
     });
 
-    // Confirm the mention is still there
-    mentionsMap.removeWhere((key, value) => !caption.contains('@$value'));
+    Map<String, String> mentionsMapFiltered =
+        getOrderedMentionsMap(mentionsMap, caption);
 
     if (type == "video") {
-      size = Size(_controller.value.size.width.round(),
-          _controller.value.size.height.round());
+      size = Size(
+        _controller.value.size.width.round(),
+        _controller.value.size.height.round(),
+      );
     }
 
     postsRef
@@ -495,11 +518,11 @@ class _UploadState extends State<Upload>
       "likes": {},
       "comments": {},
       "commentCount": 0,
-      "mentions": mentionsMap,
+      "mentions": mentionsMapFiltered,
       "type": type,
     });
 
-    for (var mention in mentionsMap.entries) {
+    for (var mention in mentionsMapFiltered.entries) {
       activityFeedRef.doc(mention.key).collection("feedItems").add({
         "type": "mention",
         "username": currentUser.displayName,

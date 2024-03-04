@@ -65,12 +65,10 @@ class Message extends StatelessWidget {
                       text: message,
                       color: isSender
                           ? Theme.of(context).colorScheme.primary
-                          : Theme.of(context).colorScheme.secondary,
+                          : Color.fromARGB(255, 166, 29, 193),
                       tail: true,
                       textStyle: TextStyle(
-                        color: isSender
-                            ? Colors.white
-                            : Theme.of(context).colorScheme.primary,
+                        color: Colors.white,
                         fontSize: 20.0,
                       ),
                       isSender: isSender,
