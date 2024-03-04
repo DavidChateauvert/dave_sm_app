@@ -13,6 +13,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:sm_app/models/user.dart';
 import 'package:sm_app/pages/home.dart';
+import 'package:sm_app/providers/locale_provider.dart';
 import 'package:sm_app/providers/theme_provider.dart';
 import 'package:sm_app/widgets/header.dart';
 import 'package:image/image.dart' as Im;
@@ -56,6 +57,8 @@ class _CreateAccountState extends State<CreateAccount> {
         joinedAt: Timestamp.now(),
         theme: Provider.of<ThemeProvider>(context, listen: false)
             .getThemeDataFormatString(),
+        locale: Provider.of<LocaleProvider>(context, listen: false)
+            .getLocaleFormatString(),
       );
 
       ScaffoldMessenger.of(context).showSnackBar(

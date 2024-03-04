@@ -1,0 +1,59 @@
+{
+    "@@locale": "en",
+    "language": "English",
+    "welcomeMessage": "Welcome {name}",
+    "@welcomeMessage": {
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "joined_at": "Joined Dave on {date}",
+    "@joined_at": {
+        "placeholders": {
+            "date": {
+                "type": "String"
+            }
+        }
+    },
+    "edit_profile": "Edit Profile",
+    "unfriend": "Unfriend",
+    "request_sent": "Request Sent",
+    "accept_request": "Accept Request",
+    "ask_to_be_friend": "Ask to be a friend",
+    "posts": "Posts",
+    "friends": "Friends",
+    "likes": "{likeCount} likes",
+    "@likes": {
+        "placeholders": {
+            "likeCount": {
+                "type": "int"
+            }
+        }
+    },
+    "settings": "Settings",
+    "change_theme": "Change theme",
+    "change_language": "Change language",
+    "reset_notifications": "Reset Notifications",
+    "about_us": "About Us",
+    "contact_us": "Contact Us",
+    "log_out": "Log Out",
+    "timeline": "Timeline",
+    "search": "Search",
+    "post": "Post",
+    "profile": "Profile",
+    "notifications": "Notifications",
+    "make_a_post": "Make a post",
+    "send_post": "Post",
+    "write_a_post": "Write a post ...",
+    "comments": "Comments",
+    "write_a_comment": "Write a comment...",
+    "send_comment": "Post",
+    "find_users": "Find Users",
+    "search_user": "Search",
+    "first_name": "First Name",
+    "last_name": "Last Name",
+    "bio": "Bio",
+    "change_profile_picture": "Change Profile Picture"
+}

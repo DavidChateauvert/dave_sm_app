@@ -5,6 +5,7 @@ import 'package:sm_app/widgets/comment.dart';
 import 'package:sm_app/widgets/header.dart';
 import 'package:sm_app/widgets/progress.dart';
 import 'package:uuid/uuid.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import 'home.dart';
 
@@ -124,7 +125,9 @@ class CommentsState extends State<Comments> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: header(context, titleText: "Comments", showMessageButton: false),
+      appBar: header(context,
+          titleText: AppLocalizations.of(context)!.comments,
+          showMessageButton: false),
       body: Column(
         children: <Widget>[
           Expanded(child: buildComment()),
@@ -134,7 +137,8 @@ class CommentsState extends State<Comments> {
               maxLines: null,
               controller: commentController,
               focusNode: commentFocusNode,
-              decoration: InputDecoration(labelText: "Write a comment..."),
+              decoration: InputDecoration(
+                  labelText: AppLocalizations.of(context)!.write_a_comment),
               onChanged: (value) {
                 setState(() {
                   isCommentNotEmpty = value.trim().isNotEmpty;
@@ -149,7 +153,7 @@ class CommentsState extends State<Comments> {
                     ? Theme.of(context).colorScheme.primary
                     : Colors.grey,
               ),
-              child: Text("Post"),
+              child: Text(AppLocalizations.of(context)!.send_comment),
             ),
           ),
         ],

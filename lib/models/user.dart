@@ -12,6 +12,7 @@ class User {
   final bool verified;
   final String theme;
   final Timestamp joinedAt;
+  final String locale;
 
   User(
       {required this.id,
@@ -24,11 +25,14 @@ class User {
       required this.bio,
       required this.verified,
       required this.theme,
-      required this.joinedAt});
+      required this.joinedAt,
+      required this.locale});
 
   factory User.fromDocument(DocumentSnapshot doc) {
     final Timestamp joinedAt =
         doc.data().toString().contains('joined_at') ? doc["joined_at"] : "";
+    final String locale =
+        doc.data().toString().contains('locale') ? doc["locale"] : "en";
 
     return User(
       id: doc['id'],
@@ -42,6 +46,7 @@ class User {
       verified: doc['verified'],
       theme: doc['theme'],
       joinedAt: joinedAt,
+      locale: locale,
     );
   }
 }

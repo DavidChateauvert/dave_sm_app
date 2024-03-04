@@ -25,6 +25,7 @@ class PlayVideo extends StatefulWidget {
 class _PlayVideoState extends State<PlayVideo> {
   late VideoPlayerController _controller;
   late Future<void> _initializeVideoPlayerFuture;
+  bool isPlayingVolume = true;
 
   @override
   void initState() {
@@ -39,6 +40,8 @@ class _PlayVideoState extends State<PlayVideo> {
 
     _initializeVideoPlayerFuture = _controller.initialize();
     _controller.setLooping(true);
+
+    _controller.setVolume(1);
 
     // Listen to the video controller for changes
     _controller.addListener(() {
@@ -95,8 +98,36 @@ class _PlayVideoState extends State<PlayVideo> {
                         ? null
                         : CupertinoIcons.play_fill,
                     color: Theme.of(context).colorScheme.secondary,
-                    size: 80.0,
+                    size: 70.0,
                   ),
+                ),
+              ),
+              Positioned(
+                top: 0,
+                right: 0,
+                child: IconButton(
+                  splashColor: Colors.transparent,
+                  highlightColor: Colors.transparent,
+                  icon: Icon(
+                    isPlayingVolume
+                        ? Icons.volume_up_outlined
+                        : Icons.volume_off_outlined,
+                    color: Theme.of(context).colorScheme.secondary,
+                    size: 30.0,
+                  ),
+                  onPressed: () {
+                    if (isPlayingVolume) {
+                      setState(() {
+                        isPlayingVolume = false;
+                        _controller.setVolume(0.0);
+                      });
+                    } else {
+                      setState(() {
+                        isPlayingVolume = true;
+                        _controller.setVolume(1.0);
+                      });
+                    }
+                  },
                 ),
               ),
             ],

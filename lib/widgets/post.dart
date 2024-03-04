@@ -16,6 +16,7 @@ import 'package:sm_app/widgets/playVideo.dart';
 import 'package:sm_app/widgets/progress.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import 'package:zoom_pinch_overlay/zoom_pinch_overlay.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import '../models/user.dart';
 import '../pages/comments.dart';
@@ -702,7 +703,7 @@ class _PostState extends State<Post> {
               child: Container(
                 margin: EdgeInsets.only(left: 20.0),
                 child: Text(
-                  "$likeCount likes",
+                  AppLocalizations.of(context)!.likes(likeCount),
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
               ),

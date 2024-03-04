@@ -7,6 +7,7 @@ import 'package:sm_app/pages/search_message.dart';
 import 'package:sm_app/providers/notification_provider.dart';
 import 'package:sm_app/providers/post_counter.dart';
 import 'package:sm_app/providers/route_observer_provider.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 AppBar header(
   context, {
@@ -49,7 +50,7 @@ AppBar header(
     automaticallyImplyLeading: removeBackButton ? false : true,
     title: Text(
       // ignore: prefer_if_null_operators
-      titleText != null ? titleText : "Timeline",
+      titleText != null ? titleText : AppLocalizations.of(context)!.timeline,
       style: const TextStyle(color: Colors.white, fontSize: 30.0),
       overflow: TextOverflow.ellipsis,
     ),

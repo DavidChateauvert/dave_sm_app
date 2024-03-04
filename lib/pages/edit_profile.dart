@@ -11,6 +11,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sm_app/pages/home.dart';
 import 'package:sm_app/widgets/progress.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import '../models/user.dart';
 
@@ -75,10 +76,10 @@ class _EditProfileState extends State<EditProfile> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
-        const Padding(
+        Padding(
           padding: EdgeInsets.only(top: 12.0),
           child: Text(
-            "First Name",
+            AppLocalizations.of(context)!.first_name,
             style: TextStyle(color: Colors.grey),
           ),
         ),
@@ -96,10 +97,10 @@ class _EditProfileState extends State<EditProfile> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
-        const Padding(
+        Padding(
           padding: EdgeInsets.only(top: 12.0),
           child: Text(
-            "Last Name",
+            AppLocalizations.of(context)!.last_name,
             style: TextStyle(color: Colors.grey),
           ),
         ),
@@ -117,10 +118,10 @@ class _EditProfileState extends State<EditProfile> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
-        const Padding(
+        Padding(
           padding: EdgeInsets.only(top: 12.0),
           child: Text(
-            "Bio",
+            AppLocalizations.of(context)!.bio,
             style: TextStyle(color: Colors.grey),
           ),
         ),
@@ -242,7 +243,7 @@ class _EditProfileState extends State<EditProfile> {
       builder: (context) {
         return SimpleDialog(
           title: Text(
-            "Add an image to the post",
+            "Change your profile picture",
             style: TextStyle(
               color: Theme.of(context).colorScheme.onBackground,
             ),
@@ -345,9 +346,9 @@ class _EditProfileState extends State<EditProfile> {
       key: _scaffoldKey,
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.primary,
-        title: const Text(
-          "Edit Profile",
-          style: const TextStyle(color: Colors.white, fontSize: 30.0),
+        title: Text(
+          AppLocalizations.of(context)!.edit_profile,
+          style: const TextStyle(color: Colors.white, fontSize: 20.0),
         ),
         actions: <Widget>[
           IconButton(
@@ -393,7 +394,7 @@ class _EditProfileState extends State<EditProfile> {
                           ),
                         ),
                         child: Text(
-                          "Change Profile Picture",
+                          AppLocalizations.of(context)!.change_profile_picture,
                           style: TextStyle(
                             color: Theme.of(context).colorScheme.primary,
                             fontSize: 16.0,

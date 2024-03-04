@@ -20,6 +20,7 @@ import 'package:sm_app/models/user.dart';
 import 'package:flutter_mentions/flutter_mentions.dart';
 import 'package:image/image.dart' as Im;
 import 'package:video_player/video_player.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class Upload extends StatefulWidget {
   final User? currentUser;
@@ -642,7 +643,7 @@ class _UploadState extends State<Upload>
               onPressed: () => selectImage(context),
             ),
             title: Text(
-              "Make a Post",
+              AppLocalizations.of(context)!.make_a_post,
               style: TextStyle(color: Colors.white, fontSize: 30.0),
             ),
             centerTitle: true,
@@ -650,7 +651,7 @@ class _UploadState extends State<Upload>
               TextButton(
                 onPressed: isUploading ? null : () => handleSubmit(),
                 child: Text(
-                  "Post",
+                  AppLocalizations.of(context)!.send_post,
                   style: TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
@@ -683,7 +684,7 @@ class _UploadState extends State<Upload>
                       fontSize: 20.0,
                     ),
                     decoration: InputDecoration(
-                      hintText: "Write a post...",
+                      hintText: AppLocalizations.of(context)!.write_a_post,
                       hintStyle: TextStyle(
                         color: Theme.of(context).colorScheme.secondaryContainer,
                         fontWeight: FontWeight.w600,

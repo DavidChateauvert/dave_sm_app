@@ -1,0 +1,59 @@
+{
+    "@@locale": "fr",
+    "language": "Français",
+    "welcomeMessage": "Bienvenue {name}",
+    "@welcomeMessage": {
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "joined_at": "A rejoint Dave le {date}",
+    "@joined_at": {
+        "placeholders": {
+            "date": {
+                "type": "String"
+            }
+        }
+    },
+    "edit_profile": "Modifier votre profile",
+    "unfriend": "Ne plus être ami",
+    "request_sent": "Demande d'ami envoyé",
+    "accept_request": "Accepter la demande d'ami",
+    "ask_to_be_friend": "Faire une demande d'ami",
+    "posts": "Publications",
+    "friends": "Amis",
+    "likes": "{likeCount} J'aime",
+    "@likes": {
+        "placeholders": {
+            "likeCount": {
+                "type": "int"
+            }
+        }
+    },
+    "settings": "Réglages",
+    "change_theme": "Changer le thème",
+    "change_language": "Changer la langue",
+    "reset_notifications": "Effacer les notifications",
+    "about_us": "À propos",
+    "contact_us": "Contactez-nous",
+    "log_out": "Déconnexion",
+    "timeline": "Fil d'actualités",
+    "search": "Recherche",
+    "post": "Publier",
+    "profile": "Profile",
+    "notifications": "Notifications",
+    "make_a_post": "Publier",
+    "send_post": "Envoyer",
+    "write_a_post": "Écrite une publication ...",
+    "comments": "Commentaires",
+    "write_a_comment": "Écrire un commentaire...",
+    "send_comment": "Publier",
+    "find_users": "Trouver des gens",
+    "search_user": "Rechercher",
+    "first_name": "Prénom",
+    "last_name": "Nom de famille",
+    "bio": "Bio",
+    "change_profile_picture": "Changer la photo de profile"
+}

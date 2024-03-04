@@ -10,6 +10,7 @@ import 'package:sm_app/pages/profile.dart';
 import 'package:sm_app/providers/theme_provider.dart';
 import 'package:sm_app/widgets/progress.dart';
 import '../models/user.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class Search extends StatefulWidget {
   @override
@@ -61,7 +62,7 @@ class _SearchState extends State<Search>
             onPressed: () => clearSearch(),
           ),
           hintStyle: TextStyle(color: Colors.white),
-          hintText: "Search a user",
+          hintText: AppLocalizations.of(context)!.search_user,
         ),
         onChanged: (query) => handleSearch(query),
         onFieldSubmitted: (query) => handleSearch(query),
@@ -86,13 +87,13 @@ class _SearchState extends State<Search>
               ),
               SizedBox(height: 16.0), // Add spacing if needed
               Text(
-                "Find Users",
+                AppLocalizations.of(context)!.find_users,
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: Theme.of(context).colorScheme.primaryContainer,
                   fontStyle: FontStyle.normal,
                   fontWeight: FontWeight.w600,
-                  fontSize: 48.0,
+                  fontSize: 40.0,
                 ),
               ),
             ],

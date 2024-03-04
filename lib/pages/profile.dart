@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import 'package:sm_app/api/firebase_api.dart';
 import 'package:sm_app/pages/edit_profile.dart';
 import 'package:sm_app/pages/friends.dart';
@@ -12,9 +13,11 @@ import 'package:sm_app/pages/home.dart';
 import 'package:sm_app/pages/message_screen.dart';
 import 'package:sm_app/pages/photo.dart';
 import 'package:sm_app/pages/settings.dart';
+import 'package:sm_app/providers/locale_provider.dart';
 import 'package:sm_app/widgets/header.dart';
 import 'package:sm_app/widgets/post.dart';
 import 'package:sm_app/widgets/progress.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import '../models/user.dart';
 import '../widgets/post_profile.dart';
@@ -181,28 +184,30 @@ class _Profile extends State<Profile> {
       padding: EdgeInsets.only(top: 2.0),
       child: TextButton(
         onPressed: function as void Function()?,
-        child: Container(
-          width: 180.0,
-          height: 26.0,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: isFollowing
-                ? Theme.of(context).colorScheme.background
-                : Theme.of(context).colorScheme.onBackground,
-            border: Border.all(
+        child: IntrinsicWidth(
+          child: Container(
+            padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
               color: isFollowing
-                  ? Colors.grey
-                  : Theme.of(context).colorScheme.primary,
+                  ? Theme.of(context).colorScheme.background
+                  : Theme.of(context).colorScheme.onBackground,
+              border: Border.all(
+                color: isFollowing
+                    ? Colors.grey
+                    : Theme.of(context).colorScheme.primary,
+              ),
+              borderRadius: BorderRadius.circular(100.0),
             ),
-            borderRadius: BorderRadius.circular(100.0),
-          ),
-          child: Text(
-            text!,
-            style: TextStyle(
-              color: isFollowing
-                  ? Theme.of(context).colorScheme.onBackground
-                  : Theme.of(context).colorScheme.background,
-              fontWeight: FontWeight.bold,
+            child: Text(
+              text!,
+              style: TextStyle(
+                color: isFollowing
+                    ? Theme.of(context).colorScheme.onBackground
+                    : Theme.of(context).colorScheme.background,
+                fontWeight: FontWeight.bold,
+                fontSize: 16.0,
+              ),
             ),
           ),
         ),
@@ -255,16 +260,25 @@ class _Profile extends State<Profile> {
   buildProfileButton() {
     // Viewing your own profile - should show edit profile button
     if (currentUserId == widget.profileId) {
-      return buildButton(text: "Edit profile", function: editProfile);
+      return buildButton(
+          text: AppLocalizations.of(context)!.edit_profile,
+          function: editProfile);
     } else if (isFriend) {
-      return buildButton(text: "Unfriend", function: handleUnfollowUser);
+      return buildButton(
+          text: AppLocalizations.of(context)!.unfriend,
+          function: handleUnfollowUser);
     } else if (!isFollowers && isFollowing) {
-      return buildButton(text: "Request Sent", function: handleUnfollowUser);
+      return buildButton(
+          text: AppLocalizations.of(context)!.request_sent,
+          function: handleUnfollowUser);
     } else if (isFollowers && !isFollowing) {
-      return buildButton(text: "Accept Request", function: handleFollowUser);
+      return buildButton(
+          text: AppLocalizations.of(context)!.accept_request,
+          function: handleFollowUser);
     } else {
       return buildButton(
-          text: "Ask to be a friend", function: handleFollowUser);
+          text: AppLocalizations.of(context)!.ask_to_be_friend,
+          function: handleFollowUser);
     }
   }
 
@@ -378,11 +392,9 @@ class _Profile extends State<Profile> {
         "seen": false,
         "timestamp": DateTime.now(),
       });
-      print("accept request");
       FirebaseApi().sendAcceptRequestNotification(
           widget.profileId, currentUser.displayName);
     } else {
-      print("sent request");
       FirebaseApi().sendFriendRequestNotification(
           widget.profileId, currentUser.displayName);
     }
@@ -404,7 +416,10 @@ class _Profile extends State<Profile> {
 
   String formatTimestamp(Timestamp timestamp) {
     DateTime dateTime = timestamp.toDate();
-    return DateFormat.yMMMMd().format(dateTime);
+    return DateFormat.yMMMMd(
+      Provider.of<LocaleProvider>(context, listen: false)
+          .getLocaleFormatString(),
+    ).format(dateTime);
   }
 
   buildProfileHeader() {
@@ -492,7 +507,9 @@ class _Profile extends State<Profile> {
               Container(
                 alignment: Alignment.center,
                 child: Text(
-                  'Joined Dave on ${formatTimestamp(user.joinedAt)}',
+                  AppLocalizations.of(context)!
+                      .joined_at(formatTimestamp(user.joinedAt)),
+                  // 'Joined Dave on ${formatTimestamp(user.joinedAt)}',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
@@ -505,8 +522,10 @@ class _Profile extends State<Profile> {
                 mainAxisSize: MainAxisSize.max,
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: <Widget>[
-                  buildCountColumn("Posts", postCount),
-                  buildCountColumn("Friends", friendsCount),
+                  buildCountColumn(
+                      AppLocalizations.of(context)!.posts, postCount),
+                  buildCountColumn(
+                      AppLocalizations.of(context)!.friends, friendsCount),
                 ],
               ),
               const SizedBox(height: 24.0),

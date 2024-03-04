@@ -14,6 +14,7 @@ import 'package:sm_app/pages/profile.dart';
 import 'package:sm_app/pages/search.dart';
 import 'package:sm_app/pages/timeline.dart';
 import 'package:sm_app/pages/upload.dart';
+import 'package:sm_app/providers/locale_provider.dart';
 import 'package:sm_app/providers/notification_provider.dart';
 import 'package:sm_app/providers/reload_provider.dart';
 import 'package:sm_app/providers/route_observer_provider.dart';
@@ -21,6 +22,7 @@ import 'package:sm_app/providers/theme_provider.dart';
 import '../models/user.dart';
 import 'activity_feed.dart';
 import 'create_account.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 final GoogleSignIn googleSignIn = GoogleSignIn();
 final storageRef = FirebaseStorage.instance.ref();
@@ -152,6 +154,8 @@ class _HomeState extends State<Home> {
       currentUser = User.fromDocument(doc);
       Provider.of<ThemeProvider>(context, listen: false)
           .toggleThemeToParam(currentUser.theme);
+      Provider.of<LocaleProvider>(context, listen: false)
+          .toggleLocaleToParam(currentUser.locale);
       await FirebaseApi().initMessaging(currentUser.id);
     }
     setState(() {
@@ -328,23 +332,23 @@ class _HomeState extends State<Home> {
         activeColor: Theme.of(context).colorScheme.primary,
         items: [
           BottomNavigationBarItem(
-            label: "Timeline",
+            label: AppLocalizations.of(context)!.timeline,
             icon: Icon(CupertinoIcons.text_justify),
           ),
           BottomNavigationBarItem(
-            label: "Search",
+            label: AppLocalizations.of(context)!.search,
             icon: Icon(CupertinoIcons.search),
           ),
           BottomNavigationBarItem(
-            label: "Post",
+            label: AppLocalizations.of(context)!.post,
             icon: Icon(CupertinoIcons.add),
           ),
           BottomNavigationBarItem(
-            label: "Profile",
+            label: AppLocalizations.of(context)!.profile,
             icon: Icon(CupertinoIcons.person),
           ),
           BottomNavigationBarItem(
-            label: "Notifications",
+            label: AppLocalizations.of(context)!.notifications,
             icon: Badge(
               child: Icon(CupertinoIcons.bell),
               isLabelVisible: Provider.of<NotificationProvider>(context)

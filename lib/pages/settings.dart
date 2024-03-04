@@ -5,9 +5,11 @@ import 'package:sm_app/api/firebase_api.dart';
 import 'package:sm_app/pages/aboutUs.dart';
 import 'package:sm_app/pages/contactUs.dart';
 import 'package:sm_app/pages/home.dart';
+import 'package:sm_app/providers/locale_provider.dart';
 import 'package:sm_app/providers/notification_provider.dart';
 import 'package:sm_app/providers/theme_provider.dart';
 import 'package:sm_app/widgets/progress.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class SettingsPage extends StatefulWidget {
   final String currentUserId;
@@ -49,6 +51,14 @@ class _SettingsPageState extends State<SettingsPage> {
     });
   }
 
+  setLocaleInFirestore() async {
+    String currentLocale = Provider.of<LocaleProvider>(context, listen: false)
+        .getLocaleFormatString();
+    await usersRef.doc(widget.currentUserId).update({
+      "locale": currentLocale,
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Drawer(
@@ -63,7 +73,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     color: Theme.of(context).colorScheme.primary,
                   ),
                   child: Text(
-                    'Settings',
+                    AppLocalizations.of(context)!.settings,
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 32.0,
@@ -77,29 +87,51 @@ class _SettingsPageState extends State<SettingsPage> {
                         height: 16.0,
                       ),
                       ListTile(
-                          leading: Icon(
-                            CupertinoIcons.brightness_solid,
+                        leading: Icon(
+                          CupertinoIcons.brightness_solid,
+                          color: Theme.of(context).colorScheme.secondary,
+                        ),
+                        title: Text(
+                          AppLocalizations.of(context)!.change_theme,
+                          style: TextStyle(
                             color: Theme.of(context).colorScheme.secondary,
+                            fontSize: 20.0,
                           ),
-                          title: Text(
-                            "Change theme",
-                            style: TextStyle(
-                              color: Theme.of(context).colorScheme.secondary,
-                              fontSize: 20.0,
-                            ),
+                        ),
+                        onTap: () {
+                          Provider.of<ThemeProvider>(context, listen: false)
+                              .toggleTheme();
+                          setThemeInFirestore();
+                        },
+                      ),
+                      const SizedBox(
+                        height: 16.0,
+                      ),
+                      ListTile(
+                        leading: Icon(
+                          CupertinoIcons.globe,
+                          color: Theme.of(context).colorScheme.onBackground,
+                        ),
+                        title: Text(
+                          AppLocalizations.of(context)!.change_language,
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.onBackground,
+                            fontSize: 20.0,
                           ),
-                          onTap: () {
-                            Provider.of<ThemeProvider>(context, listen: false)
-                                .toggleTheme();
-                            setThemeInFirestore();
-                          }),
+                        ),
+                        onTap: () {
+                          Provider.of<LocaleProvider>(context, listen: false)
+                              .toggleLocale();
+                          setLocaleInFirestore();
+                        },
+                      ),
                       const SizedBox(
                         height: 16.0,
                       ),
                       ListTile(
                         leading: Icon(CupertinoIcons.bell),
                         title: Text(
-                          "Reset Notifications",
+                          AppLocalizations.of(context)!.reset_notifications,
                           style: TextStyle(
                             fontSize: 20.0,
                           ),
@@ -114,7 +146,7 @@ class _SettingsPageState extends State<SettingsPage> {
                       ListTile(
                         leading: Icon(CupertinoIcons.info),
                         title: Text(
-                          "About us",
+                          AppLocalizations.of(context)!.about_us,
                           style: TextStyle(
                             fontSize: 20.0,
                           ),
@@ -132,7 +164,7 @@ class _SettingsPageState extends State<SettingsPage> {
                       ListTile(
                         leading: Icon(CupertinoIcons.envelope),
                         title: Text(
-                          "Contact us",
+                          AppLocalizations.of(context)!.contact_us,
                           style: TextStyle(
                             fontSize: 20.0,
                           ),
@@ -150,7 +182,7 @@ class _SettingsPageState extends State<SettingsPage> {
                       ListTile(
                         leading: Icon(Icons.cancel, color: Colors.red),
                         title: Text(
-                          "Log out",
+                          AppLocalizations.of(context)!.log_out,
                           style: TextStyle(
                             color: Colors.red,
                             fontSize: 20.0,

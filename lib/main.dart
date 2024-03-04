@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:sm_app/pages/home.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:sm_app/providers/locale_provider.dart';
 import 'package:sm_app/providers/notification_provider.dart';
 import 'package:sm_app/providers/post_counter.dart';
 import 'package:sm_app/providers/reload_provider.dart';
@@ -25,6 +26,7 @@ void main() async {
           ChangeNotifierProvider(create: (context) => RouteObserverProvider()),
           ChangeNotifierProvider(create: (context) => ReloadNotifier()),
           ChangeNotifierProvider(create: (context) => PostCounterProvider()),
+          ChangeNotifierProvider(create: (context) => LocaleProvider()),
         ],
         child: MyApp(),
       ),
@@ -56,6 +58,7 @@ class MyApp extends StatelessWidget {
       theme: Provider.of<ThemeProvider>(context).themeData,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
+      locale: Provider.of<LocaleProvider>(context).locale,
       home: Home(),
     );
   }
