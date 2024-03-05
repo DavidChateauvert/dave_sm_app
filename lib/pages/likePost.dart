@@ -6,6 +6,7 @@ import 'package:sm_app/pages/home.dart';
 import 'package:sm_app/pages/search.dart';
 import 'package:sm_app/widgets/progress.dart';
 import '../models/user.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class LikePost extends StatefulWidget {
   final String postId;
@@ -89,8 +90,7 @@ class _LikePost extends State<LikePost> {
       appBar: AppBar(
         automaticallyImplyLeading: true,
         title: Text(
-          // ignore: prefer_if_null_operators
-          "Likes",
+          AppLocalizations.of(context)!.likesAppBar,
           style: const TextStyle(color: Colors.white, fontSize: 30.0),
           overflow: TextOverflow.ellipsis,
         ),

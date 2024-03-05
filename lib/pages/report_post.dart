@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:sm_app/pages/home.dart';
 import 'package:sm_app/widgets/header.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class ReportPost extends StatefulWidget {
   final String postId;
@@ -39,7 +40,7 @@ class _ReportPostState extends State<ReportPost> {
       builder: (context) {
         return SimpleDialog(
           title: Text(
-            "Thank for your intput !",
+            AppLocalizations.of(context)!.thanks_input,
             textAlign: TextAlign.center,
           ),
           children: <Widget>[
@@ -47,7 +48,9 @@ class _ReportPostState extends State<ReportPost> {
               padding: EdgeInsets.only(left: 20.0, right: 20.0),
               child: Text(
                 textAlign: TextAlign.center,
-                "Our team is going to review your report and then decide what to do with the ${widget.reportSubject}",
+                widget.reportSubject == "post"
+                    ? AppLocalizations.of(context)!.rewiew_text_post
+                    : AppLocalizations.of(context)!.rewiew_text_user,
               ),
             ),
             const SizedBox(
@@ -70,7 +73,7 @@ class _ReportPostState extends State<ReportPost> {
                       color: Theme.of(context).colorScheme.primary,
                       fontSize: 16,
                       fontWeight: FontWeight.bold),
-                  'Go back to the timeline',
+                  AppLocalizations.of(context)!.go_back_timeline,
                 ),
               ]),
             ),
@@ -101,7 +104,7 @@ class _ReportPostState extends State<ReportPost> {
           focusNode: reportFocusNode,
           validator: (val) {
             if (val!.isEmpty) {
-              return "Your report cannot be empty";
+              return AppLocalizations.of(context)!.report_text_error;
             } else {
               return null;
             }
@@ -110,8 +113,8 @@ class _ReportPostState extends State<ReportPost> {
           decoration: InputDecoration(
             labelStyle: TextStyle(fontSize: 15.0),
             hintText: widget.reportSubject == "post"
-                ? "Why should this post be reported ?"
-                : "Why should this user be reported ?",
+                ? AppLocalizations.of(context)!.report_text_hint_post
+                : AppLocalizations.of(context)!.report_text_hint_user,
           ),
         ),
       ],
@@ -123,8 +126,9 @@ class _ReportPostState extends State<ReportPost> {
     return Scaffold(
       key: _scaffoldKey,
       appBar: header(context,
-          titleText:
-              widget.reportSubject == "post" ? "Report Post" : "Report User",
+          titleText: widget.reportSubject == "post"
+              ? AppLocalizations.of(context)!.report_post_app_bar
+              : AppLocalizations.of(context)!.report_user_app_bar,
           removeBackButton: false,
           showMessageButton: false),
       body: ListView(children: <Widget>[
@@ -136,8 +140,8 @@ class _ReportPostState extends State<ReportPost> {
                 child: Text(
                   textAlign: TextAlign.center,
                   widget.reportSubject == "post"
-                      ? "Please tell us why your are reporting this post"
-                      : "Please tell us why your are reporting this user",
+                      ? AppLocalizations.of(context)!.description_report_post
+                      : AppLocalizations.of(context)!.description_report_user,
                   style: TextStyle(fontSize: 25.0),
                 ),
               ),
@@ -166,7 +170,7 @@ class _ReportPostState extends State<ReportPost> {
                   ),
                   child: Center(
                     child: Text(
-                      "Submit Report",
+                      AppLocalizations.of(context)!.submit_report,
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 15.0,

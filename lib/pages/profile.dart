@@ -122,7 +122,7 @@ class _Profile extends State<Profile> {
     }
   }
 
-  showFriends(BuildContext context, {required String profileId}) {
+  showFriends(BuildContext context, {required String profileId}) async {
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -132,10 +132,9 @@ class _Profile extends State<Profile> {
   }
 
   handleNextPage(String label, int count) {
-    if (label == "Friends")
-      showFriends(context,
-          profileId: widget
-              .profileId); // Est-ce que tu devrais savoir avec qui la personne est ami ?
+    showFriends(context,
+        profileId: widget
+            .profileId); // Est-ce que tu devrais savoir avec qui la personne est ami ?
   }
 
   buildCountColumn(String label, int count) {
@@ -508,7 +507,7 @@ class _Profile extends State<Profile> {
                 alignment: Alignment.center,
                 child: Text(
                   AppLocalizations.of(context)!
-                      .joined_at(formatTimestamp(user.joinedAt)),
+                      .joined_at(formatTimestamp(user.timestamp)),
                   // 'Joined Dave on ${formatTimestamp(user.joinedAt)}',
                   textAlign: TextAlign.center,
                   style: TextStyle(

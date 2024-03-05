@@ -18,6 +18,7 @@ import 'package:sm_app/providers/theme_provider.dart';
 import 'package:sm_app/widgets/header.dart';
 import 'package:image/image.dart' as Im;
 import 'package:sm_app/widgets/progress.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class CreateAccount extends StatefulWidget {
   final String userId;
@@ -54,7 +55,7 @@ class _CreateAccountState extends State<CreateAccount> {
         displayName: "${firstName} ${lastName}",
         bio: bio,
         verified: false,
-        joinedAt: Timestamp.now(),
+        timestamp: Timestamp.now(),
         theme: Provider.of<ThemeProvider>(context, listen: false)
             .getThemeDataFormatString(),
         locale: Provider.of<LocaleProvider>(context, listen: false)
@@ -62,7 +63,9 @@ class _CreateAccountState extends State<CreateAccount> {
       );
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Welcome ${user.displayName}!")),
+        SnackBar(
+            content: Text(AppLocalizations.of(context)!
+                .welcomeMessage(user.displayName))),
       );
       Timer(Duration(seconds: 1), () {
         Navigator.pop(context, user);
@@ -77,16 +80,16 @@ class _CreateAccountState extends State<CreateAccount> {
         Padding(
           padding: EdgeInsets.only(top: 12.0),
           child: Text(
-            "First Name",
+            AppLocalizations.of(context)!.first_name,
             style: TextStyle(color: Colors.grey),
           ),
         ),
         TextFormField(
           validator: (val) {
             if (val!.trim().length < 1 || val.isEmpty) {
-              return "First Name is too short";
+              return AppLocalizations.of(context)!.first_name_too_short;
             } else if (val.trim().length > 20) {
-              return "First Name is too long";
+              return AppLocalizations.of(context)!.first_name_too_long;
             } else {
               return null;
             }
@@ -94,7 +97,7 @@ class _CreateAccountState extends State<CreateAccount> {
           onSaved: (val) => firstName = val!,
           decoration: InputDecoration(
             labelStyle: TextStyle(fontSize: 15.0),
-            hintText: "Must be at least 1 caracter",
+            hintText: AppLocalizations.of(context)!.at_least_one_caracter,
           ),
         ),
       ],
@@ -108,16 +111,16 @@ class _CreateAccountState extends State<CreateAccount> {
         Padding(
           padding: EdgeInsets.only(top: 12.0),
           child: Text(
-            "Last Name",
+            AppLocalizations.of(context)!.last_name,
             style: TextStyle(color: Colors.grey),
           ),
         ),
         TextFormField(
           validator: (val) {
             if (val!.trim().length < 1 || val.isEmpty) {
-              return "Last Name is too short";
+              return AppLocalizations.of(context)!.last_name_too_short;
             } else if (val.trim().length > 20) {
-              return "Last Name is too long";
+              return AppLocalizations.of(context)!.last_name_too_long;
             } else {
               return null;
             }
@@ -125,7 +128,7 @@ class _CreateAccountState extends State<CreateAccount> {
           onSaved: (val) => lastName = val!,
           decoration: InputDecoration(
             labelStyle: TextStyle(fontSize: 15.0),
-            hintText: "Must be at least 1 caracter",
+            hintText: AppLocalizations.of(context)!.at_least_one_caracter,
           ),
         ),
       ],
@@ -139,7 +142,7 @@ class _CreateAccountState extends State<CreateAccount> {
         Padding(
           padding: EdgeInsets.only(top: 12.0),
           child: Text(
-            "Bio",
+            AppLocalizations.of(context)!.bio,
             style: TextStyle(color: Colors.grey),
           ),
         ),
@@ -213,44 +216,14 @@ class _CreateAccountState extends State<CreateAccount> {
     return downloadUrl;
   }
 
-  // selectImage(parentContext) {
-  //   showDialog(
-  //     context: parentContext,
-  //     builder: (context) {
-  //       return SimpleDialog(
-  //         title: Text("Create Post"),
-  //         children: <Widget>[
-  //           SimpleDialogOption(
-  //             onPressed: () {
-  //               handleTakePhoto();
-  //               Navigator.pop(context, "takePhoto");
-  //             },
-  //             child: Text("Photo with camera"),
-  //           ),
-  //           SimpleDialogOption(
-  //             onPressed: () {
-  //               handleChooseFromGallery();
-  //               Navigator.pop(context, "chooseFromGallery");
-  //             },
-  //             child: Text("Image from Gallery"),
-  //           ),
-  //           SimpleDialogOption(
-  //             child: Text("Cancel"),
-  //             onPressed: () => Navigator.pop(context, "cancel"),
-  //           ),
-  //         ],
-  //       );
-  //     },
-  //   );
-  // }
-
   selectImage(parentContext) {
     return showDialog(
       context: parentContext,
       builder: (context) {
         return SimpleDialog(
           title: Text(
-            "Add an image to the post",
+            AppLocalizations.of(context)!.add_image_profile,
+            textAlign: TextAlign.center,
             style: TextStyle(
               color: Theme.of(context).colorScheme.onBackground,
             ),
@@ -281,7 +254,7 @@ class _CreateAccountState extends State<CreateAccount> {
                               height: 8,
                             ),
                             Text(
-                              "Photo with camera",
+                              AppLocalizations.of(context)!.photo_with_camera,
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                 color:
@@ -320,7 +293,7 @@ class _CreateAccountState extends State<CreateAccount> {
                             height: 8,
                           ),
                           Text(
-                            "Image from gallery",
+                            AppLocalizations.of(context)!.image_from_gallery,
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               color: Theme.of(context).colorScheme.onBackground,
@@ -333,10 +306,6 @@ class _CreateAccountState extends State<CreateAccount> {
                 ),
               ],
             ),
-            // SimpleDialogOption(
-            //   child: Text("Cancel"),
-            //   onPressed: () => Navigator.pop(context),
-            // ),
           ],
         );
       },
@@ -361,7 +330,7 @@ class _CreateAccountState extends State<CreateAccount> {
             ),
           ),
           child: Text(
-            "Add a profile picture",
+            AppLocalizations.of(context)!.add_image_profile,
             style: TextStyle(
               color: Theme.of(context).colorScheme.primary,
               fontSize: 16.0,
@@ -398,7 +367,9 @@ class _CreateAccountState extends State<CreateAccount> {
     return Scaffold(
       key: _scaffoldKey,
       appBar: header(context,
-          titleText: "Set up your profile", removeBackButton: true),
+          titleText: AppLocalizations.of(context)!.set_up_profile,
+          removeBackButton: true,
+          showMessageButton: false),
       body: ListView(children: <Widget>[
         Container(
           child: Column(
@@ -407,7 +378,7 @@ class _CreateAccountState extends State<CreateAccount> {
                 padding: EdgeInsets.only(top: 25.0),
                 child: Center(
                   child: Text(
-                    "Type in your informations",
+                    AppLocalizations.of(context)!.enter_info,
                     style: TextStyle(fontSize: 25.0),
                   ),
                 ),
@@ -440,7 +411,7 @@ class _CreateAccountState extends State<CreateAccount> {
                   ),
                   child: Center(
                     child: Text(
-                      "Submit",
+                      AppLocalizations.of(context)!.finish_configuration,
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 15.0,

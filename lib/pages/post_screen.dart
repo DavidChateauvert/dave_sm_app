@@ -4,6 +4,7 @@ import 'package:sm_app/pages/home.dart';
 import 'package:sm_app/widgets/header.dart';
 import 'package:sm_app/widgets/post_profile.dart';
 import 'package:sm_app/widgets/progress.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class PostScreen extends StatefulWidget {
   final String userId;
@@ -72,7 +73,7 @@ class _ProfileScreen extends State<PostScreen> {
       alignment: Alignment.center,
       color: Theme.of(context).colorScheme.secondary,
       child: Text(
-        "Post already seen",
+        AppLocalizations.of(context)!.post_already_seen,
         style: TextStyle(
           fontSize: 18,
           fontWeight: FontWeight.bold,

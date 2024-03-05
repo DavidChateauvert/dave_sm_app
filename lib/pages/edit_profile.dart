@@ -86,8 +86,10 @@ class _EditProfileState extends State<EditProfile> {
         TextField(
           controller: firstNameController,
           decoration: InputDecoration(
-              hintText: "Update your fist Name",
-              errorText: _firstnameValid ? null : "First Name Too Short"),
+              hintText: AppLocalizations.of(context)!.update_first_name,
+              errorText: _firstnameValid
+                  ? null
+                  : AppLocalizations.of(context)!.first_name_too_short),
         ),
       ],
     );
@@ -107,8 +109,10 @@ class _EditProfileState extends State<EditProfile> {
         TextField(
           controller: lastNameController,
           decoration: InputDecoration(
-              hintText: "Update your last name",
-              errorText: _lastNameValid ? null : "Last Name Too Short"),
+              hintText: AppLocalizations.of(context)!.update_last_name,
+              errorText: _lastNameValid
+                  ? null
+                  : AppLocalizations.of(context)!.last_name_too_short),
         ),
       ],
     );
@@ -128,8 +132,10 @@ class _EditProfileState extends State<EditProfile> {
         TextField(
           controller: bioController,
           decoration: InputDecoration(
-              hintText: "Update your bio",
-              errorText: _bioValid ? null : "Bio is Too Long"),
+              hintText: AppLocalizations.of(context)!.update_bio,
+              errorText: _bioValid
+                  ? null
+                  : AppLocalizations.of(context)!.bio_too_long),
         ),
       ],
     );
@@ -145,7 +151,7 @@ class _EditProfileState extends State<EditProfile> {
               lastNameController.text.isEmpty
           ? _lastNameValid = false
           : _lastNameValid = true;
-      bioController.text.trim().length > 100
+      bioController.text.trim().length > 150
           ? _bioValid = false
           : _bioValid = true;
     });
@@ -163,7 +169,8 @@ class _EditProfileState extends State<EditProfile> {
         "photoUrl": newPhotoUrl,
       });
       final scaffoldMessenger = ScaffoldMessenger.of(context);
-      final snackBar = SnackBar(content: Text('Profile Updated!'));
+      final snackBar = SnackBar(
+          content: Text(AppLocalizations.of(context)!.profile_updated));
       scaffoldMessenger.showSnackBar(snackBar);
 
       Future.delayed(Duration(seconds: 1), () {
@@ -243,7 +250,8 @@ class _EditProfileState extends State<EditProfile> {
       builder: (context) {
         return SimpleDialog(
           title: Text(
-            "Change your profile picture",
+            AppLocalizations.of(context)!.change_profile_picture,
+            textAlign: TextAlign.center,
             style: TextStyle(
               color: Theme.of(context).colorScheme.onBackground,
             ),
@@ -274,7 +282,7 @@ class _EditProfileState extends State<EditProfile> {
                               height: 8,
                             ),
                             Text(
-                              "Photo with camera",
+                              AppLocalizations.of(context)!.photo_with_camera,
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                 color:
@@ -313,7 +321,7 @@ class _EditProfileState extends State<EditProfile> {
                             height: 8,
                           ),
                           Text(
-                            "Image from gallery",
+                            AppLocalizations.of(context)!.image_from_gallery,
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               color: Theme.of(context).colorScheme.onBackground,
@@ -326,10 +334,6 @@ class _EditProfileState extends State<EditProfile> {
                 ),
               ],
             ),
-            // SimpleDialogOption(
-            //   child: Text("Cancel"),
-            //   onPressed: () => Navigator.pop(context),
-            // ),
           ],
         );
       },

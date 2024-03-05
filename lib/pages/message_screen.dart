@@ -15,6 +15,7 @@ import 'package:sm_app/widgets/message.dart';
 import 'package:uuid/uuid.dart';
 import '../models/user.dart';
 import '../widgets/progress.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 // ignore: depend_on_referenced_packages
 import 'package:image/image.dart' as Im;
 
@@ -224,7 +225,7 @@ class MessageScreeState extends State<MessageScreen> {
           title: Align(
             alignment: Alignment.center,
             child: Text(
-              "Send an Image",
+              AppLocalizations.of(context)!.send_image,
               style: TextStyle(
                 color: Theme.of(context).colorScheme.onBackground,
               ),
@@ -253,7 +254,7 @@ class MessageScreeState extends State<MessageScreen> {
                               height: 8,
                             ),
                             Text(
-                              "Photo with camera",
+                              AppLocalizations.of(context)!.photo_with_camera,
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                 color:
@@ -289,7 +290,7 @@ class MessageScreeState extends State<MessageScreen> {
                             height: 8,
                           ),
                           Text(
-                            "Image from gallery",
+                            AppLocalizations.of(context)!.image_from_gallery,
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               color: Theme.of(context).colorScheme.onBackground,
@@ -443,8 +444,9 @@ class MessageScreeState extends State<MessageScreen> {
                       title: TextFormField(
                         controller: messageController,
                         focusNode: messageFocusNode,
-                        decoration:
-                            InputDecoration(labelText: "Write your message..."),
+                        decoration: InputDecoration(
+                            labelText: AppLocalizations.of(context)!
+                                .message_controller_placeholder),
                         maxLines: null,
                         onChanged: (value) {
                           setState(() {

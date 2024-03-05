@@ -1,7 +1,7 @@
 {
     "@@locale": "fr",
     "language": "Français",
-    "welcomeMessage": "Bienvenue {name}",
+    "welcomeMessage": "Bienvenue {name} !",
     "@welcomeMessage": {
         "placeholders": {
             "name": {
@@ -17,7 +17,7 @@
             }
         }
     },
-    "edit_profile": "Modifier votre profile",
+    "edit_profile": "Modifier votre profil",
     "unfriend": "Ne plus être ami",
     "request_sent": "Demande d'ami envoyé",
     "accept_request": "Accepter la demande d'ami",
@@ -42,7 +42,7 @@
     "timeline": "Fil d'actualités",
     "search": "Recherche",
     "post": "Publier",
-    "profile": "Profile",
+    "profile": "Profil",
     "notifications": "Notifications",
     "make_a_post": "Publier",
     "send_post": "Envoyer",
@@ -55,5 +55,101 @@
     "first_name": "Prénom",
     "last_name": "Nom de famille",
     "bio": "Bio",
-    "change_profile_picture": "Changer la photo de profile"
+    "change_profile_picture": "Changer la photo de profil",
+    "update_first_name": "Modifer votre prénom",
+    "first_name_too_short": "Prénom est trop court",
+    "first_name_too_long": "Prénom est trop Long",
+    "update_last_name": "Modifer votre nom de famille",
+    "last_name_too_short": "Nom de famille est trop court",
+    "last_name_too_long": "Nom de famille est trop Long",
+    "update_bio": "Modifier votre bio",
+    "bio_too_long": "Bio est trop long",
+    "profile_updated": "Profil modifié avec succès !",
+    "photo_with_camera": "Photo avec camera",
+    "video_with_camera": "Vidéo avec camera",
+    "photo_or_video_with_camera": "Photo ou vidéo depuis la gallerie",
+    "image_from_gallery": "Image depuis gallerie",
+    "activity_item_text_like": "a aimé votre publication",
+    "activity_item_text_follow": "vous suit",
+    "activity_item_text_message": "vous a envoyé un message",
+    "activity_item_text_comment": "a répondu: {commentData}",
+    "@activity_item_text_comment": {
+        "placeholders": {
+            "commentData": {
+                "type": "String"
+            }
+        }
+    },
+    "activity_item_text_mention": "vous a identifié dans une publication",
+    "activity_item_text_commentLike": "a aimé votre commentaire",
+    "activity_item_text_error": "Erreur: Type Inconnu {type}",
+    "@activity_item_text_error": {
+        "placeholders": {
+            "type": {
+                "type": "String"
+            }
+        }
+    },
+    "likesAppBar": "J'aime",
+    "send_image": "Envoyer une image",
+    "message_with_photo": "Avec une photo: {message}",
+    "@message_with_photo": {
+        "placeholders": {
+            "message": {
+                "type": "String"
+            }
+        }
+    },
+    "message_only_photo": "A envoyé une photo",
+    "message_controller_placeholder": "Écrire un message...",
+    "add_media_to_post": "Rajouter un média",
+    "report": "Reporter",
+    "delete": "Supprimer",
+    "who_sent": "Moi :",
+    "report_post": "Reporter cette publication ?",
+    "report_user": "Reporter cette personne ?",
+    "report_conversation": "Reporter cette conversation avec {username}",
+    "@report_conversation": {
+        "placeholders": {
+            "username": {
+                "type": "String"
+            }
+        }
+    },
+    "cancel": "Annuler",
+    "delete_conversation": "Supprimer cette conversation ?",
+    "delete_conversation_username": "Supprimer cette conversation avec {username}",
+    "@delete_conversation_username": {
+        "placeholders": {
+            "username": {
+                "type": "String"
+            }
+        }
+    },
+    "remove_post": "Supprimer cette publication ?",
+    "thanks_input": "Merci !",
+    "rewiew_text_post": "Notre équipe s'occupera d'examiner votre demande et nous déciderons par le suite ce que nous allons faire avec cette publication",
+    "rewiew_text_user": "Notre équipe s'occupera d'examiner votre demande et nous déciderons par le suite ce que nous allons faire avec cette utilisateur",
+    "go_back_timeline": "Retourner au fil d'actualités",
+    "report_text_error": "Votre rapport ne peut pas être vide",
+    "report_text_hint_post": "Expliquer",
+    "report_text_hint_user": "Expliquer",
+    "report_post_app_bar": "Reporter",
+    "report_user_app_bar": "Reporter",
+    "description_report_post": "Veuillez nous expliquer pourquoi vous souhaitez reporter cette publication",
+    "description_report_user": "Veuillez nous expliquer pourquoi vous souhaitez reporter cette utilisateur",
+    "submit_report": "Soumettre",
+    "about_us_app_bar": "À propos de nous",
+    "about_us_text": "Dave est une application de médias sociaux qui tente de reproduire la nature instantanée de la vie réelle. Sur d'autres applications de médias sociaux, chaque publication reste gravée dans la pierre sur internet. Sur Dave, les gens ne peuvent voir votre publication qu'une seule fois et la prendre en capture d'écran est impossible. Tout comme dans la vie réelle, quand quelqu'un dit quelque chose, ce qui est dit disparaît pour toujours et Dave reproduit cette expérience en ligne. Dave en est actuellement à ses débuts, donc si vous trouvez un ou des défauts, veuillez-nous le faire savoir dans la section 'Contactez-nous' de l'application. Profitez de Dave !",
+    "about_us_people": "Les gens derrière l'application",
+    "go_back_settings": "Retourner aux réglages",
+    "please_continue": "Veuillez continuer à profiter de Dave",
+    "contact_us_text": "Veuillez nous dire tout ce que vous pensez que nous devrions savoir. Cela nous sera envoyé et nous vous répondrons sous peu",
+    "write_us": "Écrivez-nous ...",
+    "set_up_profile": "Configurer votre profil",
+    "add_image_profile": "Ajouter une photo de profil",
+    "enter_info": "Entrer vos informations",
+    "finish_configuration": "Finir la configuration",
+    "at_least_one_caracter": "Doit être au moins 1 caractère",
+    "post_already_seen": "Publication déjà vu"
 }

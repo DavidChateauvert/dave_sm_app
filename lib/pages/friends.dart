@@ -5,6 +5,7 @@ import 'package:sm_app/pages/home.dart';
 import 'package:sm_app/pages/search.dart';
 import 'package:sm_app/widgets/progress.dart';
 import '../models/user.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class Friends extends StatefulWidget {
   final String profileId;
@@ -72,8 +73,7 @@ class _Friends extends State<Friends> {
       appBar: AppBar(
         automaticallyImplyLeading: true,
         title: Text(
-          // ignore: prefer_if_null_operators
-          "Friends",
+          AppLocalizations.of(context)!.friends,
           style: const TextStyle(color: Colors.white, fontSize: 30.0),
           overflow: TextOverflow.ellipsis,
         ),

@@ -135,7 +135,7 @@ class _HomeState extends State<Home> {
           "displayName": newUser.displayName,
           "displayNameLower": newUser.displayName.toLowerCase(),
           "bio": newUser.bio,
-          "timestamp": timestamp,
+          "timestamp": timestamp, //.toString(),
           "theme": newUser.theme,
           "verified": false,
         });

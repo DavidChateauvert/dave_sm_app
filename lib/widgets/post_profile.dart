@@ -201,21 +201,21 @@ class _PostProfileState extends State<PostProfile> {
       context: parentContext,
       builder: (context) {
         return SimpleDialog(
-          title: Text("Remove this post"),
+          title: Text(
+            AppLocalizations.of(context)!.remove_post,
+            textAlign: TextAlign.center,
+          ),
           children: <Widget>[
             SimpleDialogOption(
               onPressed: () {
                 Navigator.pop(context);
                 deletePostInstant();
               },
-              child: const Text(
-                'Delete',
+              child: Text(
+                AppLocalizations.of(context)!.delete,
+                textAlign: TextAlign.center,
                 style: TextStyle(color: Colors.red),
               ),
-            ),
-            SimpleDialogOption(
-              onPressed: () => Navigator.pop(context),
-              child: Text('Cancel'),
             ),
           ],
         );

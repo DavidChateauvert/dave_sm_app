@@ -8,6 +8,7 @@ import 'package:sm_app/pages/home.dart';
 import 'package:sm_app/pages/post_screen.dart';
 import 'package:sm_app/pages/profile.dart';
 import 'package:sm_app/providers/notification_provider.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
 late Widget mediaPreview;
@@ -92,19 +93,25 @@ class _ActivityFeedItem extends State<ActivityFeedItem> {
   configureMediaPreview(context) {
     mediaPreview = Text('');
     if (type == "like") {
-      activityItemText = "liked your post";
+      activityItemText = AppLocalizations.of(context)!.activity_item_text_like;
     } else if (type == "follow") {
-      activityItemText = "is following you";
+      activityItemText =
+          AppLocalizations.of(context)!.activity_item_text_follow;
     } else if (type == "comment") {
-      activityItemText = "replied: $commentData";
+      activityItemText =
+          AppLocalizations.of(context)!.activity_item_text_comment(commentData);
     } else if (type == "message") {
-      activityItemText = "sent you a new message";
+      activityItemText =
+          AppLocalizations.of(context)!.activity_item_text_message;
     } else if (type == "mention") {
-      activityItemText = "has tagged you in a post";
+      activityItemText =
+          AppLocalizations.of(context)!.activity_item_text_mention;
     } else if (type == "commentLike") {
-      activityItemText = "liked your comment";
+      activityItemText =
+          AppLocalizations.of(context)!.activity_item_text_commentLike;
     } else {
-      activityItemText = "Error: Unkown type '$type'";
+      activityItemText =
+          AppLocalizations.of(context)!.activity_item_text_error(type);
     }
   }
 
@@ -199,7 +206,7 @@ class _ActivityFeedItem extends State<ActivityFeedItem> {
                       backgroundColor: Colors.red,
                       foregroundColor: Colors.white,
                       icon: CupertinoIcons.delete_simple,
-                      label: 'Delete',
+                      label: AppLocalizations.of(context)!.delete,
                     ),
                   ],
                 ),

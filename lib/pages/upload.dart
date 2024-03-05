@@ -304,7 +304,7 @@ class _UploadState extends State<Upload>
         return SimpleDialog(
           title: Center(
             child: Text(
-              "Add a media to the post",
+              AppLocalizations.of(context)!.add_media_to_post,
               style: TextStyle(
                 color: Theme.of(context).colorScheme.onBackground,
               ),
@@ -338,7 +338,8 @@ class _UploadState extends State<Upload>
                                   height: 8,
                                 ),
                                 Text(
-                                  "Photo with Camera",
+                                  AppLocalizations.of(context)!
+                                      .photo_with_camera,
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
                                     color: Theme.of(context)
@@ -379,7 +380,8 @@ class _UploadState extends State<Upload>
                                   height: 8,
                                 ),
                                 Text(
-                                  "Video with Camera",
+                                  AppLocalizations.of(context)!
+                                      .video_with_camera,
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
                                     color: Theme.of(context)
@@ -428,7 +430,8 @@ class _UploadState extends State<Upload>
                                 height: 8,
                               ),
                               Text(
-                                "Image or Video from Gallery",
+                                AppLocalizations.of(context)!
+                                    .photo_or_video_with_camera,
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
                                   color: Theme.of(context)
@@ -648,15 +651,11 @@ class _UploadState extends State<Upload>
             ),
             centerTitle: true,
             actions: [
-              TextButton(
+              IconButton(
                 onPressed: isUploading ? null : () => handleSubmit(),
-                child: Text(
-                  AppLocalizations.of(context)!.send_post,
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 22.0,
-                  ),
+                icon: Icon(
+                  Icons.send_outlined,
+                  size: 30.0,
                 ),
               ),
             ],

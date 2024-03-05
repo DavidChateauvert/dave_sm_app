@@ -9,6 +9,7 @@ import 'package:sm_app/pages/message_screen.dart';
 import 'package:sm_app/pages/report_post.dart';
 import 'package:sm_app/providers/notification_provider.dart';
 import 'package:sm_app/providers/route_observer_provider.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
 class MessageFeedItem extends StatefulWidget {
@@ -97,7 +98,7 @@ class _MessageFeedItem extends State<MessageFeedItem> {
       builder: (context) {
         return SimpleDialog(
           title: Text(
-            "Report this post ?",
+            AppLocalizations.of(context)!.report_user,
             textAlign: TextAlign.center,
           ),
           children: <Widget>[
@@ -107,7 +108,7 @@ class _MessageFeedItem extends State<MessageFeedItem> {
                 showReport(context);
               },
               child: Text(
-                'Report this conversation with $username',
+                AppLocalizations.of(context)!.report_conversation(username),
                 style: TextStyle(color: Colors.red),
                 textAlign: TextAlign.center,
               ),
@@ -115,7 +116,7 @@ class _MessageFeedItem extends State<MessageFeedItem> {
             SimpleDialogOption(
               onPressed: () => Navigator.pop(context),
               child: Text(
-                'Cancel',
+                AppLocalizations.of(context)!.cancel,
                 textAlign: TextAlign.center,
               ),
             ),
@@ -131,7 +132,7 @@ class _MessageFeedItem extends State<MessageFeedItem> {
       builder: (context) {
         return SimpleDialog(
           title: Text(
-            "Delete this conversation ?",
+            AppLocalizations.of(context)!.delete_conversation,
             textAlign: TextAlign.center,
           ),
           children: <Widget>[
@@ -141,7 +142,8 @@ class _MessageFeedItem extends State<MessageFeedItem> {
                 Navigator.pop(context);
               },
               child: Text(
-                'Delete this conversation with $username',
+                AppLocalizations.of(context)!
+                    .delete_conversation_username(username),
                 style: TextStyle(color: Colors.red),
                 textAlign: TextAlign.center,
               ),
@@ -149,7 +151,7 @@ class _MessageFeedItem extends State<MessageFeedItem> {
             SimpleDialogOption(
               onPressed: () => Navigator.pop(context),
               child: Text(
-                'Cancel',
+                AppLocalizations.of(context)!.cancel,
                 textAlign: TextAlign.center,
               ),
             ),
@@ -183,7 +185,7 @@ class _MessageFeedItem extends State<MessageFeedItem> {
   Widget build(BuildContext context) {
     String whoSent = "";
     if (lastUserSent == currentUser.id) {
-      whoSent = "Me :";
+      whoSent = AppLocalizations.of(context)!.who_sent;
     }
     return deleteInstant
         ? Container()
@@ -203,7 +205,7 @@ class _MessageFeedItem extends State<MessageFeedItem> {
                       backgroundColor: Colors.orange,
                       foregroundColor: Colors.white,
                       icon: CupertinoIcons.flag,
-                      label: 'Report',
+                      label: AppLocalizations.of(context)!.report,
                     ),
                     SlidableAction(
                       flex: 1,
@@ -211,7 +213,7 @@ class _MessageFeedItem extends State<MessageFeedItem> {
                       backgroundColor: Colors.red,
                       foregroundColor: Colors.white,
                       icon: CupertinoIcons.delete_simple,
-                      label: 'Delete',
+                      label: AppLocalizations.of(context)!.delete,
                     ),
                   ],
                 ),

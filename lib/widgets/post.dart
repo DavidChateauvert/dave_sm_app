@@ -241,15 +241,19 @@ class _PostState extends State<Post> {
       context: parentContext,
       builder: (context) {
         return SimpleDialog(
-          title: Text("Remove this post"),
+          title: Text(
+            AppLocalizations.of(context)!.remove_post,
+            textAlign: TextAlign.center,
+          ),
           children: <Widget>[
             SimpleDialogOption(
               onPressed: () {
                 Navigator.pop(context);
                 deletePostInstant();
               },
-              child: const Text(
-                'Delete',
+              child: Text(
+                AppLocalizations.of(context)!.delete,
+                textAlign: TextAlign.center,
                 style: TextStyle(color: Colors.red),
               ),
             ),
@@ -268,21 +272,28 @@ class _PostState extends State<Post> {
       context: parentContext,
       builder: (context) {
         return SimpleDialog(
-          title: Text("Report this post ?"),
+          title: Text(
+            AppLocalizations.of(context)!.report_post,
+            textAlign: TextAlign.center,
+          ),
           children: <Widget>[
             SimpleDialogOption(
               onPressed: () {
                 Navigator.pop(context);
                 showReport(context);
               },
-              child: const Text(
-                'Report post',
+              child: Text(
+                AppLocalizations.of(context)!.report_post,
                 style: TextStyle(color: Colors.red),
+                textAlign: TextAlign.center,
               ),
             ),
             SimpleDialogOption(
               onPressed: () => Navigator.pop(context),
-              child: Text('Cancel'),
+              child: Text(
+                AppLocalizations.of(context)!.cancel,
+                textAlign: TextAlign.center,
+              ),
             ),
           ],
         );
@@ -767,7 +778,7 @@ class _PostState extends State<Post> {
       alignment: Alignment.center,
       color: Theme.of(context).colorScheme.secondary,
       child: Text(
-        "Post already seen",
+        AppLocalizations.of(context)!.post_already_seen,
         style: TextStyle(
           fontSize: 18,
           fontWeight: FontWeight.bold,
@@ -822,7 +833,7 @@ class _PostState extends State<Post> {
     Navigator.push(context, MaterialPageRoute(builder: (context) {
       return ReportPost(
         postId: postId,
-        reportSubject: "Post",
+        reportSubject: "post",
       );
     }));
   }

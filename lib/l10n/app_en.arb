@@ -1,7 +1,7 @@
 {
     "@@locale": "en",
     "language": "English",
-    "welcomeMessage": "Welcome {name}",
+    "welcomeMessage": "Welcome {name} !",
     "@welcomeMessage": {
         "placeholders": {
             "name": {
@@ -44,7 +44,7 @@
     "post": "Post",
     "profile": "Profile",
     "notifications": "Notifications",
-    "make_a_post": "Make a post",
+    "make_a_post": "Post",
     "send_post": "Post",
     "write_a_post": "Write a post ...",
     "comments": "Comments",
@@ -55,5 +55,101 @@
     "first_name": "First Name",
     "last_name": "Last Name",
     "bio": "Bio",
-    "change_profile_picture": "Change Profile Picture"
+    "change_profile_picture": "Change Profile Picture",
+    "update_first_name": "Update your fist Name",
+    "first_name_too_short": "First Name Too Short",
+    "first_name_too_long": "First Name Too Long",
+    "update_last_name": "Update your last Name",
+    "last_name_too_short": "Last Name Too Short",
+    "last_name_too_long": "Last Name Too Long",
+    "update_bio": "Update your bio",
+    "bio_too_long": "Last Name Too Short",
+    "profile_updated": "Profile Updated !",
+    "photo_with_camera": "Photo with camera",
+    "video_with_camera": "Video with camera",
+    "photo_or_video_with_camera": "Image or Video from Gallery",
+    "image_from_gallery": "Image from gallery",
+    "activity_item_text_like": "liked your post",
+    "activity_item_text_follow": "is following you",
+    "activity_item_text_message": "sent you a message",
+    "activity_item_text_comment": "replied: {commentData}",
+    "@activity_item_text_comment": {
+        "placeholders": {
+            "commentData": {
+                "type": "String"
+            }
+        }
+    },
+    "activity_item_text_mention": "has tagged you in a post",
+    "activity_item_text_commentLike": "liked your comment",
+    "activity_item_text_error": "Error: Unkown type {type}",
+    "@activity_item_text_error": {
+        "placeholders": {
+            "type": {
+                "type": "String"
+            }
+        }
+    },
+    "likesAppBar": "Likes",
+    "send_image": "Send an Image",
+    "message_with_photo": "With a photo: {message}",
+    "@message_with_photo": {
+        "placeholders": {
+            "message": {
+                "type": "String"
+            }
+        }
+    },
+    "message_only_photo": "Sent a photo",
+    "message_controller_placeholder": "Write a message...",
+    "add_media_to_post": "Add a media to the post",
+    "report": "Report",
+    "delete": "Delete",
+    "who_sent": "Me :",
+    "report_post": "Report this post ?",
+    "report_user": "Report this user ?",
+    "report_conversation": "Report this conversation with {username}",
+    "@report_conversation": {
+        "placeholders": {
+            "username": {
+                "type": "String"
+            }
+        }
+    },
+    "cancel": "Cancel",
+    "delete_conversation": "Delete this conversation ?",
+    "delete_conversation_username": "Delete this conversation with {username}",
+    "@delete_conversation_username": {
+        "placeholders": {
+            "username": {
+                "type": "String"
+            }
+        }
+    },
+    "remove_post": "Remove this post ?",
+    "thanks_input": "Thank you for your input !",
+    "rewiew_text_post": "Our team is going to review your report and then decide what to do with this post",
+    "rewiew_text_user": "Our team is going to review your report and then decide what to do with this user",
+    "go_back_timeline": "Go back to the timeline",
+    "report_text_error": "Your report cannot be empty",
+    "report_text_hint_post": "Why should this post be reported ?",
+    "report_text_hint_user": "Why should this user be reported ?",
+    "report_post_app_bar": "Report Post",
+    "report_user_app_bar": "Report User",
+    "description_report_post": "Please tell us why your are reporting this post",
+    "description_report_user": "Please tell us why your are reporting this user",
+    "submit_report": "Submit Report",
+    "about_us_app_bar": "À propos de nous",
+    "about_us_text": "Dave is a social media app that tries to replicate the instant nature of real life. On other social media app, every post made is set in stone on the internet. On Dave, people can only see your post once and screenshotting it is impossible. Just like in real life, when somebody says something, the thing being said is gone forverer and Dave is replicating this experience online. Dave is only at a beginning stage right now so if there's any bug, please let us know in the 'Contact Us' section on the app. Enjoy Dave !",
+    "about_us_people": "People behing this app",
+    "go_back_settings": "Go back to the settings",
+    "please_continue": "Please continue to enjoy Dave",
+    "contact_us_text": "Please tell us anything you think we should know. This is going to be send to us and we'll come back to you shortly",
+    "write_us": "Write us ...",
+    "set_up_profile": "Set Up your Profile",
+    "add_image_profile": "Add a Profile Picture",
+    "enter_info": "Enter your informations",
+    "finish_configuration": "Submit",
+    "at_least_one_caracter": "Must be at least 1 caracter",
+    "post_already_seen": "Post Already Seen"
 }

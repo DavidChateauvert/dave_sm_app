@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:sm_app/pages/home.dart';
 import 'package:sm_app/widgets/header.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class ContactUs extends StatefulWidget {
   @override
@@ -34,7 +35,7 @@ class _ContactUsState extends State<ContactUs> {
       builder: (context) {
         return SimpleDialog(
           title: Text(
-            "Thank for your intput !",
+            AppLocalizations.of(context)!.thanks_input,
             textAlign: TextAlign.center,
           ),
           children: <Widget>[
@@ -42,7 +43,7 @@ class _ContactUsState extends State<ContactUs> {
               padding: EdgeInsets.only(left: 20.0, right: 20.0),
               child: Text(
                 textAlign: TextAlign.center,
-                "Please continue to enjoy our app",
+                AppLocalizations.of(context)!.please_continue,
               ),
             ),
             const SizedBox(
@@ -65,7 +66,7 @@ class _ContactUsState extends State<ContactUs> {
                       color: Theme.of(context).colorScheme.primary,
                       fontSize: 16,
                       fontWeight: FontWeight.bold),
-                  'Go back to the settings',
+                  AppLocalizations.of(context)!.go_back_settings,
                 ),
               ]),
             ),
@@ -95,7 +96,7 @@ class _ContactUsState extends State<ContactUs> {
           focusNode: focusNode,
           validator: (val) {
             if (val!.isEmpty) {
-              return "Your text cannot be empty";
+              return AppLocalizations.of(context)!.report_text_error;
             } else {
               return null;
             }
@@ -103,7 +104,7 @@ class _ContactUsState extends State<ContactUs> {
           onSaved: (val) => text = val!,
           decoration: InputDecoration(
             labelStyle: TextStyle(fontSize: 15.0),
-            hintText: "Write us ...",
+            hintText: AppLocalizations.of(context)!.write_us,
           ),
         ),
       ],
@@ -115,7 +116,7 @@ class _ContactUsState extends State<ContactUs> {
     return Scaffold(
       key: _scaffoldKey,
       appBar: header(context,
-          titleText: "Contact Us",
+          titleText: AppLocalizations.of(context)!.contact_us,
           removeBackButton: false,
           showMessageButton: false),
       body: ListView(children: <Widget>[
@@ -125,8 +126,8 @@ class _ContactUsState extends State<ContactUs> {
               Padding(
                 padding: EdgeInsets.all(25.0),
                 child: Text(
+                  AppLocalizations.of(context)!.contact_us_text,
                   textAlign: TextAlign.center,
-                  "Please tell us anything you think we should know. This is going to be send to us and we'll come back to you shortly",
                   style: TextStyle(fontSize: 16.0),
                 ),
               ),
@@ -159,7 +160,7 @@ class _ContactUsState extends State<ContactUs> {
                   ),
                   child: Center(
                     child: Text(
-                      "Submit Report",
+                      AppLocalizations.of(context)!.submit_report,
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 15.0,
