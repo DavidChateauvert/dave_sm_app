@@ -154,7 +154,7 @@ class _PostState extends State<Post> {
   bool isCommented = false;
   bool isCommentedInstant = false;
   bool seen = false;
-  double postHeight = 100.0;
+  double postHeight = 20.0;
   bool postHeightIsSet = false;
   bool deleteInstant = false;
   String type;

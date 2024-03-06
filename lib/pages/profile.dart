@@ -442,16 +442,24 @@ class _Profile extends State<Profile> {
                   GestureDetector(
                     onTap: user.photoUrl.isEmpty
                         ? null
-                        : () => Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => Photo(
-                                  photoUrl: user.photoUrl,
-                                  aspectRatio: 1,
-                                  type: "profile",
-                                ),
+                        : () => Navigator.of(context).push(
+                              _createRoute(
+                                user.photoUrl,
+                                1,
+                                "profile",
                               ),
                             ),
+
+                    // Navigator.push(
+                    //       context,
+                    //       MaterialPageRoute(
+                    //         builder: (context) => Photo(
+                    //           photoUrl: user.photoUrl,
+                    //           aspectRatio: 1,
+                    //           type: "profile",
+                    //         ),
+                    //       ),
+                    //     ),
                     child: Hero(
                       tag: user.photoUrl,
                       child: CircleAvatar(
@@ -623,5 +631,28 @@ showPhoto(
         );
       },
     ),
+  );
+}
+
+Route _createRoute(String photoUrl, double aspectRatio, String type) {
+  return PageRouteBuilder(
+    pageBuilder: (context, animation, secondaryAnimation) => Photo(
+      photoUrl: photoUrl,
+      aspectRatio: aspectRatio,
+      type: type,
+    ),
+    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+      const begin = 0.0;
+      const end = 1.0;
+
+      var tween = Tween(begin: begin, end: end);
+
+      var fadeAnimation = animation.drive(tween);
+
+      return FadeTransition(
+        opacity: fadeAnimation,
+        child: child,
+      );
+    },
   );
 }

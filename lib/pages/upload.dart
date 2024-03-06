@@ -489,7 +489,6 @@ class _UploadState extends State<Upload>
       {required String caption,
       required String type,
       required String mediaUrl}) {
-    print(mentionsDataAdded);
     Map<String, String> mentionsMap =
         mentionsDataAdded.fold({}, (map, mention) {
       map[mention['id']!] = mention['display']!;

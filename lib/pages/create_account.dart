@@ -189,7 +189,6 @@ class _CreateAccountState extends State<CreateAccount> {
     });
     await compressImage(file);
     String mediaUrl = await uploadImage(file);
-    print(mediaUrl);
     setState(() {
       photoUrl = mediaUrl;
       pictureIsLoading = false;
