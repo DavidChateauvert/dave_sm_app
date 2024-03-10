@@ -151,5 +151,10 @@
     "enter_info": "Entrer vos informations",
     "finish_configuration": "Finir la configuration",
     "at_least_one_caracter": "Doit être au moins 1 caractère",
-    "post_already_seen": "Publication déjà vu"
+    "post_already_seen": "Publication déjà vu",
+    "welcome_dave": "Bienvenue sur Dave !",
+    "select_language": "Veuillez choisir une langue",
+    "set_up_account": "Configurer votre profil",
+    "video_too_long": "Désolé, la durée maximal pour les vidéos est de 10 secondes",
+    "go_back_upload": "Retourner à la publication"
 }

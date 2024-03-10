@@ -213,7 +213,7 @@ class _TimelineState extends State<Timeline> {
   @override
   Widget build(context) {
     return Scaffold(
-      appBar: header(context, showPostCounter: true),
+      appBar: header(context), //, showPostCounter: true
       body: RefreshIndicator.adaptive(
         onRefresh: () => getTimeline(),
         child: buildTimeline(context),

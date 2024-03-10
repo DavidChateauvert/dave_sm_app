@@ -18,6 +18,14 @@ class LocaleProvider with ChangeNotifier {
     }
   }
 
+  void selectIntro(int index) {
+    if (index == 0) {
+      locale = Locale('en');
+    } else {
+      locale = Locale('fr');
+    }
+  }
+
   void toggleLocaleToParam(String theme) {
     if (theme == "en") {
       locale = Locale('en');

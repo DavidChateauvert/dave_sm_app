@@ -1,6 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -237,7 +236,7 @@ class _PostState extends State<Post> {
   }
 
   handleDeletePost(BuildContext parentContext) {
-    return showCupertinoDialog(
+    return showDialog(
       context: parentContext,
       builder: (context) {
         return SimpleDialog(
@@ -257,10 +256,6 @@ class _PostState extends State<Post> {
                 style: TextStyle(color: Colors.red),
               ),
             ),
-            SimpleDialogOption(
-              onPressed: () => Navigator.pop(context),
-              child: Text('Cancel'),
-            ),
           ],
         );
       },
@@ -268,7 +263,7 @@ class _PostState extends State<Post> {
   }
 
   handleSignalPost(BuildContext parentContext) {
-    return showCupertinoDialog(
+    return showDialog(
       context: parentContext,
       builder: (context) {
         return SimpleDialog(
@@ -285,13 +280,6 @@ class _PostState extends State<Post> {
               child: Text(
                 AppLocalizations.of(context)!.report_post,
                 style: TextStyle(color: Colors.red),
-                textAlign: TextAlign.center,
-              ),
-            ),
-            SimpleDialogOption(
-              onPressed: () => Navigator.pop(context),
-              child: Text(
-                AppLocalizations.of(context)!.cancel,
                 textAlign: TextAlign.center,
               ),
             ),
@@ -662,6 +650,7 @@ class _PostState extends State<Post> {
                               type: "post",
                               file: null,
                               height: mediaUrlHeight,
+                              width: mediaUrlWidth,
                             ),
                           )
                         : buildPostImage(),

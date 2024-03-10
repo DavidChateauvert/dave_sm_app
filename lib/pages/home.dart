@@ -8,6 +8,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:provider/provider.dart';
 import 'package:sm_app/api/firebase_api.dart';
 import 'package:sm_app/api/notification_api.dart';
+import 'package:sm_app/pages/intro.dart';
 import 'package:sm_app/pages/message_feed.dart';
 import 'package:sm_app/pages/message_screen.dart';
 import 'package:sm_app/pages/profile.dart';
@@ -21,7 +22,6 @@ import 'package:sm_app/providers/route_observer_provider.dart';
 import 'package:sm_app/providers/theme_provider.dart';
 import '../models/user.dart';
 import 'activity_feed.dart';
-import 'create_account.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 final GoogleSignIn googleSignIn = GoogleSignIn();
@@ -118,11 +118,21 @@ class _HomeState extends State<Home> {
         });
         // 2 : If they don't exist, take them to the create account page
         final User newUser = await Navigator.push(
-            context,
-            MaterialPageRoute(
-                builder: (context) => CreateAccount(
-                      userId: user.id,
-                    )));
+          context,
+          MaterialPageRoute(
+            builder: (context) => Intro(
+              userId: user.id,
+            ),
+          ),
+        );
+        // await Navigator.push(
+        //   context,
+        //   MaterialPageRoute(
+        //     builder: (context) => CreateAccount(
+        //       userId: user.id,
+        //     ),
+        //   ),
+        // );
         // 3 : Get username from create account, use it to make new user document in users collection
         usersRef.doc(user.id).set({
           "id": user.id,
@@ -138,6 +148,8 @@ class _HomeState extends State<Home> {
           "timestamp": timestamp, //.toString(),
           "theme": newUser.theme,
           "verified": false,
+          "locale": Provider.of<LocaleProvider>(context, listen: false)
+              .getLocaleFormatString(),
         });
         // Make new user their own follower
         await followersRef
@@ -381,10 +393,6 @@ class _HomeState extends State<Home> {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: <Widget>[
-            // Text(
-            //   'Dave',
-            //   style: TextStyle(fontSize: 90, color: Colors.white),
-            // ),
             GestureDetector(
               onTap: login,
               child: Container(

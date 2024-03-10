@@ -11,12 +11,14 @@ class PlayVideo extends StatefulWidget {
       required this.videoUrl,
       required this.type,
       required this.file,
-      required this.height})
+      required this.height,
+      required this.width})
       : super(key: key);
   final String videoUrl;
   final String type;
   final File? file;
   final int? height;
+  final int? width;
 
   @override
   _PlayVideoState createState() => _PlayVideoState();
@@ -53,6 +55,13 @@ class _PlayVideoState extends State<PlayVideo> {
   void dispose() {
     _controller.dispose();
     super.dispose();
+  }
+
+  double handleRatio() {
+    if ((widget.width! / widget.height!) < (9 / 12)) {
+      return 9 / 12;
+    }
+    return widget.width! / widget.height!;
   }
 
   @override
@@ -134,9 +143,12 @@ class _PlayVideoState extends State<PlayVideo> {
           );
         } else {
           return Container(
-            height: widget.height!.ceilToDouble() / 4,
+            width: MediaQuery.of(context).size.width,
             child: Center(
-              child: circularProgress(),
+              child: AspectRatio(
+                aspectRatio: handleRatio(),
+                child: circularProgress(),
+              ),
             ),
           );
         }

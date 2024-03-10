@@ -151,5 +151,10 @@
     "enter_info": "Enter your informations",
     "finish_configuration": "Submit",
     "at_least_one_caracter": "Must be at least 1 caracter",
-    "post_already_seen": "Post Already Seen"
+    "post_already_seen": "Post Already Seen",
+    "welcome_dave": "Welcome to Dave !",
+    "select_language": "Please select a language",
+    "set_up_account": "Set up your account",
+    "video_too_long": "Sorry, the maximum duration for videos is 10 seconds",
+    "go_back_upload": "Go back to post"
 }

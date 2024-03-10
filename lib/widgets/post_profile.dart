@@ -572,6 +572,7 @@ class _PostProfileState extends State<PostProfile> {
                               type: "post",
                               file: null,
                               height: mediaUrlHeight,
+                              width: mediaUrlWidth,
                             ),
                           )
                         : buildPostImage(),

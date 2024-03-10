@@ -2,8 +2,8 @@
 import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:ffmpeg_kit_flutter/ffmpeg_kit.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter_ffmpeg/flutter_ffmpeg.dart';
 import 'package:image_size_getter/file_input.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -47,7 +47,6 @@ class _UploadState extends State<Upload>
   late String otherUserToken;
   String type = "text";
   late VideoPlayerController _controller;
-  final FlutterFFmpeg _flutterFFmpeg = FlutterFFmpeg();
 
   @override
   void initState() {
@@ -117,7 +116,12 @@ class _UploadState extends State<Upload>
     XFile? xfile;
     String croppedPath = "";
     final ImagePicker _imagePicker = ImagePicker();
-    xfile = await _imagePicker.pickVideo(source: ImageSource.camera);
+    xfile = await _imagePicker.pickVideo(
+      source: ImageSource.camera,
+      maxDuration: Duration(
+        seconds: 10,
+      ),
+    );
 
     if (xfile != null) {
       setState(() {
@@ -140,29 +144,69 @@ class _UploadState extends State<Upload>
     await handleChooseFromGallery();
   }
 
+  showModalVideoTooLong(parentContext) {
+    return showDialog(
+      context: parentContext,
+      builder: (context) {
+        return SimpleDialog(
+          title: Center(
+            child: Text(
+              AppLocalizations.of(context)!.video_too_long,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.primaryContainer,
+              ),
+            ),
+          ),
+          children: [
+            SimpleDialogOption(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: Text(
+                AppLocalizations.of(context)!.go_back_upload,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onBackground,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   handleChooseFromGallery() async {
     Navigator.pop(context);
     ImagePicker _imagePicker = ImagePicker();
+    setState(() {
+      mediaIsLoading = true;
+    });
     XFile? xfile = (await _imagePicker.pickMedia(
       maxHeight: 675.0,
       maxWidth: 960,
     ));
     if (xfile != null) {
-      setState(() {
-        mediaIsLoading = true;
-      });
       String extension = xfile.path.split('.').last.toLowerCase();
       if (extension == 'mp4' || extension == 'mov' || extension == 'MOV') {
         _controller = VideoPlayerController.file(File(xfile.path));
         await _controller.initialize();
 
-        String croppedPath = await cropVideo(File(xfile.path));
+        if (_controller.value.duration.inSeconds > 10) {
+          showModalVideoTooLong(context);
+          setState(() {
+            mediaIsLoading = false;
+          });
+        } else {
+          String croppedPath = await cropVideo(File(xfile.path));
 
-        setState(() {
-          type = "video";
-          file = File(croppedPath);
-          mediaIsLoading = false;
-        });
+          setState(() {
+            type = "video";
+            file = File(croppedPath);
+            mediaIsLoading = false;
+          });
+        }
       } else {
         File compressImageFile = await compressImage(File(xfile.path));
         setState(() {
@@ -189,6 +233,7 @@ class _UploadState extends State<Upload>
             type: "upload",
             file: file,
             height: _controller.value.size.height.round(),
+            width: _controller.value.size.width.round(),
           ),
         ),
         Padding(
@@ -274,7 +319,7 @@ class _UploadState extends State<Upload>
   Future<String> cropVideo(File file) async {
     String outputPath = getOutputPath(file.path);
 
-    final int maxHeight = 1500;
+    final int maxHeight = 1440;
 
     try {
       final int originalWidth = _controller.value.size.width.round();
@@ -287,7 +332,7 @@ class _UploadState extends State<Upload>
       final String command =
           '-i ${file.path} -vf crop=$originalWidth:$cropHeight:0:$topPadding -c:a copy $outputPath';
 
-      await _flutterFFmpeg.execute(command);
+      await FFmpegKit.execute(command);
       return outputPath;
     } catch (e) {
       print("Cropped video failed : $e");
@@ -499,9 +544,13 @@ class _UploadState extends State<Upload>
         getOrderedMentionsMap(mentionsMap, caption);
 
     if (type == "video") {
+      int heightVideo = _controller.value.size.height.round() > 1440
+          ? 1440
+          : _controller.value.size.height.round();
+
       size = Size(
         _controller.value.size.width.round(),
-        _controller.value.size.height.round(),
+        heightVideo,
       );
     }
 
