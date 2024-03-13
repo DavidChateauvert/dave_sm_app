@@ -15,6 +15,7 @@ import 'package:sm_app/api/firebase_api.dart';
 import 'package:sm_app/pages/home.dart';
 import 'package:sm_app/widgets/playVideo.dart';
 import 'package:sm_app/widgets/progress.dart';
+import 'package:status_alert/status_alert.dart';
 import 'package:uuid/uuid.dart';
 import 'package:sm_app/models/user.dart';
 import 'package:flutter_mentions/flutter_mentions.dart';
@@ -516,10 +517,15 @@ class _UploadState extends State<Upload>
 
     for (int i = 0; i < words.length; i++) {
       if (words[i].startsWith('@')) {
-        String mentionKey = words[i].substring(1) + " " + words[i + 1];
+        String mentionKey;
+        if (words[i] != "All" && words[i] != "Tous") {
+          mentionKey = words[i].substring(1) + " " + words[i + 1];
+        } else {
+          mentionKey = words[i].substring(1).trim();
+        }
 
         for (MapEntry<String, String> entry in mentionsMap.entries) {
-          if (mentionKey == entry.value) {
+          if (mentionKey.trim() == entry.value) {
             orderedMentionsMap[entry.key] = entry.value;
             break;
           }
@@ -574,19 +580,41 @@ class _UploadState extends State<Upload>
       "type": type,
     });
 
-    for (var mention in mentionsMapFiltered.entries) {
-      activityFeedRef.doc(mention.key).collection("feedItems").add({
-        "type": "mention",
-        "username": currentUser.displayName,
-        "userId": currentUser.id,
-        "userProfileImg": currentUser.photoUrl,
-        "postId": postId,
-        "seen": false,
-        // "mediaUrl": mediaUrl,
-        "timestamp": DateTime.now(),
+    if (mentionsMap.containsKey("all")) {
+      Map<String, String> mentionsMapAllFriends =
+          mentionsDataInit.fold({}, (map, mention) {
+        map[mention['id']!] = mention['display']!;
+        return map;
       });
-      FirebaseApi().sendMentionsNotification(
-          mention.key, currentUser.displayName, postId);
+      for (var mention in mentionsMapAllFriends.entries) {
+        activityFeedRef.doc(mention.key).collection("feedItems").add({
+          "type": "mention",
+          "username": currentUser.displayName,
+          "userId": currentUser.id,
+          "userProfileImg": currentUser.photoUrl,
+          "postId": postId,
+          "seen": false,
+          // "mediaUrl": mediaUrl,
+          "timestamp": DateTime.now(),
+        });
+        FirebaseApi().sendMentionsNotification(
+            context, mention.key, currentUser.displayName, postId);
+      }
+    } else {
+      for (var mention in mentionsMapFiltered.entries) {
+        activityFeedRef.doc(mention.key).collection("feedItems").add({
+          "type": "mention",
+          "username": currentUser.displayName,
+          "userId": currentUser.id,
+          "userProfileImg": currentUser.photoUrl,
+          "postId": postId,
+          "seen": false,
+          // "mediaUrl": mediaUrl,
+          "timestamp": DateTime.now(),
+        });
+        FirebaseApi().sendMentionsNotification(
+            context, mention.key, currentUser.displayName, postId);
+      }
     }
   }
 
@@ -646,10 +674,17 @@ class _UploadState extends State<Upload>
         postId = Uuid().v4();
         type = "text";
       });
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text("Post Successfully Created")));
+
       _mentionsKey.currentState!.controller!.clear();
       mentionsDataAdded.clear();
+      StatusAlert.show(
+        context,
+        duration: Duration(seconds: 2),
+        subtitle: AppLocalizations.of(context)!.post_success,
+        configuration: IconConfiguration(icon: Icons.done),
+        maxWidth: 260,
+        backgroundColor: Theme.of(context).colorScheme.secondary,
+      );
     }
   }
 
@@ -667,6 +702,9 @@ class _UploadState extends State<Upload>
         .where(
             (user) => user['display']!.toLowerCase().contains(lowercasedQuery))
         .toList();
+
+    filteredData.insert(
+        0, {'id': 'all', 'display': AppLocalizations.of(context)!.all_friends});
 
     setState(() {
       mentionsData = filteredData;

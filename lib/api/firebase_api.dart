@@ -1,8 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:sm_app/pages/home.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+
+import 'package:sm_app/providers/locale_provider.dart';
 
 class FirebaseApi {
   final _firebaseMessaging = FirebaseMessaging.instance;
@@ -69,9 +73,39 @@ class FirebaseApi {
     }
   }
 
-  sendMessageNotification(
-      String otherUserId, String message, String senderName) async {
+  Future<Locale?> getLocale(BuildContext context, String receiverId) async {
+    try {
+      DocumentSnapshot doc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(receiverId)
+          .get();
+      if (doc.exists) {
+        Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+        String receiverLocale = data['locale'];
+        return Provider.of<LocaleProvider>(context, listen: false)
+            .getLocaleFromString(receiverLocale);
+      } else {
+        print("Document not found.");
+        return Locale('en');
+      }
+    } catch (error) {
+      print("Error getting document: $error");
+      return Locale('en');
+    }
+  }
+
+  sendMessageNotification(BuildContext context, String otherUserId,
+      String message, String senderName) async {
     String userTokens = await FirebaseApi().getToken(otherUserId) ?? "";
+    Locale userLocale =
+        await FirebaseApi().getLocale(context, otherUserId) ?? Locale('en');
+    String textNotification;
+    if (userLocale == Locale('en')) {
+      textNotification = message != "" ? message : "Sent you a photo";
+    } else {
+      textNotification = message != "" ? message : "Vous a envoyé une photo";
+    }
+
     try {
       await http.post(Uri.parse('https://fcm.googleapis.com/fcm/send'),
           headers: <String, String>{
@@ -91,7 +125,7 @@ class FirebaseApi {
             },
             "notification": <String, dynamic>{
               "title": "$senderName",
-              "body": message != "" ? message : "Sent you a photo",
+              "body": textNotification,
             },
             "category": "message",
             "content_available": true,
@@ -102,9 +136,17 @@ class FirebaseApi {
     }
   }
 
-  sendMentionsNotification(
-      String otherUserId, String senderName, String postId) async {
+  sendMentionsNotification(BuildContext context, String otherUserId,
+      String senderName, String postId) async {
     String userTokens = await FirebaseApi().getToken(otherUserId) ?? "";
+    Locale userLocale =
+        await FirebaseApi().getLocale(context, otherUserId) ?? Locale('en');
+    String textNotification;
+    if (userLocale == Locale('en')) {
+      textNotification = "$senderName has identified you in a post";
+    } else {
+      textNotification = "$senderName vous a identifié dans une publication";
+    }
 
     try {
       await http.post(Uri.parse('https://fcm.googleapis.com/fcm/send'),
@@ -126,7 +168,7 @@ class FirebaseApi {
             },
             "notification": <String, dynamic>{
               "title": "Dave",
-              "body": "$senderName vous a identifié dans un post",
+              "body": textNotification,
             },
             "content_available": true,
             "to": userTokens,
@@ -136,8 +178,17 @@ class FirebaseApi {
     }
   }
 
-  sendFriendRequestNotification(String otherUserId, String senderName) async {
+  sendFriendRequestNotification(
+      BuildContext context, String otherUserId, String senderName) async {
     String userTokens = await FirebaseApi().getToken(otherUserId) ?? "";
+    Locale userLocale =
+        await FirebaseApi().getLocale(context, otherUserId) ?? Locale('en');
+    String textNotification;
+    if (userLocale == Locale('en')) {
+      textNotification = "$senderName has sent you a friend request";
+    } else {
+      textNotification = "$senderName vous a envoyé une demande d'ami";
+    }
 
     try {
       await http.post(Uri.parse('https://fcm.googleapis.com/fcm/send'),
@@ -158,7 +209,7 @@ class FirebaseApi {
             },
             "notification": <String, dynamic>{
               "title": "Dave",
-              "body": "$senderName has sent you a friend request",
+              "body": textNotification,
             },
             "content_available": true,
             "to": userTokens,
@@ -168,8 +219,17 @@ class FirebaseApi {
     }
   }
 
-  sendAcceptRequestNotification(String otherUserId, String senderName) async {
+  sendAcceptRequestNotification(
+      BuildContext context, String otherUserId, String senderName) async {
     String userTokens = await FirebaseApi().getToken(otherUserId) ?? "";
+    Locale userLocale =
+        await FirebaseApi().getLocale(context, otherUserId) ?? Locale('en');
+    String textNotification;
+    if (userLocale == Locale('en')) {
+      textNotification = "$senderName has accepted your friend request";
+    } else {
+      textNotification = "$senderName a accepté votre demande d'ami";
+    }
 
     try {
       await http.post(Uri.parse('https://fcm.googleapis.com/fcm/send'),
@@ -190,7 +250,7 @@ class FirebaseApi {
             },
             "notification": <String, dynamic>{
               "title": "Dave",
-              "body": "$senderName has accepted your friend request",
+              "body": textNotification,
             },
             "content_available": true,
             "to": userTokens,
@@ -200,9 +260,17 @@ class FirebaseApi {
     }
   }
 
-  sendLikeNotification(
-      String otherUserId, String senderName, String postId) async {
+  sendLikeNotification(BuildContext context, String otherUserId,
+      String senderName, String postId) async {
     String userTokens = await FirebaseApi().getToken(otherUserId) ?? "";
+    Locale userLocale =
+        await FirebaseApi().getLocale(context, otherUserId) ?? Locale('en');
+    String textNotification;
+    if (userLocale == Locale('en')) {
+      textNotification = "$senderName has liked your post";
+    } else {
+      textNotification = "$senderName a aimé votre publication";
+    }
 
     try {
       await http.post(Uri.parse('https://fcm.googleapis.com/fcm/send'),
@@ -224,7 +292,7 @@ class FirebaseApi {
             },
             "notification": <String, dynamic>{
               "title": "Dave",
-              "body": "$senderName has liked your post",
+              "body": textNotification,
             },
             "content_available": true,
             "to": userTokens,
@@ -234,9 +302,17 @@ class FirebaseApi {
     }
   }
 
-  sendCommentLikeNotification(String otherUserId, String senderName,
-      String postId, String comment) async {
+  sendCommentLikeNotification(BuildContext context, String otherUserId,
+      String senderName, String postId, String comment) async {
     String userTokens = await FirebaseApi().getToken(otherUserId) ?? "";
+    Locale userLocale =
+        await FirebaseApi().getLocale(context, otherUserId) ?? Locale('en');
+    String textNotification;
+    if (userLocale == Locale('en')) {
+      textNotification = "$senderName has liked your comment : $comment";
+    } else {
+      textNotification = "$senderName a aimé votre commentaire : $comment";
+    }
 
     try {
       await http.post(Uri.parse('https://fcm.googleapis.com/fcm/send'),
@@ -258,7 +334,7 @@ class FirebaseApi {
             },
             "notification": <String, dynamic>{
               "title": "Dave",
-              "body": "$senderName has liked your comment : $comment",
+              "body": textNotification,
             },
             "content_available": true,
             "to": userTokens,
@@ -268,9 +344,17 @@ class FirebaseApi {
     }
   }
 
-  sendCommentNotification(String otherUserId, String senderName, String postId,
-      String comment) async {
+  sendCommentNotification(BuildContext context, String otherUserId,
+      String senderName, String postId, String comment) async {
     String userTokens = await FirebaseApi().getToken(otherUserId) ?? "";
+    Locale userLocale =
+        await FirebaseApi().getLocale(context, otherUserId) ?? Locale('en');
+    String textNotification;
+    if (userLocale == Locale('en')) {
+      textNotification = "$senderName has commented your post : $comment";
+    } else {
+      textNotification = "$senderName a commenté votre publication : $comment";
+    }
 
     try {
       await http.post(Uri.parse('https://fcm.googleapis.com/fcm/send'),
@@ -292,7 +376,7 @@ class FirebaseApi {
             },
             "notification": <String, dynamic>{
               "title": "Dave",
-              "body": "$senderName has commented your post : $comment",
+              "body": textNotification,
             },
             "content_available": true,
             "to": userTokens,

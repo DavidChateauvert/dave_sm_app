@@ -139,9 +139,9 @@ class MessageScreeState extends State<MessageScreen> {
 
   String determineNotificationMessage(String messageTrim, File? file) {
     if (messageTrim.isNotEmpty && file != null) {
-      return "With a photo : $messageTrim";
+      return AppLocalizations.of(context)!.message_with_photo(messageTrim);
     } else if (messageTrim.isEmpty && file != null) {
-      return "Sent a photo";
+      return AppLocalizations.of(context)!.message_only_photo;
     } else {
       return messageTrim;
     }
@@ -205,8 +205,8 @@ class MessageScreeState extends State<MessageScreen> {
       });
 
       await addNotificationMessageFeed();
-      FirebaseApi().sendMessageNotification(
-          widget.otherUserId, notificationMessage, currentUser.displayName);
+      FirebaseApi().sendMessageNotification(context, widget.otherUserId,
+          notificationMessage, currentUser.displayName);
     }
 
     messageController.clear();

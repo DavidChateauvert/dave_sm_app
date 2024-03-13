@@ -66,93 +66,94 @@ class _PlayVideoState extends State<PlayVideo> {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder(
-      future: _initializeVideoPlayerFuture,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.done) {
-          return Stack(
-            alignment: Alignment.center,
-            children: [
-              AspectRatio(
-                aspectRatio: _controller.value.aspectRatio,
-                child: VideoPlayer(_controller),
-              ),
-              Positioned(
-                bottom: 0,
-                left: 0,
-                right: 0,
-                child: VideoProgressIndicator(
-                  _controller,
-                  allowScrubbing: false,
-                  colors: VideoProgressColors(
-                    playedColor: Theme.of(context).colorScheme.secondary,
-                    bufferedColor: Colors.grey,
-                    backgroundColor: Colors.transparent,
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(8.0),
+      child: Container(
+        width: MediaQuery.of(context).size.width,
+        child: FutureBuilder(
+          future: _initializeVideoPlayerFuture,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.done) {
+              return Stack(
+                alignment: Alignment.center,
+                children: [
+                  AspectRatio(
+                    aspectRatio: _controller.value.aspectRatio,
+                    child: VideoPlayer(_controller),
                   ),
-                ),
-              ),
-              Positioned.fill(
-                child: TextButton(
-                  onPressed: () {
-                    setState(() {
-                      if (_controller.value.isPlaying) {
-                        _controller.pause();
-                      } else {
-                        _controller.play();
-                      }
-                    });
-                  },
-                  child: Icon(
-                    _controller.value.isPlaying
-                        ? null
-                        : CupertinoIcons.play_fill,
-                    color: Theme.of(context).colorScheme.secondary,
-                    size: 70.0,
+                  Positioned(
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    child: VideoProgressIndicator(
+                      _controller,
+                      allowScrubbing: false,
+                      colors: VideoProgressColors(
+                        playedColor: Theme.of(context).colorScheme.secondary,
+                        bufferedColor: Colors.grey,
+                        backgroundColor: Colors.transparent,
+                      ),
+                    ),
                   ),
-                ),
-              ),
-              Positioned(
-                top: 0,
-                right: 0,
-                child: IconButton(
-                  splashColor: Colors.transparent,
-                  highlightColor: Colors.transparent,
-                  icon: Icon(
-                    isPlayingVolume
-                        ? Icons.volume_up_outlined
-                        : Icons.volume_off_outlined,
-                    color: Theme.of(context).colorScheme.secondary,
-                    size: 30.0,
+                  Positioned.fill(
+                    child: TextButton(
+                      onPressed: () {
+                        setState(() {
+                          if (_controller.value.isPlaying) {
+                            _controller.pause();
+                          } else {
+                            _controller.play();
+                          }
+                        });
+                      },
+                      child: Icon(
+                        _controller.value.isPlaying
+                            ? null
+                            : CupertinoIcons.play_fill,
+                        color: Theme.of(context).colorScheme.secondary,
+                        size: 70.0,
+                      ),
+                    ),
                   ),
-                  onPressed: () {
-                    if (isPlayingVolume) {
-                      setState(() {
-                        isPlayingVolume = false;
-                        _controller.setVolume(0.0);
-                      });
-                    } else {
-                      setState(() {
-                        isPlayingVolume = true;
-                        _controller.setVolume(1.0);
-                      });
-                    }
-                  },
-                ),
-              ),
-            ],
-          );
-        } else {
-          return Container(
-            width: MediaQuery.of(context).size.width,
-            child: Center(
-              child: AspectRatio(
+                  Positioned(
+                    top: 0,
+                    right: 0,
+                    child: IconButton(
+                      splashColor: Colors.transparent,
+                      highlightColor: Colors.transparent,
+                      icon: Icon(
+                        isPlayingVolume
+                            ? Icons.volume_up_outlined
+                            : Icons.volume_off_outlined,
+                        color: Theme.of(context).colorScheme.secondary,
+                        size: 30.0,
+                      ),
+                      onPressed: () {
+                        if (isPlayingVolume) {
+                          setState(() {
+                            isPlayingVolume = false;
+                            _controller.setVolume(0.0);
+                          });
+                        } else {
+                          setState(() {
+                            isPlayingVolume = true;
+                            _controller.setVolume(1.0);
+                          });
+                        }
+                      },
+                    ),
+                  ),
+                ],
+              );
+            } else {
+              return AspectRatio(
                 aspectRatio: handleRatio(),
                 child: circularProgress(),
-              ),
-            ),
-          );
-        }
-      },
+              );
+            }
+          },
+        ),
+      ),
     );
   }
 }

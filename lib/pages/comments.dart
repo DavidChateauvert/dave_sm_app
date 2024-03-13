@@ -119,7 +119,7 @@ class CommentsState extends State<Comments> {
 
   sendNotification(String comment) async {
     FirebaseApi().sendCommentNotification(
-        postOwnerId, currentUser.displayName, postId, comment);
+        context, postOwnerId, currentUser.displayName, postId, comment);
   }
 
   @override

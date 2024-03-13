@@ -392,10 +392,10 @@ class _Profile extends State<Profile> {
         "timestamp": DateTime.now(),
       });
       FirebaseApi().sendAcceptRequestNotification(
-          widget.profileId, currentUser.displayName);
+          context, widget.profileId, currentUser.displayName);
     } else {
       FirebaseApi().sendFriendRequestNotification(
-          widget.profileId, currentUser.displayName);
+          context, widget.profileId, currentUser.displayName);
     }
     // ActivityFeed
     activityFeedRef

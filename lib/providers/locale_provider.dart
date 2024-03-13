@@ -41,4 +41,12 @@ class LocaleProvider with ChangeNotifier {
       return "fr";
     }
   }
+
+  Locale getLocaleFromString(String localeString) {
+    if (localeString == "fr") {
+      return Locale('fr');
+    } else {
+      return Locale('en');
+    }
+  }
 }

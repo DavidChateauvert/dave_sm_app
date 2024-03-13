@@ -4,6 +4,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sm_app/api/firebase_api.dart';
+import 'package:sm_app/pages/friends.dart';
 import 'package:sm_app/pages/home.dart';
 import 'package:sm_app/pages/likePost.dart';
 import 'package:sm_app/pages/report_post.dart';
@@ -395,8 +396,8 @@ class _PostState extends State<Post> {
         // "mediaUrl": mediaUrl,
         "timestamp": DateTime.now(),
       });
-      await FirebaseApi()
-          .sendLikeNotification(ownerId, currentUser.displayName, postId);
+      await FirebaseApi().sendLikeNotification(
+          context, ownerId, currentUser.displayName, postId);
     }
   }
 
@@ -423,21 +424,20 @@ class _PostState extends State<Post> {
   buildPostImage() {
     return GestureDetector(
       onDoubleTap: () => handleLikePost(),
-      child: Center(
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(8.0),
         child: Container(
           width: MediaQuery.of(context).size.width,
-          child: Center(
-            child: AspectRatio(
-              aspectRatio: handleRatio(),
-              child: ZoomOverlay(
-                modalBarrierColor: Colors.black12,
-                minScale: 0.8,
-                maxScale: 3.0,
-                animationCurve: Curves.fastOutSlowIn,
-                animationDuration: Duration(milliseconds: 300),
-                twoTouchOnly: true,
-                child: cachedNetworkImage(mediaUrl),
-              ),
+          child: AspectRatio(
+            aspectRatio: handleRatio(),
+            child: ZoomOverlay(
+              modalBarrierColor: Colors.black12,
+              minScale: 0.8,
+              maxScale: 3.0,
+              animationCurve: Curves.fastOutSlowIn,
+              animationDuration: Duration(milliseconds: 300),
+              twoTouchOnly: true,
+              child: cachedNetworkImage(mediaUrl),
             ),
           ),
         ),
@@ -498,7 +498,13 @@ class _PostState extends State<Post> {
 
     for (int i = 0; i < words.length; i++) {
       if (words[i].startsWith('@')) {
-        String mentionKey = words[i].substring(1) + " " + words[i + 1];
+        String mentionKey;
+        if (words[i] != "@All" && words[i] != "@Tous") {
+          mentionKey = words[i].substring(1) + " " + words[i + 1];
+        } else {
+          mentionKey = words[i].substring(1);
+          mentionsList.add('@${mentionKey}');
+        }
 
         mentions.values.forEach((value) {
           if (mentionKey == value) {
@@ -508,6 +514,15 @@ class _PostState extends State<Post> {
       }
     }
     return mentionsList;
+  }
+
+  showFriends(BuildContext context, {required String profileId}) async {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => Friends(profileId: profileId),
+      ),
+    );
   }
 
   Widget buildHighlightedText(String text) {
@@ -579,19 +594,35 @@ class _PostState extends State<Post> {
 
         if (i < segments.length - 1 && mentionsList.isNotEmpty) {
           String mention = mentionsList[i];
-          textSpans.add(
-            TextSpan(
-              recognizer: TapGestureRecognizer()
-                ..onTap = () =>
-                    showProfile(context, profileId: getKeyByValue(mention)),
-              text: mention,
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.secondary,
-                fontWeight: FontWeight.bold,
-                fontSize: 20.0,
+          if (mention == "@all" || mention == "@Tous") {
+            textSpans.add(
+              TextSpan(
+                recognizer: TapGestureRecognizer()
+                  ..onTap =
+                      () => showFriends(context, profileId: widget.ownerId),
+                text: mention,
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.secondary,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 20.0,
+                ),
               ),
-            ),
-          );
+            );
+          } else {
+            textSpans.add(
+              TextSpan(
+                recognizer: TapGestureRecognizer()
+                  ..onTap = () =>
+                      showProfile(context, profileId: getKeyByValue(mention)),
+                text: mention,
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.secondary,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 20.0,
+                ),
+              ),
+            );
+          }
         }
       }
       return RichText(text: TextSpan(children: textSpans));
@@ -639,19 +670,17 @@ class _PostState extends State<Post> {
         mediaUrl == ""
             ? Text("")
             : Row(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
                   Padding(
                     padding: const EdgeInsets.only(bottom: 20.0),
                     child: type == "video"
-                        ? Container(
-                            width: MediaQuery.of(context).size.width,
-                            child: PlayVideo(
-                              videoUrl: mediaUrl,
-                              type: "post",
-                              file: null,
-                              height: mediaUrlHeight,
-                              width: mediaUrlWidth,
-                            ),
+                        ? PlayVideo(
+                            videoUrl: mediaUrl,
+                            type: "post",
+                            file: null,
+                            height: mediaUrlHeight,
+                            width: mediaUrlWidth,
                           )
                         : buildPostImage(),
                   ),

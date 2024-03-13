@@ -156,5 +156,7 @@
     "select_language": "Please select a language",
     "set_up_account": "Set up your account",
     "video_too_long": "Sorry, the maximum duration for videos is 10 seconds",
-    "go_back_upload": "Go back to post"
+    "go_back_upload": "Go back to post",
+    "post_success": "Post Successfully Created",
+    "all_friends": "All"
 }

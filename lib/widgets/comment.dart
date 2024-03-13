@@ -126,7 +126,7 @@ class _CommentState extends State<Comment> {
         // "mediaUrl": mediaUrl,
         "timestamp": DateTime.now(),
       });
-      await FirebaseApi().sendCommentLikeNotification(widget.userId,
+      await FirebaseApi().sendCommentLikeNotification(context, widget.userId,
           currentUser.displayName, widget.commentId, widget.comment);
     }
   }

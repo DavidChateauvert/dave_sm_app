@@ -156,5 +156,7 @@
     "select_language": "Veuillez choisir une langue",
     "set_up_account": "Configurer votre profil",
     "video_too_long": "Désolé, la durée maximal pour les vidéos est de 10 secondes",
-    "go_back_upload": "Retourner à la publication"
+    "go_back_upload": "Retourner à la publication",
+    "post_success": "Publication créée avec succès",
+    "all_friends": "Tous"
 }
