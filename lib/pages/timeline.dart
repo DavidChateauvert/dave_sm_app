@@ -13,24 +13,34 @@ final usersRef = FirebaseFirestore.instance.collection('users');
 
 class Timeline extends StatefulWidget {
   final User currentUser;
+  final GlobalKey<TimelineState> key;
 
-  Timeline({required this.currentUser});
+  Timeline({required this.key, required this.currentUser});
 
   @override
-  _TimelineState createState() => _TimelineState();
+  TimelineState createState() => TimelineState();
 }
 
-class _TimelineState extends State<Timeline> {
+class TimelineState extends State<Timeline> {
   List<Post> posts = [];
   List<String> followingList = [];
   Key _listKey = UniqueKey();
   bool timelineIsEmpty = false;
+  ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
     getTimeline();
     getFollowing();
+  }
+
+  getToTop() {
+    _scrollController.animateTo(
+      0.0,
+      duration: Duration(milliseconds: 500),
+      curve: Curves.easeInOut,
+    );
   }
 
   getTimeline() async {
@@ -67,23 +77,16 @@ class _TimelineState extends State<Timeline> {
 
   buildTimeline(context) {
     if (!timelineIsEmpty) {
-      return NotificationListener<ScrollNotification>(
-        onNotification: (ScrollNotification scrollInfo) {
-          if (scrollInfo.metrics.pixels == scrollInfo.metrics.maxScrollExtent) {
-            // Load more data or handle the end of the list
-            return true;
-          }
-          return false;
-        },
-        child: RefreshIndicator.adaptive(
-          onRefresh: () => getTimeline(),
-          child: ListView.builder(
-            key: _listKey,
-            itemCount: posts.length,
-            itemBuilder: (BuildContext context, int index) {
-              return posts[index];
-            },
-          ),
+      return RefreshIndicator.adaptive(
+        onRefresh: () => getTimeline(),
+        child: ListView.builder(
+          key: _listKey,
+          controller: _scrollController,
+          physics: AlwaysScrollableScrollPhysics(),
+          itemCount: posts.length,
+          itemBuilder: (BuildContext context, int index) {
+            return posts[index];
+          },
         ),
       );
     } else {
@@ -214,10 +217,7 @@ class _TimelineState extends State<Timeline> {
   Widget build(context) {
     return Scaffold(
       appBar: header(context), //, showPostCounter: true
-      body: RefreshIndicator.adaptive(
-        onRefresh: () => getTimeline(),
-        child: buildTimeline(context),
-      ),
+      body: buildTimeline(context),
     );
   }
 }

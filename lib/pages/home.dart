@@ -51,6 +51,7 @@ class _HomeState extends State<Home> {
       PageController(initialPage: 0, keepPage: false);
   int pageIndex = 0;
   bool isCreatingUser = false;
+  GlobalKey<TimelineState> timelineKey = GlobalKey<TimelineState>();
 
   @override
   void initState() {
@@ -321,6 +322,9 @@ class _HomeState extends State<Home> {
   }
 
   onTap(int pageIndex) {
+    if (this.pageIndex == 0 && pageIndex == 0) {
+      timelineKey.currentState!.getToTop();
+    }
     pageController.jumpToPage(pageIndex);
   }
 
@@ -331,7 +335,7 @@ class _HomeState extends State<Home> {
         onPageChanged: onPageChanged,
         physics: NeverScrollableScrollPhysics(),
         children: <Widget>[
-          Timeline(currentUser: currentUser),
+          Timeline(key: timelineKey, currentUser: currentUser),
           Search(),
           Upload(currentUser: currentUser),
           Profile(profileId: currentUser.id),
