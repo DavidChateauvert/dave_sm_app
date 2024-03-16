@@ -1,3 +1,4 @@
+import 'package:age_calculator/age_calculator.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -34,8 +35,6 @@ class _ProfileHeader extends State<ProfileHeader> {
   int followingCount = 0;
   int friendsCount = 0;
   late User user;
-
-  bool get wantKeepAlive => true;
 
   @override
   void initState() {
@@ -378,128 +377,71 @@ class _ProfileHeader extends State<ProfileHeader> {
     });
   }
 
-  buildProfileHeader() {
-    return FutureBuilder(
-      future: usersRef.doc(widget.profileId).get(),
-      builder: (context, snapshot) {
-        if (!snapshot.hasData) {
-          return linearProgress();
-        }
-        user = User.fromDocument(snapshot.data as DocumentSnapshot<Object?>);
-        return Padding(
-          padding: EdgeInsets.all(16.0),
-          child: Column(
-            children: <Widget>[
-              const SizedBox(
-                height: 24,
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  GestureDetector(
-                    onTap: user.photoUrl.isEmpty
-                        ? null
-                        : () => Navigator.of(context).push(
-                              _createRoute(
-                                user.photoUrl,
-                                1,
-                                "profile",
-                              ),
-                            ),
+  String buildGender(String genderFromFirestore) {
+    if (Provider.of<LocaleProvider>(context, listen: false).locale ==
+        Locale('fr')) {
+      switch (genderFromFirestore) {
+        case ("men"):
+          return "Homme";
+        case ("women"):
+          return "Femme";
+        default:
+          return genderFromFirestore;
+      }
+    } else {
+      switch (genderFromFirestore) {
+        case ("men"):
+          return "Men";
+        case ("women"):
+          return "Women";
+        default:
+          return genderFromFirestore;
+      }
+    }
+  }
 
-                    // Navigator.push(
-                    //       context,
-                    //       MaterialPageRoute(
-                    //         builder: (context) => Photo(
-                    //           photoUrl: user.photoUrl,
-                    //           aspectRatio: 1,
-                    //           type: "profile",
-                    //         ),
-                    //       ),
-                    //     ),
-                    child: Hero(
-                      tag: user.photoUrl,
-                      child: CircleAvatar(
-                        radius: 55.0,
-                        backgroundColor: Colors.grey,
-                        backgroundImage: user.photoUrl.isEmpty
-                            ? null
-                            : CachedNetworkImageProvider(user.photoUrl),
-                      ),
-                    ),
-                  ),
-                ],
+  buildAgeAndGender() {
+    return Container(
+      child: (user.dateOfBirth != null && user.gender != "")
+          ? Container(
+              alignment: Alignment.center,
+              child: Text(
+                AppLocalizations.of(context)!.profile_age_gender(
+                    AgeCalculator.age(user.dateOfBirth!.toDate()).years,
+                    buildGender(user.gender)),
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16.0,
+                ),
               ),
-              const SizedBox(
-                height: 24,
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    user.displayName,
+            )
+          : (user.dateOfBirth != null && user.gender == "")
+              ? Container(
+                  alignment: Alignment.center,
+                  child: Text(
+                    AppLocalizations.of(context)!.profile_age_only(
+                        AgeCalculator.age(user.dateOfBirth!.toDate()).years),
+                    textAlign: TextAlign.center,
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      fontSize: 24.0,
+                      fontSize: 16.0,
                     ),
                   ),
-                  SizedBox(width: 4.0),
-                  user.verified
-                      ? Icon(
-                          Icons.verified_sharp,
-                          color: Theme.of(context).colorScheme.primary,
-                          size: 24.0,
-                        )
-                      : Text(""),
-                ],
-              ),
-              user.bio != "" ? const SizedBox(height: 24.0) : Container(),
-              user.bio != ""
+                )
+              : (user.gender != "")
                   ? Container(
                       alignment: Alignment.center,
                       child: Text(
-                        user.bio,
+                        buildGender(user.gender),
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                          fontWeight: FontWeight.normal,
-                          fontSize: 18.0,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16.0,
                         ),
                       ),
                     )
                   : Container(),
-              const SizedBox(height: 24.0),
-              Container(
-                alignment: Alignment.center,
-                child: Text(
-                  AppLocalizations.of(context)!
-                      .joined_at(formatTimestamp(context, user.timestamp)),
-                  // 'Joined Dave on ${formatTimestamp(user.joinedAt)}',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16.0,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 24.0),
-              Row(
-                mainAxisSize: MainAxisSize.max,
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: <Widget>[
-                  buildCountColumn(
-                      AppLocalizations.of(context)!.posts, user.postsCount),
-                  buildCountColumn(
-                      AppLocalizations.of(context)!.friends, friendsCount),
-                ],
-              ),
-              const SizedBox(height: 24.0),
-              buildProfileButton(),
-              const SizedBox(height: 24.0),
-              isFriend ? buildMessageButton() : Container(),
-            ],
-          ),
-        );
-      },
     );
   }
 
@@ -579,6 +521,7 @@ class _ProfileHeader extends State<ProfileHeader> {
                       : Text(""),
                 ],
               ),
+              buildAgeAndGender(),
               user.bio != "" ? const SizedBox(height: 24.0) : Container(),
               user.bio != ""
                   ? Container(

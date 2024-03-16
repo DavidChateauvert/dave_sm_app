@@ -17,6 +17,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.3.16"
+  age_calculator:
+    dependency: "direct main"
+    description:
+      name: age_calculator
+      sha256: "00190836e4e0ab9d11a60675a7109b36e5771bdfd4d24d7c55012d8370ecccba"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.0"
   analyzer:
     dependency: transitive
     description:
@@ -25,14 +33,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "5.13.0"
-  animator:
-    dependency: "direct main"
-    description:
-      name: animator
-      sha256: b443e888b72b77a96d1e57a2190e42a0d46948e942fcfd7aed9c47dde2f446c6
-      url: "https://pub.dev"
-    source: hosted
-    version: "3.3.0"
   archive:
     dependency: transitive
     description:
@@ -281,30 +281,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.9.3+1"
-  firebase_analytics:
-    dependency: "direct main"
-    description:
-      name: firebase_analytics
-      sha256: "0240076090d77045d757aecb090616066d23b343840d4c21074094d6fe40a184"
-      url: "https://pub.dev"
-    source: hosted
-    version: "10.8.0"
-  firebase_analytics_platform_interface:
-    dependency: transitive
-    description:
-      name: firebase_analytics_platform_interface
-      sha256: "6d9baa077d16b47ef5f19d982c4fc475597991aa53b0c601216faa3e1cdab45f"
-      url: "https://pub.dev"
-    source: hosted
-    version: "3.9.0"
-  firebase_analytics_web:
-    dependency: transitive
-    description:
-      name: firebase_analytics_web
-      sha256: "89a740249bce9d52a99db4e501be6087ca6749c73c47cff2b174802be10abd81"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.5.5+12"
   firebase_auth:
     dependency: "direct main"
     description:
@@ -492,7 +468,7 @@ packages:
     source: hosted
     version: "2.0.17"
   flutter_portal:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: flutter_portal
       sha256: "0e3f9428dbe9f5253b0e65cdc5ce4fa65a1d8cd6ec2a3f3770b46785aa3c57fd"
@@ -541,54 +517,6 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
-  geolocator:
-    dependency: "direct main"
-    description:
-      name: geolocator
-      sha256: "5c23f3613f50586c0bbb2b8f970240ae66b3bd992088cf60dd5ee2e6f7dde3a8"
-      url: "https://pub.dev"
-    source: hosted
-    version: "9.0.2"
-  geolocator_android:
-    dependency: transitive
-    description:
-      name: geolocator_android
-      sha256: "93906636752ea4d4e778afa981fdfe7409f545b3147046300df194330044d349"
-      url: "https://pub.dev"
-    source: hosted
-    version: "4.3.1"
-  geolocator_apple:
-    dependency: transitive
-    description:
-      name: geolocator_apple
-      sha256: "2f2d4ee16c4df269e93c0e382be075cc01d5db6703c3196e4af20a634fe49ef4"
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.3.6"
-  geolocator_platform_interface:
-    dependency: transitive
-    description:
-      name: geolocator_platform_interface
-      sha256: "009a21c4bc2761e58dccf07c24f219adaebe0ff707abdfd40b0a763d4003fab9"
-      url: "https://pub.dev"
-    source: hosted
-    version: "4.2.2"
-  geolocator_web:
-    dependency: transitive
-    description:
-      name: geolocator_web
-      sha256: "102e7da05b48ca6bf0a5bda0010f886b171d1a08059f01bfe02addd0175ebece"
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.2.1"
-  geolocator_windows:
-    dependency: transitive
-    description:
-      name: geolocator_windows
-      sha256: "4f4218f122a6978d0ad655fa3541eea74c67417440b09f0657238810d5af6bdc"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.1.3"
   glob:
     dependency: transitive
     description:
@@ -678,7 +606,7 @@ packages:
     source: hosted
     version: "4.0.2"
   image:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: image
       sha256: "4c68bfd5ae83e700b5204c1e74451e7bf3cf750e6843c6e158289cf56bda018e"
@@ -757,14 +685,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.2"
-  image_size_getter_http_input:
-    dependency: "direct main"
-    description:
-      name: image_size_getter_http_input
-      sha256: "18a27b6c1021955579cb32ef5b78a1103949fcbd36482076e788e43ab7f8ef65"
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.0.0"
   intl:
     dependency: "direct main"
     description:
@@ -821,14 +741,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.4"
-  navigation_builder:
-    dependency: transitive
-    description:
-      name: navigation_builder
-      sha256: d1b145dde5869849613d9b93ecd8f5a3ae929471ef81d1ba017f476b70bd7c39
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.0.4"
   nested:
     dependency: transitive
     description:
@@ -925,14 +837,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "5.4.0"
-  photo_view:
-    dependency: "direct main"
-    description:
-      name: photo_view
-      sha256: "8036802a00bae2a78fc197af8a158e3e2f7b500561ed23b4c458107685e645bb"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.14.0"
   pigeon:
     dependency: transitive
     description:
@@ -982,7 +886,7 @@ packages:
     source: hosted
     version: "2.1.4"
   rxdart:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: rxdart
       sha256: "0c7c0cedd93788d996e33041ffecda924cc54389199cde4e6a34b440f50044cb"
@@ -1026,14 +930,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.11.0"
-  states_rebuilder:
-    dependency: transitive
-    description:
-      name: states_rebuilder
-      sha256: f760498bb7adbe12d0d6da67f23c07e6c41de6261052ba8794356222fe27ddf3
-      url: "https://pub.dev"
-    source: hosted
-    version: "6.4.0"
   status_alert:
     dependency: "direct main"
     description:
@@ -1082,14 +978,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.6.0"
-  textfield_tags:
-    dependency: "direct main"
-    description:
-      name: textfield_tags
-      sha256: c1d215f481e7e8da5c79719825e595db4f829bf1ad3fce4c7ce43d340aa72683
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.0.2"
   timeago:
     dependency: "direct main"
     description:

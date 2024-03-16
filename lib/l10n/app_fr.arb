@@ -64,7 +64,7 @@
     "last_name_too_long": "Nom de famille est trop Long",
     "update_bio": "Modifier votre bio",
     "bio_too_long": "Bio est trop long",
-    "profile_updated": "Profil modifié avec succès !",
+    "profile_updated": "Profil modifié avec succès!",
     "photo_with_camera": "Photo avec camera",
     "video_with_camera": "Vidéo avec camera",
     "photo_or_video_with_camera": "Photo ou vidéo depuis la gallerie",
@@ -165,8 +165,27 @@
     "no_date_of_birth": "No date",
     "women_gender": "Femme",
     "men_gender": "Homme",
-    "other": "Other",
+    "other": "Autre",
     "specified_gender": "Spécifier :",
     "specified_gender_controller": "Spécifier un genre",
-    "gender": "Gender"
+    "gender": "Gender",
+    "profile_age_gender": "{gender} de {age} ans",
+    "@profile_age_gender": {
+        "placeholders": {
+            "age": {
+                "type": "int"
+            },
+            "gender": {
+                "type": "String"
+            }
+        }
+    },
+    "profile_age_only": "{age} ans",
+    "@profile_age_only": {
+        "placeholders": {
+            "age": {
+                "type": "int"
+            }
+        }
+    }
 }

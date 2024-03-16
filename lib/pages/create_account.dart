@@ -17,8 +17,10 @@ import 'package:sm_app/providers/locale_provider.dart';
 import 'package:sm_app/providers/theme_provider.dart';
 import 'package:sm_app/widgets/header.dart';
 import 'package:image/image.dart' as Im;
+import 'package:sm_app/widgets/profileHeader.dart';
 import 'package:sm_app/widgets/progress.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:status_alert/status_alert.dart';
 
 class CreateAccount extends StatefulWidget {
   final String userId;
@@ -29,6 +31,8 @@ class CreateAccount extends StatefulWidget {
   _CreateAccountState createState() => _CreateAccountState();
 }
 
+List<String> genderOptions = ["women", "men", "", "specify"];
+
 class _CreateAccountState extends State<CreateAccount> {
   final _scaffoldKey = GlobalKey<ScaffoldState>();
   final _formKey = GlobalKey<FormState>();
@@ -37,9 +41,11 @@ class _CreateAccountState extends State<CreateAccount> {
   late String lastName;
   late String username;
   String sexe = "";
-  Timestamp? dateOfBirth = null;
+  DateTime? newDateOfBirth;
   String photoUrl = "";
   late String bio;
+  String currentGenderOptions = "";
+  TextEditingController genderController = TextEditingController();
 
   submit() {
     final form = _formKey.currentState;
@@ -63,16 +69,22 @@ class _CreateAccountState extends State<CreateAccount> {
         locale: Provider.of<LocaleProvider>(context, listen: false)
             .getLocaleFormatString(),
         postsCount: 0,
-        gender: "",
-        dateOfBirth: dateOfBirth,
+        gender: currentGenderOptions == "specify"
+            ? genderController.text
+            : currentGenderOptions,
+        dateOfBirth:
+            newDateOfBirth == null ? null : Timestamp.fromDate(newDateOfBirth!),
       );
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            content: Text(AppLocalizations.of(context)!
-                .welcomeMessage(user.displayName))),
+      StatusAlert.show(
+        context,
+        duration: Duration(seconds: 2),
+        subtitle:
+            AppLocalizations.of(context)!.welcomeMessage(user.displayName),
+        configuration: IconConfiguration(icon: Icons.done),
+        maxWidth: 260,
+        backgroundColor: Theme.of(context).colorScheme.secondary,
       );
-      Timer(Duration(seconds: 1), () {
+      Future.delayed(Duration(seconds: 1), () {
         Navigator.pop(context, user);
       });
     }
@@ -366,6 +378,199 @@ class _CreateAccountState extends State<CreateAccount> {
     );
   }
 
+  Column buildDateOfBirthField() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Text(
+          AppLocalizations.of(context)!.date_of_birth,
+          style: TextStyle(
+            color: Colors.grey,
+            fontSize: 20.0,
+          ),
+        ),
+        Row(
+          children: [
+            newDateOfBirth == null
+                ? Text(AppLocalizations.of(context)!.no_date_of_birth)
+                : Text(
+                    formatTimestamp(
+                      context,
+                      Timestamp.fromDate(newDateOfBirth!),
+                    ),
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onBackground,
+                      fontSize: 16.0,
+                    ),
+                  ),
+            CupertinoButton(
+              child: Text(
+                newDateOfBirth == null
+                    ? AppLocalizations.of(context)!.pick_date_of_birth
+                    : AppLocalizations.of(context)!.change_date_of_birth,
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.primaryContainer,
+                  fontSize: 14.0,
+                ),
+              ),
+              onPressed: () {
+                showCupertinoModalPopup(
+                  context: context,
+                  builder: (BuildContext context) => Container(
+                    color: Theme.of(context).colorScheme.background,
+                    height: 250,
+                    child: CupertinoDatePicker(
+                      initialDateTime: newDateOfBirth == null
+                          ? DateTime.now()
+                          : newDateOfBirth,
+                      maximumDate: DateTime.now(),
+                      mode: CupertinoDatePickerMode.date,
+                      onDateTimeChanged: (DateTime newTime) {
+                        setState(
+                          () {
+                            newDateOfBirth = newTime;
+                          },
+                        );
+                      },
+                    ),
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Column buildGenderField() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Padding(
+          padding: EdgeInsets.only(top: 12.0),
+          child: Text(
+            AppLocalizations.of(context)!.bio,
+            style: TextStyle(
+              color: Colors.grey,
+              fontSize: 20.0,
+            ),
+          ),
+        ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            TextButton(
+              onPressed: () {
+                setState(() {
+                  currentGenderOptions = genderOptions[0].toString();
+                });
+              },
+              child: Row(
+                children: [
+                  Text(
+                    AppLocalizations.of(context)!.women_gender,
+                  ),
+                  Radio(
+                    value: genderOptions[0],
+                    groupValue: currentGenderOptions,
+                    onChanged: (value) {
+                      setState(() {
+                        currentGenderOptions = value.toString();
+                      });
+                    },
+                  ),
+                ],
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                setState(() {
+                  currentGenderOptions = genderOptions[1].toString();
+                });
+              },
+              child: Row(
+                children: [
+                  Text(
+                    AppLocalizations.of(context)!.men_gender,
+                  ),
+                  Radio(
+                    value: genderOptions[1],
+                    groupValue: currentGenderOptions,
+                    onChanged: (value) {
+                      setState(() {
+                        currentGenderOptions = value.toString();
+                      });
+                    },
+                  ),
+                ],
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                setState(() {
+                  currentGenderOptions = genderOptions[2].toString();
+                });
+              },
+              child: Row(
+                children: [
+                  Text(
+                    AppLocalizations.of(context)!.other,
+                  ),
+                  Radio(
+                    value: genderOptions[2],
+                    groupValue: currentGenderOptions,
+                    onChanged: (value) {
+                      setState(() {
+                        currentGenderOptions = value.toString();
+                      });
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        Row(
+          children: [
+            TextButton(
+              onPressed: () {
+                setState(() {
+                  currentGenderOptions = genderOptions[3].toString();
+                });
+              },
+              child: Row(
+                children: [
+                  Text(
+                    AppLocalizations.of(context)!.specified_gender,
+                  ),
+                  Radio(
+                    value: genderOptions[3],
+                    groupValue: currentGenderOptions,
+                    onChanged: (value) {
+                      setState(() {
+                        currentGenderOptions = value.toString();
+                      });
+                    },
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: TextField(
+                controller: genderController,
+                decoration: InputDecoration(
+                  hintText:
+                      AppLocalizations.of(context)!.specified_gender_controller,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(context) {
     return Scaffold(
@@ -397,6 +602,11 @@ class _CreateAccountState extends State<CreateAccount> {
                       children: [
                         buildFormFirstName(),
                         buildFormLastName(),
+                        const SizedBox(
+                          height: 12.0,
+                        ),
+                        buildDateOfBirthField(),
+                        buildGenderField(),
                         buildFormBio(),
                         buildProfilePicture(),
                       ],

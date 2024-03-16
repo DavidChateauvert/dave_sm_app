@@ -13,6 +13,7 @@ import 'package:sm_app/pages/home.dart';
 import 'package:sm_app/widgets/profileHeader.dart';
 import 'package:sm_app/widgets/progress.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:status_alert/status_alert.dart';
 
 import '../models/user.dart';
 
@@ -25,7 +26,7 @@ class EditProfile extends StatefulWidget {
   _EditProfileState createState() => _EditProfileState();
 }
 
-List<String> genderOptions = ["women", "men", "other", "specify"];
+List<String> genderOptions = ["women", "men", "", "specify"];
 
 class _EditProfileState extends State<EditProfile> {
   final _scaffoldKey = GlobalKey<ScaffoldState>();
@@ -62,9 +63,8 @@ class _EditProfileState extends State<EditProfile> {
     bioController.text = user.bio;
     newPhotoUrl = user.photoUrl;
     currentGenderOptions = user.gender;
-    print("allo");
-    print(currentGenderOptions);
-    if (!['women', 'men', 'other'].contains(currentGenderOptions)) {
+    if (!["women", "men", "other", ""].contains(currentGenderOptions)) {
+      currentGenderOptions = "specify";
       genderController.text = user.gender;
     }
     newDateOfBirth = user.dateOfBirth?.toDate();
@@ -139,7 +139,6 @@ class _EditProfileState extends State<EditProfile> {
   }
 
   Column buildGenderField() {
-    print(currentGenderOptions);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
@@ -293,23 +292,19 @@ class _EditProfileState extends State<EditProfile> {
     );
   }
 
-  Row buildDateOfBirthField() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            Padding(
-              padding: EdgeInsets.symmetric(vertical: 12.0),
-              child: Text(
-                AppLocalizations.of(context)!.date_of_birth,
-                style: TextStyle(
-                  color: Colors.grey,
-                  fontSize: 20.0,
-                ),
-              ),
-            ),
+  Column buildDateOfBirthField() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Text(
+          AppLocalizations.of(context)!.date_of_birth,
+          style: TextStyle(
+            color: Colors.grey,
+            fontSize: 20.0,
+          ),
+        ),
+        Row(
+          children: [
             newDateOfBirth == null
                 ? Text(AppLocalizations.of(context)!.no_date_of_birth)
                 : Text(
@@ -322,40 +317,41 @@ class _EditProfileState extends State<EditProfile> {
                       fontSize: 16.0,
                     ),
                   ),
-          ],
-        ),
-        CupertinoButton(
-          child: Text(
-            newDateOfBirth == null
-                ? AppLocalizations.of(context)!.pick_date_of_birth
-                : AppLocalizations.of(context)!.change_date_of_birth,
-            style: TextStyle(
-              color: Theme.of(context).colorScheme.primaryContainer,
-              fontSize: 14.0,
-            ),
-          ),
-          onPressed: () {
-            showCupertinoModalPopup(
-              context: context,
-              builder: (BuildContext context) => Container(
-                color: Theme.of(context).colorScheme.background,
-                height: 250,
-                child: CupertinoDatePicker(
-                  initialDateTime:
-                      newDateOfBirth == null ? DateTime.now() : newDateOfBirth,
-                  maximumDate: DateTime.now(),
-                  mode: CupertinoDatePickerMode.date,
-                  onDateTimeChanged: (DateTime newTime) {
-                    setState(
-                      () {
-                        newDateOfBirth = newTime;
-                      },
-                    );
-                  },
+            CupertinoButton(
+              child: Text(
+                newDateOfBirth == null
+                    ? AppLocalizations.of(context)!.pick_date_of_birth
+                    : AppLocalizations.of(context)!.change_date_of_birth,
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.primaryContainer,
+                  fontSize: 14.0,
                 ),
               ),
-            );
-          },
+              onPressed: () {
+                showCupertinoModalPopup(
+                  context: context,
+                  builder: (BuildContext context) => Container(
+                    color: Theme.of(context).colorScheme.background,
+                    height: 250,
+                    child: CupertinoDatePicker(
+                      initialDateTime: newDateOfBirth == null
+                          ? DateTime.now()
+                          : newDateOfBirth,
+                      maximumDate: DateTime.now(),
+                      mode: CupertinoDatePickerMode.date,
+                      onDateTimeChanged: (DateTime newTime) {
+                        setState(
+                          () {
+                            newDateOfBirth = newTime;
+                          },
+                        );
+                      },
+                    ),
+                  ),
+                );
+              },
+            ),
+          ],
         ),
       ],
     );
@@ -388,15 +384,18 @@ class _EditProfileState extends State<EditProfile> {
         "bio": bioController.text,
         "photoUrl": newPhotoUrl,
         "dateOfBirth": Timestamp.fromDate(newDateOfBirth!),
-        "sexe": currentGenderOptions == "specify"
+        "gender": currentGenderOptions == "specify"
             ? genderController.text
             : currentGenderOptions,
       });
-      final scaffoldMessenger = ScaffoldMessenger.of(context);
-      final snackBar = SnackBar(
-          content: Text(AppLocalizations.of(context)!.profile_updated));
-      scaffoldMessenger.showSnackBar(snackBar);
-
+      StatusAlert.show(
+        context,
+        duration: Duration(seconds: 2),
+        subtitle: AppLocalizations.of(context)!.profile_updated,
+        configuration: IconConfiguration(icon: Icons.done),
+        maxWidth: 260,
+        backgroundColor: Theme.of(context).colorScheme.secondary,
+      );
       Future.delayed(Duration(seconds: 1), () {
         Navigator.pop(context, user);
       });
@@ -637,6 +636,9 @@ class _EditProfileState extends State<EditProfile> {
                             buildName(),
                             buildFirstNameField(),
                             buildLastNameField(),
+                            const SizedBox(
+                              height: 12.0,
+                            ),
                             buildDateOfBirthField(),
                             buildGenderField(),
                             buildBioField(),
