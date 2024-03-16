@@ -36,6 +36,8 @@ class _CreateAccountState extends State<CreateAccount> {
   late String firstName;
   late String lastName;
   late String username;
+  String sexe = "";
+  Timestamp? dateOfBirth = null;
   String photoUrl = "";
   late String bio;
 
@@ -61,6 +63,8 @@ class _CreateAccountState extends State<CreateAccount> {
         locale: Provider.of<LocaleProvider>(context, listen: false)
             .getLocaleFormatString(),
         postsCount: 0,
+        gender: "",
+        dateOfBirth: dateOfBirth,
       );
 
       ScaffoldMessenger.of(context).showSnackBar(

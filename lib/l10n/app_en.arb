@@ -158,5 +158,15 @@
     "video_too_long": "Sorry, the maximum duration for videos is 10 seconds",
     "go_back_upload": "Go back to post",
     "post_success": "Post Successfully Created",
-    "all_friends": "All"
+    "all_friends": "All",
+    "pick_date_of_birth": "Pick a date of birth",
+    "change_date_of_birth": "Change your date of birth",
+    "date_of_birth": "Date of birth",
+    "no_date_of_birth": "No date",
+    "women_gender": "Women",
+    "men_gender": "Men",
+    "other": "Other",
+    "specified_gender": "Specify :",
+    "specified_gender_controller": "Specify a gender",
+    "gender": "Gender"
 }

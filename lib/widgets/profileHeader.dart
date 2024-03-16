@@ -30,7 +30,6 @@ class _ProfileHeader extends State<ProfileHeader> {
   bool isFollowers = false;
   bool isFriend = false;
   bool isLoading = false;
-  int postCount = 0;
   int followersCount = 0;
   int followingCount = 0;
   int friendsCount = 0;
@@ -379,14 +378,6 @@ class _ProfileHeader extends State<ProfileHeader> {
     });
   }
 
-  String formatTimestamp(Timestamp timestamp) {
-    DateTime dateTime = timestamp.toDate();
-    return DateFormat.yMMMMd(
-      Provider.of<LocaleProvider>(context, listen: false)
-          .getLocaleFormatString(),
-    ).format(dateTime);
-  }
-
   buildProfileHeader() {
     return FutureBuilder(
       future: usersRef.doc(widget.profileId).get(),
@@ -481,7 +472,7 @@ class _ProfileHeader extends State<ProfileHeader> {
                 alignment: Alignment.center,
                 child: Text(
                   AppLocalizations.of(context)!
-                      .joined_at(formatTimestamp(user.timestamp)),
+                      .joined_at(formatTimestamp(context, user.timestamp)),
                   // 'Joined Dave on ${formatTimestamp(user.joinedAt)}',
                   textAlign: TextAlign.center,
                   style: TextStyle(
@@ -496,7 +487,7 @@ class _ProfileHeader extends State<ProfileHeader> {
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: <Widget>[
                   buildCountColumn(
-                      AppLocalizations.of(context)!.posts, postCount),
+                      AppLocalizations.of(context)!.posts, user.postsCount),
                   buildCountColumn(
                       AppLocalizations.of(context)!.friends, friendsCount),
                 ],
@@ -607,7 +598,7 @@ class _ProfileHeader extends State<ProfileHeader> {
                 alignment: Alignment.center,
                 child: Text(
                   AppLocalizations.of(context)!
-                      .joined_at(formatTimestamp(user.timestamp)),
+                      .joined_at(formatTimestamp(context, user.timestamp)),
                   // 'Joined Dave on ${formatTimestamp(user.joinedAt)}',
                   textAlign: TextAlign.center,
                   style: TextStyle(
@@ -622,7 +613,7 @@ class _ProfileHeader extends State<ProfileHeader> {
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: <Widget>[
                   buildCountColumn(
-                      AppLocalizations.of(context)!.posts, postCount),
+                      AppLocalizations.of(context)!.posts, user.postsCount),
                   buildCountColumn(
                       AppLocalizations.of(context)!.friends, friendsCount),
                 ],
@@ -682,4 +673,11 @@ Route _createRoute(String photoUrl, double aspectRatio, String type) {
       );
     },
   );
+}
+
+String formatTimestamp(BuildContext context, Timestamp timestamp) {
+  DateTime dateTime = timestamp.toDate();
+  return DateFormat.yMMMMd(
+    Provider.of<LocaleProvider>(context, listen: false).getLocaleFormatString(),
+  ).format(dateTime);
 }

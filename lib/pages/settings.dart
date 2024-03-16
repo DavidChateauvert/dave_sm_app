@@ -102,6 +102,7 @@ class _SettingsPageState extends State<SettingsPage> {
                           Provider.of<ThemeProvider>(context, listen: false)
                               .toggleTheme();
                           setThemeInFirestore();
+                          ;
                         },
                       ),
                       const SizedBox(

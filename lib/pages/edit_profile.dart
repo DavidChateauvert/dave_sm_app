@@ -10,6 +10,7 @@ import 'package:image/image.dart' as Im;
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sm_app/pages/home.dart';
+import 'package:sm_app/widgets/profileHeader.dart';
 import 'package:sm_app/widgets/progress.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
@@ -24,11 +25,14 @@ class EditProfile extends StatefulWidget {
   _EditProfileState createState() => _EditProfileState();
 }
 
+List<String> genderOptions = ["women", "men", "other", "specify"];
+
 class _EditProfileState extends State<EditProfile> {
   final _scaffoldKey = GlobalKey<ScaffoldState>();
   TextEditingController firstNameController = TextEditingController();
   TextEditingController lastNameController = TextEditingController();
   TextEditingController bioController = TextEditingController();
+  TextEditingController genderController = TextEditingController();
   bool isLoading = false;
   bool pictureIsLoading = false;
   late User user;
@@ -37,6 +41,8 @@ class _EditProfileState extends State<EditProfile> {
   bool _bioValid = true;
   File? file;
   String newPhotoUrl = "";
+  String currentGenderOptions = "";
+  DateTime? newDateOfBirth;
 
   @override
   void initState() {
@@ -55,6 +61,14 @@ class _EditProfileState extends State<EditProfile> {
     lastNameController.text = user.lastName;
     bioController.text = user.bio;
     newPhotoUrl = user.photoUrl;
+    currentGenderOptions = user.gender;
+    print("allo");
+    print(currentGenderOptions);
+    if (!['women', 'men', 'other'].contains(currentGenderOptions)) {
+      genderController.text = user.gender;
+    }
+    newDateOfBirth = user.dateOfBirth?.toDate();
+
     setState(() {
       isLoading = false;
     });
@@ -80,7 +94,10 @@ class _EditProfileState extends State<EditProfile> {
           padding: EdgeInsets.only(top: 12.0),
           child: Text(
             AppLocalizations.of(context)!.first_name,
-            style: TextStyle(color: Colors.grey),
+            style: TextStyle(
+              color: Colors.grey,
+              fontSize: 20.0,
+            ),
           ),
         ),
         TextField(
@@ -103,7 +120,10 @@ class _EditProfileState extends State<EditProfile> {
           padding: EdgeInsets.only(top: 12.0),
           child: Text(
             AppLocalizations.of(context)!.last_name,
-            style: TextStyle(color: Colors.grey),
+            style: TextStyle(
+              color: Colors.grey,
+              fontSize: 20.0,
+            ),
           ),
         ),
         TextField(
@@ -118,6 +138,135 @@ class _EditProfileState extends State<EditProfile> {
     );
   }
 
+  Column buildGenderField() {
+    print(currentGenderOptions);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Padding(
+          padding: EdgeInsets.only(top: 12.0),
+          child: Text(
+            AppLocalizations.of(context)!.bio,
+            style: TextStyle(
+              color: Colors.grey,
+              fontSize: 20.0,
+            ),
+          ),
+        ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            TextButton(
+              onPressed: () {
+                setState(() {
+                  currentGenderOptions = genderOptions[0].toString();
+                });
+              },
+              child: Row(
+                children: [
+                  Text(
+                    AppLocalizations.of(context)!.women_gender,
+                  ),
+                  Radio(
+                    value: genderOptions[0],
+                    groupValue: currentGenderOptions,
+                    onChanged: (value) {
+                      setState(() {
+                        currentGenderOptions = value.toString();
+                      });
+                    },
+                  ),
+                ],
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                setState(() {
+                  currentGenderOptions = genderOptions[1].toString();
+                });
+              },
+              child: Row(
+                children: [
+                  Text(
+                    AppLocalizations.of(context)!.men_gender,
+                  ),
+                  Radio(
+                    value: genderOptions[1],
+                    groupValue: currentGenderOptions,
+                    onChanged: (value) {
+                      setState(() {
+                        currentGenderOptions = value.toString();
+                      });
+                    },
+                  ),
+                ],
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                setState(() {
+                  currentGenderOptions = genderOptions[2].toString();
+                });
+              },
+              child: Row(
+                children: [
+                  Text(
+                    AppLocalizations.of(context)!.other,
+                  ),
+                  Radio(
+                    value: genderOptions[2],
+                    groupValue: currentGenderOptions,
+                    onChanged: (value) {
+                      setState(() {
+                        currentGenderOptions = value.toString();
+                      });
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        Row(
+          children: [
+            TextButton(
+              onPressed: () {
+                setState(() {
+                  currentGenderOptions = genderOptions[3].toString();
+                });
+              },
+              child: Row(
+                children: [
+                  Text(
+                    AppLocalizations.of(context)!.specified_gender,
+                  ),
+                  Radio(
+                    value: genderOptions[3],
+                    groupValue: currentGenderOptions,
+                    onChanged: (value) {
+                      setState(() {
+                        currentGenderOptions = value.toString();
+                      });
+                    },
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: TextField(
+                controller: genderController,
+                decoration: InputDecoration(
+                  hintText:
+                      AppLocalizations.of(context)!.specified_gender_controller,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
   Column buildBioField() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -126,7 +275,10 @@ class _EditProfileState extends State<EditProfile> {
           padding: EdgeInsets.only(top: 12.0),
           child: Text(
             AppLocalizations.of(context)!.bio,
-            style: TextStyle(color: Colors.grey),
+            style: TextStyle(
+              color: Colors.grey,
+              fontSize: 20.0,
+            ),
           ),
         ),
         TextField(
@@ -136,6 +288,74 @@ class _EditProfileState extends State<EditProfile> {
               errorText: _bioValid
                   ? null
                   : AppLocalizations.of(context)!.bio_too_long),
+        ),
+      ],
+    );
+  }
+
+  Row buildDateOfBirthField() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Padding(
+              padding: EdgeInsets.symmetric(vertical: 12.0),
+              child: Text(
+                AppLocalizations.of(context)!.date_of_birth,
+                style: TextStyle(
+                  color: Colors.grey,
+                  fontSize: 20.0,
+                ),
+              ),
+            ),
+            newDateOfBirth == null
+                ? Text(AppLocalizations.of(context)!.no_date_of_birth)
+                : Text(
+                    formatTimestamp(
+                      context,
+                      Timestamp.fromDate(newDateOfBirth!),
+                    ),
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onBackground,
+                      fontSize: 16.0,
+                    ),
+                  ),
+          ],
+        ),
+        CupertinoButton(
+          child: Text(
+            newDateOfBirth == null
+                ? AppLocalizations.of(context)!.pick_date_of_birth
+                : AppLocalizations.of(context)!.change_date_of_birth,
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.primaryContainer,
+              fontSize: 14.0,
+            ),
+          ),
+          onPressed: () {
+            showCupertinoModalPopup(
+              context: context,
+              builder: (BuildContext context) => Container(
+                color: Theme.of(context).colorScheme.background,
+                height: 250,
+                child: CupertinoDatePicker(
+                  initialDateTime:
+                      newDateOfBirth == null ? DateTime.now() : newDateOfBirth,
+                  maximumDate: DateTime.now(),
+                  mode: CupertinoDatePickerMode.date,
+                  onDateTimeChanged: (DateTime newTime) {
+                    setState(
+                      () {
+                        newDateOfBirth = newTime;
+                      },
+                    );
+                  },
+                ),
+              ),
+            );
+          },
         ),
       ],
     );
@@ -167,6 +387,10 @@ class _EditProfileState extends State<EditProfile> {
         "displayNameLower": displayName.toLowerCase(),
         "bio": bioController.text,
         "photoUrl": newPhotoUrl,
+        "dateOfBirth": Timestamp.fromDate(newDateOfBirth!),
+        "sexe": currentGenderOptions == "specify"
+            ? genderController.text
+            : currentGenderOptions,
       });
       final scaffoldMessenger = ScaffoldMessenger.of(context);
       final snackBar = SnackBar(
@@ -413,6 +637,8 @@ class _EditProfileState extends State<EditProfile> {
                             buildName(),
                             buildFirstNameField(),
                             buildLastNameField(),
+                            buildDateOfBirthField(),
+                            buildGenderField(),
                             buildBioField(),
                           ],
                         ),

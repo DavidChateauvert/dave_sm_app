@@ -14,6 +14,8 @@ class User {
   final Timestamp timestamp;
   final String locale;
   final int postsCount;
+  final String gender;
+  final Timestamp? dateOfBirth;
 
   User({
     required this.id,
@@ -29,6 +31,8 @@ class User {
     required this.timestamp,
     required this.locale,
     required this.postsCount,
+    required this.gender,
+    required this.dateOfBirth,
   });
 
   factory User.fromDocument(DocumentSnapshot doc) {
@@ -36,6 +40,11 @@ class User {
         doc.data().toString().contains('locale') ? doc["locale"] : "en";
     final int postsCount =
         doc.data().toString().contains('postsCount') ? doc["postsCount"] : 0;
+    final String gender =
+        doc.data().toString().contains('gender') ? doc["gender"] : "";
+    final Timestamp? dateOfBirth = doc.data().toString().contains('dateOfBirth')
+        ? doc["dateOfBirth"]
+        : null;
     return User(
       id: doc['id'],
       username: doc['username'],
@@ -50,6 +59,8 @@ class User {
       timestamp: doc['timestamp'],
       locale: locale,
       postsCount: postsCount,
+      gender: gender,
+      dateOfBirth: dateOfBirth,
     );
   }
 }

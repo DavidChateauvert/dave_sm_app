@@ -152,6 +152,8 @@ class _HomeState extends State<Home> {
           "locale": Provider.of<LocaleProvider>(context, listen: false)
               .getLocaleFormatString(),
           "postsCount": 0,
+          "gender": newUser.gender,
+          "dateOfBirth": newUser.dateOfBirth,
         });
         // Make new user their own follower
         await followersRef
