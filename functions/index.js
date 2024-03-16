@@ -7,53 +7,22 @@
  * See a full list of supported triggers at https://firebase.google.com/docs/functions
  */
 const {onRequest} = require("firebase-functions/v2/https");
+const {onSchedule} = require("firebase-functions/v2/scheduler");
 const logger = require("firebase-functions/logger");
 const functions = require("firebase-functions");
 const admin = require('firebase-admin');
 admin.initializeApp();
+
+// The es6-promise-pool to limit the concurrency of promises.
+// const PromisePool = require("es6-promise-pool").default;
+// Maximum concurrent account deletions.
+// const MAX_CONCURRENT = 3;
 // Create and deploy your first functions
 // https://firebase.google.com/docs/functions/get-started
-
-
-// exports.onCreateFollower = functions.firestore
-//     .document("/followers/{userId}/userFollowers/{followerId}")
-//     .onCreate(async (snapshot, context) => {
-//         console.log("Followers Created : ", snapshot.id);
-
-//         const userId = context.params.userId;
-//         const followerId = context.params.followerId;
-
-//         // Create followed users post ref
-//         const followedUserPostsRef = admin
-//             .firestore()
-//             .collection('posts')
-//             .doc(userId)
-//             .collection('userPosts');
-        
-//         // Create following user timeline ref
-//         const timelinePostsRef = admin
-//             .firestore()
-//             .collection('timeline')
-//             .doc(followerId)
-//             .collection('timelinePosts'); 
-
-//         // Get followed users posts
-//         const querySnapshot = await followedUserPostsRef.get();
-
-//         // Add each user post to following user's timeline
-//         querySnapshot.forEach(doc => {
-//             if (doc.exists) {
-//                 const postId = doc.id;
-//                 const postData = doc.data();
-//                 timelinePostsRef.doc(postId).set(postData);
-//             }
-//         });
-// });
 
 exports.onCreateFriend = functions.firestore
     .document("/friends/{userId}/userFriends/{friendId}")
     .onCreate(async (snapshot, context) => {
-        console.log("Friends Created : ", snapshot.id);   
         const lastWeekStartDate = new Date();
         lastWeekStartDate.setDate(lastWeekStartDate.getDate() - 7);   
 
@@ -87,29 +56,6 @@ exports.onCreateFriend = functions.firestore
             }
         });
 });
-
-// exports.onDeleteFollower = functions.firestore
-//     .document("/followers/{userId}/userFollowers/{followerId}")
-//     .onDelete(async (snapshot, context) => {
-//         console.log("Follower Deleted", snapshot.id);
-
-//         const userId = context.params.userId;
-//         const followerId = context.params.followerId;
-
-//         const timelinePostsRef = admin
-//             .firestore()
-//             .collection('timeline')
-//             .doc(followerId)
-//             .collection('timelinePosts')
-//             .where("ownerId", "==", userId);
-
-//         const querySnapshot = await timelinePostsRef.get();
-//         querySnapshot.docs.forEach(doc => {
-//             if (doc.exists) {
-//                 doc.ref.delete();
-//             }
-//         })
-// });
 
 exports.onDeleteFriend = functions.firestore
     .document("/friends/{userId}/userFriends/{friendId}")
@@ -228,73 +174,69 @@ exports.onDeletePost = functions.firestore
         const userId = context.params.userId;
         const postId = context.params.postId;
 
-        // Get all friend who made the post
-        const userFriendsRef = admin.firestore()
-        .collection('friends')
-        .doc(userId)
-        .collection('userFriends');
+        // Get the media URL from the snapshot data
+        const mediaURL = snapshot.data().mediaUrl;
 
-        const querySnapshot = await userFriendsRef.get();
-
-        // For the user
-        admin
-            .firestore()
+        // Delete post from user's timeline
+        await admin.firestore()
             .collection('timeline')
             .doc(userId)
             .collection('timelinePosts')
             .doc(postId)
-            .get().then(doc => {
-                if (doc.exists) {
-                    doc.ref.delete();
-                }
-            });
+            .delete();
 
-        // Delete post to each followers timeline
-        querySnapshot.docs.forEach(doc => {
+        // Delete post from each follower's timeline
+        const userFriendsRef = admin.firestore()
+            .collection('friends')
+            .doc(userId)
+            .collection('userFriends');
+
+        const querySnapshot = await userFriendsRef.get();
+
+        querySnapshot.docs.forEach(async doc => {
             const friendId = doc.id;
 
-            admin
-                .firestore()
+            await admin.firestore()
                 .collection('timeline')
                 .doc(friendId)
                 .collection('timelinePosts')
                 .doc(postId)
-                .get().then(doc => {
-                    if (doc.exists) {
-                        doc.ref.delete();
-                    }
-                });
+                .delete();
         }); 
 
-});
+        // Delete the photo from Firebase Storage
+        if (mediaURL) {
+            // Extract the path of the file in the storage bucket
+            const filePath = decodeURIComponent(mediaURL.split('/o/')[1].split('?')[0]);
+            
+            // Delete the file from storage
+            await admin.storage().bucket().file(filePath).delete();
+        }
+    });
 
-// Doit payer :(
-// exports.autoDeleteExpiredPosts = functions.pubsub
-//   .schedule('every 1 hours') // Run the function every hour
-//   .onRun(async (context) => {
-//     const currentTime = Date.now();
-//     const expirationTime = currentTime - 60 * 1000; // 12 hours ago
+    // exports.postCleanup = onSchedule("every day 00:00", async (event) => {
+    //     const allUsers = admin.firestore().collection("users");
+    //     const currentDate = new Date();
+    //     const thirtyDaysAgo = new Date(currentDate.getTime() - (30 * 24 * 60 * 60 * 1000));
+    
+    //     const querySnapshot = await allUsers.get();
+    
+    //     querySnapshot.docs.forEach(async userDoc => {
+    //         const userPosts = admin.firestore().collection("posts").doc(userDoc.id).collection("userPosts");
+            
+    //         const querySnapshot2 = await userPosts.get();
+    
+    //         querySnapshot2.docs.forEach(async postDoc => {
+    //             const postTimestamp = postDoc.data().timestamp.toDate(); // Convert Firestore timestamp to JavaScript Date object
+                
+    //             if (postTimestamp < thirtyDaysAgo) {
+    //                 logger.log(postDoc.data().postId);
+    //                 // await postDoc.ref.delete();
+    //             }
+    //         });
+    //     });
+    
+    //     logger.log("User cleanup finished");
+    // });
+    
 
-//     const usersRef = admin.firestore().collection('users');
-//     const usersSnapshot = await usersRef.get();
-
-//     const batch = admin.firestore().batch();
-
-//     usersSnapshot.forEach((userDoc) => {
-//       const userId = userDoc.id;
-//       const postsRef = admin.firestore().collection('posts').doc(userId).collection('userPosts');
-
-//       postsRef
-//         .where('timestamp', '<', expirationTime)
-//         .get()
-//         .then((querySnapshot) => {
-//           querySnapshot.forEach((postDoc) => {
-//             batch.delete(postDoc.ref);
-//           });
-//         });
-//     });
-
-//     await batch.commit();
-
-//     return null;
-// });

@@ -234,17 +234,15 @@ class _PostProfileState extends State<PostProfile> {
 
   deletePost() async {
     // Delete post
-    postsRef
-        .doc(ownerId)
-        .collection('userPosts')
-        .doc(postId)
-        .get()
-        .then((doc) => {
-              if (doc.exists) {doc.reference.delete()}
-            });
+    postsRef.doc(ownerId).collection('userPosts').doc(postId).get().then((doc) {
+      if (doc.exists) {
+        doc.reference.delete();
+      }
+    });
 
-    // Delete uploaded image
-    storageRef.child("post_$postId.jpg").delete();
+    usersRef.doc(currentUserId).update({
+      "postsCount": FieldValue.increment(-1),
+    });
 
     // Delete activity feed
     QuerySnapshot activityFeedSnapshot = await activityFeedRef

@@ -146,11 +146,12 @@ class _HomeState extends State<Home> {
           "displayName": newUser.displayName,
           "displayNameLower": newUser.displayName.toLowerCase(),
           "bio": newUser.bio,
-          "timestamp": timestamp, //.toString(),
+          "timestamp": timestamp,
           "theme": newUser.theme,
           "verified": false,
           "locale": Provider.of<LocaleProvider>(context, listen: false)
               .getLocaleFormatString(),
+          "postsCount": 0,
         });
         // Make new user their own follower
         await followersRef

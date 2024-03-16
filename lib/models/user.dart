@@ -13,24 +13,29 @@ class User {
   final String theme;
   final Timestamp timestamp;
   final String locale;
+  final int postsCount;
 
-  User(
-      {required this.id,
-      required this.username,
-      required this.email,
-      required this.photoUrl,
-      required this.firstName,
-      required this.lastName,
-      required this.displayName,
-      required this.bio,
-      required this.verified,
-      required this.theme,
-      required this.timestamp,
-      required this.locale});
+  User({
+    required this.id,
+    required this.username,
+    required this.email,
+    required this.photoUrl,
+    required this.firstName,
+    required this.lastName,
+    required this.displayName,
+    required this.bio,
+    required this.verified,
+    required this.theme,
+    required this.timestamp,
+    required this.locale,
+    required this.postsCount,
+  });
 
   factory User.fromDocument(DocumentSnapshot doc) {
     final String locale =
         doc.data().toString().contains('locale') ? doc["locale"] : "en";
+    final int postsCount =
+        doc.data().toString().contains('postsCount') ? doc["postsCount"] : 0;
     return User(
       id: doc['id'],
       username: doc['username'],
@@ -44,6 +49,7 @@ class User {
       theme: doc['theme'],
       timestamp: doc['timestamp'],
       locale: locale,
+      postsCount: postsCount,
     );
   }
 }

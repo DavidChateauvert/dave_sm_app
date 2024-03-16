@@ -60,6 +60,7 @@ class _CreateAccountState extends State<CreateAccount> {
             .getThemeDataFormatString(),
         locale: Provider.of<LocaleProvider>(context, listen: false)
             .getLocaleFormatString(),
+        postsCount: 0,
       );
 
       ScaffoldMessenger.of(context).showSnackBar(

@@ -580,6 +580,10 @@ class _UploadState extends State<Upload>
       "type": type,
     });
 
+    usersRef.doc(currentUser.id).update({
+      "postsCount": FieldValue.increment(1),
+    });
+
     if (mentionsMap.containsKey("all")) {
       Map<String, String> mentionsMapAllFriends =
           mentionsDataInit.fold({}, (map, mention) {

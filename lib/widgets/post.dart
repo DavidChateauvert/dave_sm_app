@@ -324,8 +324,9 @@ class _PostState extends State<Post> {
               if (doc.exists) {doc.reference.delete()}
             });
 
-    // Delete uploaded image
-    storageRef.child("post_$postId.jpg").delete();
+    usersRef.doc(currentUserId).update({
+      "postsCount": FieldValue.increment(-1),
+    });
 
     // Delete activity feed
     QuerySnapshot activityFeedSnapshot = await activityFeedRef
