@@ -187,5 +187,19 @@
                 "type": "int"
             }
         }
-    }
+    },
+    "email": "Courriel",
+    "password": "Mot de passe",
+    "confirm_password": "Confirmer mot de passe",
+    "forgot_password": "Mot de passe oublié ?",
+    "sign_in": "Se connecter",
+    "sign_up": "S'inscrire",
+    "continue_with": "Ou continuer avec",
+    "not_member": "Pas un membre de Dave ? ",
+    "create_acount_button": "Cliquer ici pour créer un compte",
+    "already_member": "Déjà un membre ? ",
+    "sign_in_button": "Cliquer ici pour vous connecter",
+    "error_user_not_found": "Cette utilisateur n'existe pas",
+    "error_wrong_password": "Mauvais mot de passe",
+    "error_password_match": "Les mots de passe ne sont pas identiques"
 }

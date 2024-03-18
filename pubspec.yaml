@@ -111,6 +111,7 @@ flutter:
     - assets/images/advanced_search_white.svg
     - assets/images/plus_sign.svg
     - assets/images/no_post.svg
+    - assets/images/google_logo.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware

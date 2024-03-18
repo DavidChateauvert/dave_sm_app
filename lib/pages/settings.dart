@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -32,14 +33,15 @@ class _SettingsPageState extends State<SettingsPage> {
   logout() async {
     await googleSignIn.signOut();
     FirebaseApi().deleteUserToken(currentUser.id);
+    FirebaseAuth.instance.signOut();
     Navigator.pop(context);
-    Navigator.pushReplacement(
-      context,
-      PageRouteBuilder(
-        pageBuilder: (context, animation1, animation2) => Home(),
-        transitionDuration: Duration(seconds: 0),
-      ),
-    );
+    // Navigator.pushReplacement(
+    //   context,
+    //   PageRouteBuilder(
+    //     pageBuilder: (context, animation1, animation2) => Home(),
+    //     transitionDuration: Duration(seconds: 0),
+    //   ),
+    // );
     // Navigator.push(context, MaterialPageRoute(builder: (context) => Home()));
   }
 
@@ -181,7 +183,7 @@ class _SettingsPageState extends State<SettingsPage> {
                         height: 16.0,
                       ),
                       ListTile(
-                        leading: Icon(Icons.cancel, color: Colors.red),
+                        leading: Icon(Icons.logout, color: Colors.red),
                         title: Text(
                           AppLocalizations.of(context)!.log_out,
                           style: TextStyle(

@@ -1,5 +1,6 @@
 // ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables, use_build_context_synchronously
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
@@ -20,7 +21,7 @@ import 'package:sm_app/providers/notification_provider.dart';
 import 'package:sm_app/providers/reload_provider.dart';
 import 'package:sm_app/providers/route_observer_provider.dart';
 import 'package:sm_app/providers/theme_provider.dart';
-import '../models/user.dart';
+import '../models/user.dart' as DaveUser;
 import 'activity_feed.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
@@ -38,7 +39,7 @@ final friendsRef = FirebaseFirestore.instance.collection('friends');
 final tokensRef = FirebaseFirestore.instance.collection('tokens');
 final reportsRef = FirebaseFirestore.instance.collection('reports');
 final DateTime timestamp = DateTime.now();
-late User currentUser;
+late DaveUser.User currentUser;
 
 class Home extends StatefulWidget {
   @override
@@ -50,13 +51,16 @@ class _HomeState extends State<Home> {
   PageController pageController =
       PageController(initialPage: 0, keepPage: false);
   int pageIndex = 0;
-  bool isCreatingUser = false;
+  // bool isCreatingUser = false;
   GlobalKey<TimelineState> timelineKey = GlobalKey<TimelineState>();
 
   @override
   void initState() {
     //initializeFirebase();
+
     super.initState();
+    getActiveUser();
+    // getActiveUser();
     initLocalNotifications();
     FirebaseMessaging.onMessage.listen((message) {
       handleNotificationInside(message);
@@ -67,16 +71,75 @@ class _HomeState extends State<Home> {
     FirebaseMessaging.onBackgroundMessage(handleBackGroundMessage);
     // googleSignIn.signIn();
     // Detects when user signed in
-    googleSignIn.onCurrentUserChanged.listen((account) {
-      handleSignIn();
-    }, onError: (err) {
-      print('Error signing in: $err');
-    });
-    // Reauthenticated user when pp is opened
-    googleSignIn.signInSilently(suppressErrors: false).then((account) {
-      handleSignIn();
-    }).catchError((err) {
-      print('Error signing in: $err');
+    // googleSignIn.onCurrentUserChanged.listen((account) {
+    //   handleSignIn();
+    // }, onError: (err) {
+    //   print('Error signing in: $err');
+    // });
+    // // Reauthenticated user when pp is opened
+    // googleSignIn.signInSilently(suppressErrors: false).then((account) {
+    //   handleSignIn();
+    // }).catchError((err) {
+    //   print('Error signing in: $err');
+    // });
+  }
+
+  getActiveUser() async {
+    final String userId;
+    if (await FirebaseAuth.instance.currentUser!.providerData[0].providerId ==
+        "google.com") {
+      userId = googleSignIn.currentUser!.id;
+    } else {
+      userId = FirebaseAuth.instance.currentUser!.uid;
+    }
+    DocumentSnapshot doc = await usersRef.doc(userId).get();
+    if (!doc.exists) {
+      final DaveUser.User newUser = await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => Intro(
+            userId: userId,
+          ),
+        ),
+      );
+      await usersRef.doc(userId).set({
+        "id": userId,
+        "username": newUser.displayName,
+        "usernameLower": newUser.displayName.toString().toLowerCase(),
+        "photoUrl": newUser.photoUrl != ""
+            ? newUser.photoUrl
+            : "https://firebasestorage.googleapis.com/v0/b/sm-app-4347b.appspot.com/o/Photo%20de%20profil%2Fperson-circle.png?alt=media&token=11b8cad9-ebf5-4ff2-860a-357b07548a75",
+        "email": FirebaseAuth.instance.currentUser!.email,
+        "firstName": newUser.firstName,
+        "lastName": newUser.lastName,
+        "displayName": newUser.displayName,
+        "displayNameLower": newUser.displayName.toLowerCase(),
+        "bio": newUser.bio,
+        "timestamp": timestamp,
+        "theme": newUser.theme,
+        "verified": false,
+        "locale": Provider.of<LocaleProvider>(context, listen: false)
+            .getLocaleFormatString(),
+        "postsCount": 0,
+        "gender": newUser.gender,
+        "dateOfBirth": newUser.dateOfBirth,
+      });
+      // Make new user their own follower
+      await followersRef
+          .doc(userId)
+          .collection('userFollowers')
+          .doc(userId)
+          .set({});
+      doc = await usersRef.doc(userId).get();
+    }
+    currentUser = DaveUser.User.fromDocument(doc);
+    Provider.of<ThemeProvider>(context, listen: false)
+        .toggleThemeToParam(currentUser.theme);
+    Provider.of<LocaleProvider>(context, listen: false)
+        .toggleLocaleToParam(currentUser.locale);
+    await FirebaseApi().initMessaging(currentUser.id);
+    setState(() {
+      isAuth = true;
     });
   }
 
@@ -84,113 +147,10 @@ class _HomeState extends State<Home> {
     await NotificationsApi.init(context);
   }
 
-  handleSignIn() async {
-    try {
-      final GoogleSignInAccount? account = await googleSignIn.signInSilently();
-      if (account == null) {
-        await googleSignIn.signIn();
-      }
-      if (!isCreatingUser) {
-        // Set the flag to indicate user creation is in progress
-        await createUserInFirestore();
-        setState(() {
-          isAuth = true;
-        });
-      }
-    } catch (error) {
-      print('Error signing in: $error');
-      setState(() {
-        isAuth = false;
-      });
-    }
-  }
-
-  createUserInFirestore() async {
-    setState(() {
-      isCreatingUser = true;
-    });
-    // 1 : Check if user exsits in users collection according to there id
-    final GoogleSignInAccount? user = googleSignIn.currentUser;
-    if (user != null) {
-      DocumentSnapshot doc = await usersRef.doc(user.id).get();
-      if (!doc.exists) {
-        setState(() {
-          isCreatingUser = true;
-        });
-        // 2 : If they don't exist, take them to the create account page
-        final User newUser = await Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => Intro(
-              userId: user.id,
-            ),
-          ),
-        );
-        // await Navigator.push(
-        //   context,
-        //   MaterialPageRoute(
-        //     builder: (context) => CreateAccount(
-        //       userId: user.id,
-        //     ),
-        //   ),
-        // );
-        // 3 : Get username from create account, use it to make new user document in users collection
-        usersRef.doc(user.id).set({
-          "id": user.id,
-          "username": newUser.displayName,
-          "usernameLower": newUser.displayName.toString().toLowerCase(),
-          "photoUrl": newUser.photoUrl != "" ? newUser.photoUrl : user.photoUrl,
-          "email": user.email,
-          "firstName": newUser.firstName,
-          "lastName": newUser.lastName,
-          "displayName": newUser.displayName,
-          "displayNameLower": newUser.displayName.toLowerCase(),
-          "bio": newUser.bio,
-          "timestamp": timestamp,
-          "theme": newUser.theme,
-          "verified": false,
-          "locale": Provider.of<LocaleProvider>(context, listen: false)
-              .getLocaleFormatString(),
-          "postsCount": 0,
-          "gender": newUser.gender,
-          "dateOfBirth": newUser.dateOfBirth,
-        });
-        // Make new user their own follower
-        await followersRef
-            .doc(user.id)
-            .collection('userFollowers')
-            .doc(user.id)
-            .set({});
-
-        doc = await usersRef.doc(user.id).get();
-        setState(() {
-          isCreatingUser = false;
-        });
-      }
-      currentUser = User.fromDocument(doc);
-      Provider.of<ThemeProvider>(context, listen: false)
-          .toggleThemeToParam(currentUser.theme);
-      Provider.of<LocaleProvider>(context, listen: false)
-          .toggleLocaleToParam(currentUser.locale);
-      await FirebaseApi().initMessaging(currentUser.id);
-    }
-    setState(() {
-      isCreatingUser = false;
-    });
-  }
-
   @override
   void dispose() {
     pageController.dispose();
     super.dispose();
-  }
-
-  login() {
-    googleSignIn.signIn();
-  }
-
-  logout() {
-    googleSignIn.signOut();
   }
 
   onPageChanged(int pageIndex) {
@@ -400,29 +360,27 @@ class _HomeState extends State<Home> {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: <Widget>[
-            GestureDetector(
-              onTap: login,
-              child: Container(
-                width: 220,
-                child: Center(
-                  child: Text(
-                    'Dave',
-                    style: TextStyle(fontSize: 80, color: Colors.white),
-                  ),
+            Container(
+              width: 220,
+              child: Center(
+                child: Text(
+                  'Dave',
+                  style: TextStyle(fontSize: 80, color: Colors.white),
                 ),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topRight,
-                    end: Alignment.bottomLeft,
-                    colors: [
-                      Color.fromARGB(255, 89, 36, 99),
-                      Color.fromARGB(255, 244, 186, 184)
-                    ],
-                  ),
-                ),
-                alignment: Alignment.center,
               ),
-            )
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(4.0),
+                gradient: LinearGradient(
+                  begin: Alignment.topRight,
+                  end: Alignment.bottomLeft,
+                  colors: [
+                    Color.fromARGB(255, 89, 36, 99),
+                    Color.fromARGB(255, 244, 186, 184)
+                  ],
+                ),
+              ),
+              alignment: Alignment.center,
+            ),
           ],
         ),
       ),

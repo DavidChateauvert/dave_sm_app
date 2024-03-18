@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:sm_app/pages/home.dart';
+import 'package:sm_app/pages/authentification/authenfication_page.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:sm_app/providers/locale_provider.dart';
@@ -59,7 +59,7 @@ class MyApp extends StatelessWidget {
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       locale: Provider.of<LocaleProvider>(context).locale,
-      home: Home(),
+      home: AuthentificationPage(),
     );
   }
 }
