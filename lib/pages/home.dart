@@ -57,9 +57,9 @@ class _HomeState extends State<Home> {
   @override
   void initState() {
     //initializeFirebase();
-
     super.initState();
-    getActiveUser();
+
+    checkIfUserExist();
     // getActiveUser();
     initLocalNotifications();
     FirebaseMessaging.onMessage.listen((message) {
@@ -88,6 +88,29 @@ class _HomeState extends State<Home> {
     final String userId;
     if (await FirebaseAuth.instance.currentUser!.providerData[0].providerId ==
         "google.com") {
+      userId = googleSignIn.currentUser!.id;
+    } else {
+      userId = FirebaseAuth.instance.currentUser!.uid;
+    }
+    DocumentSnapshot doc = await usersRef.doc(userId).get();
+    // if (!doc.exists) {
+    currentUser = DaveUser.User.fromDocument(doc);
+    Provider.of<ThemeProvider>(context, listen: false)
+        .toggleThemeToParam(currentUser.theme);
+    Provider.of<LocaleProvider>(context, listen: false)
+        .toggleLocaleToParam(currentUser.locale);
+    await FirebaseApi().initMessaging(currentUser.id);
+    // } else {
+    //   FirebaseAuth.instance.signOut();
+    // }
+  }
+
+  checkIfUserExist() async {
+    final String userId;
+    print(4444);
+    String provider =
+        FirebaseAuth.instance.currentUser!.providerData[0].providerId;
+    if (provider == "google.com") {
       userId = googleSignIn.currentUser!.id;
     } else {
       userId = FirebaseAuth.instance.currentUser!.uid;
@@ -345,41 +368,18 @@ class _HomeState extends State<Home> {
   Scaffold buildUnAuthScreen() {
     return Scaffold(
       body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topRight,
-            end: Alignment.bottomLeft,
-            colors: [
-              Color.fromARGB(255, 244, 186, 184),
-              Color.fromARGB(255, 89, 36, 99),
-            ],
-          ),
-        ),
+        color: Color.fromARGB(255, 89, 36, 99),
         alignment: Alignment.center,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: <Widget>[
-            Container(
-              width: 220,
-              child: Center(
-                child: Text(
-                  'Dave',
-                  style: TextStyle(fontSize: 80, color: Colors.white),
-                ),
+            GestureDetector(
+              onTap: () => {FirebaseAuth.instance.signOut()},
+              child: Image.asset(
+                'assets/images/logo/logo_launch.png',
+                width: 256,
               ),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(4.0),
-                gradient: LinearGradient(
-                  begin: Alignment.topRight,
-                  end: Alignment.bottomLeft,
-                  colors: [
-                    Color.fromARGB(255, 89, 36, 99),
-                    Color.fromARGB(255, 244, 186, 184)
-                  ],
-                ),
-              ),
-              alignment: Alignment.center,
             ),
           ],
         ),
@@ -389,6 +389,7 @@ class _HomeState extends State<Home> {
 
   @override
   Widget build(BuildContext context) {
+    print("allo");
     return isAuth ? buildAuthScreen() : buildUnAuthScreen();
   }
 }

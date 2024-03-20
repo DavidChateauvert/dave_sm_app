@@ -199,7 +199,13 @@
     "create_acount_button": "Cliquer ici pour créer un compte",
     "already_member": "Déjà un membre ? ",
     "sign_in_button": "Cliquer ici pour vous connecter",
+    "error": "Error Signing In",
     "error_user_not_found": "Cette utilisateur n'existe pas",
     "error_wrong_password": "Mauvais mot de passe",
-    "error_password_match": "Les mots de passe ne sont pas identiques"
+    "error_password_match": "Les mots de passe ne sont pas identiques",
+    "error_user_disabled": "Cet utilisateur a été désactivé",
+    "error_invalid_email": "Le courriel est invalide",
+    "error_email_already_in_use": "Courriel déjà utilisé",
+    "error_operation_not_allowed": "Operation non permise",
+    "error_weak_password": "Mot de passe trop faible"
 }

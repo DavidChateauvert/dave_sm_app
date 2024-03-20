@@ -199,7 +199,13 @@
     "create_acount_button": "Create an account here",
     "already_member": "Already a member ? ",
     "sign_in_button": "Sign in here",
+    "error": "Error Signing In",
     "error_user_not_found": "This user does not exist",
     "error_wrong_password": "Wront password",
-    "error_password_match": "The password don't match"
+    "error_password_match": "The password don't match",
+    "error_user_disabled": "This user has been disabled",
+    "error_invalid_email": "Email is invalid",
+    "error_email_already_in_use": "Email already in use",
+    "error_operation_not_allowed": "Operation not allowed",
+    "error_weak_password": "Password not strong enough"
 }

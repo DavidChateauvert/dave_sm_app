@@ -35,15 +35,28 @@ class _LoginState extends State<Login> {
       Navigator.pop(context);
     } on FirebaseAuthException catch (e) {
       Navigator.pop(context);
-      if (e.code == 'user-not-found') {
-        showErrorMessage(AppLocalizations.of(context)!.error_user_not_found);
-      } else if (e.code == 'wrong-password') {
-        showErrorMessage(AppLocalizations.of(context)!.error_wrong_password);
-      }
+      showErrorMessage(e.code);
     }
   }
 
-  showErrorMessage(String message) {
+  showErrorMessage(String errorCode) {
+    String message = AppLocalizations.of(context)!.error;
+
+    switch (errorCode) {
+      case ('user-not-found'):
+        message = AppLocalizations.of(context)!.error_user_not_found;
+        break;
+      case ('wrong-password'):
+        message = AppLocalizations.of(context)!.error_wrong_password;
+        break;
+      case ('user-disabled'):
+        message = AppLocalizations.of(context)!.error_user_disabled;
+        break;
+      case ('invalid-email'):
+        message = AppLocalizations.of(context)!.error_invalid_email;
+        break;
+    }
+
     showDialog(
       context: context,
       builder: (context) {
@@ -75,29 +88,15 @@ class _LoginState extends State<Login> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Container(
-                    width: 220,
-                    child: Center(
-                      child: Text(
-                        'Dave',
-                        style: TextStyle(fontSize: 80, color: Colors.white),
-                      ),
-                    ),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(4.0),
-                      gradient: LinearGradient(
-                        begin: Alignment.topRight,
-                        end: Alignment.bottomLeft,
-                        colors: [
-                          Color.fromARGB(255, 89, 36, 99),
-                          Color.fromARGB(255, 244, 186, 184)
-                        ],
-                      ),
-                    ),
-                    alignment: Alignment.center,
+                  Image.asset(
+                    color: Color.fromARGB(255, 89, 36, 99),
+                    'assets/images/logo/logo_launch.png',
+                    height: 80,
+                    fit: BoxFit.cover,
+                    width: 280,
                   ),
                   const SizedBox(
-                    height: 80.0,
+                    height: 94.0,
                   ),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 25.0),

@@ -47,7 +47,24 @@ class _SignUpState extends State<SignUp> {
     }
   }
 
-  showErrorMessage(String message) {
+  showErrorMessage(String errorCode) {
+    String message = AppLocalizations.of(context)!.error;
+
+    switch (errorCode) {
+      case ('email-already-in-use'):
+        message = AppLocalizations.of(context)!.error_email_already_in_use;
+        break;
+      case ('weak-password'):
+        message = AppLocalizations.of(context)!.error_weak_password;
+        break;
+      case ('operation-not-allowed'):
+        message = AppLocalizations.of(context)!.error_operation_not_allowed;
+        break;
+      case ('invalid-email'):
+        message = AppLocalizations.of(context)!.error_invalid_email;
+        break;
+    }
+
     showDialog(
       context: context,
       builder: (context) {
@@ -79,29 +96,15 @@ class _SignUpState extends State<SignUp> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Container(
-                    width: 220,
-                    child: Center(
-                      child: Text(
-                        'Dave',
-                        style: TextStyle(fontSize: 80, color: Colors.white),
-                      ),
-                    ),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(4.0),
-                      gradient: LinearGradient(
-                        begin: Alignment.topRight,
-                        end: Alignment.bottomLeft,
-                        colors: [
-                          Color.fromARGB(255, 89, 36, 99),
-                          Color.fromARGB(255, 244, 186, 184)
-                        ],
-                      ),
-                    ),
-                    alignment: Alignment.center,
+                  Image.asset(
+                    color: Color.fromARGB(255, 89, 36, 99),
+                    'assets/images/logo/logo_launch.png',
+                    height: 80,
+                    fit: BoxFit.cover,
+                    width: 280,
                   ),
                   const SizedBox(
-                    height: 56.0,
+                    height: 64.0,
                   ),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 25.0),

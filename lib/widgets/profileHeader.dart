@@ -1,4 +1,3 @@
-import 'package:age_calculator/age_calculator.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -391,59 +390,59 @@ class _ProfileHeader extends State<ProfileHeader> {
     } else {
       switch (genderFromFirestore) {
         case ("men"):
-          return "Men";
+          return "men";
         case ("women"):
-          return "Women";
+          return "women";
         default:
           return genderFromFirestore;
       }
     }
   }
 
-  buildAgeAndGender() {
-    return Container(
-      child: (user.dateOfBirth != null && user.gender != "")
-          ? Container(
-              alignment: Alignment.center,
-              child: Text(
-                AppLocalizations.of(context)!.profile_age_gender(
-                    AgeCalculator.age(user.dateOfBirth!.toDate()).years,
-                    buildGender(user.gender)),
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16.0,
-                ),
-              ),
-            )
-          : (user.dateOfBirth != null && user.gender == "")
-              ? Container(
-                  alignment: Alignment.center,
-                  child: Text(
-                    AppLocalizations.of(context)!.profile_age_only(
-                        AgeCalculator.age(user.dateOfBirth!.toDate()).years),
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16.0,
-                    ),
-                  ),
-                )
-              : (user.gender != "")
-                  ? Container(
-                      alignment: Alignment.center,
-                      child: Text(
-                        buildGender(user.gender),
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16.0,
-                        ),
-                      ),
-                    )
-                  : Container(),
-    );
-  }
+  // buildAgeAndGender() {
+  //   return Container(
+  //     child: (user.dateOfBirth != null && user.gender != "")
+  //         ? Container(
+  //             alignment: Alignment.center,
+  //             child: Text(
+  //               AppLocalizations.of(context)!.profile_age_gender(
+  //                   AgeCalculator.age(user.dateOfBirth!.toDate()).years,
+  //                   buildGender(user.gender)),
+  //               textAlign: TextAlign.center,
+  //               style: TextStyle(
+  //                 fontWeight: FontWeight.bold,
+  //                 fontSize: 16.0,
+  //               ),
+  //             ),
+  //           )
+  //         : (user.dateOfBirth != null && user.gender == "")
+  //             ? Container(
+  //                 alignment: Alignment.center,
+  //                 child: Text(
+  //                   AppLocalizations.of(context)!.profile_age_only(
+  //                       AgeCalculator.age(user.dateOfBirth!.toDate()).years),
+  //                   textAlign: TextAlign.center,
+  //                   style: TextStyle(
+  //                     fontWeight: FontWeight.bold,
+  //                     fontSize: 16.0,
+  //                   ),
+  //                 ),
+  //               )
+  //             : (user.gender != "")
+  //                 ? Container(
+  //                     alignment: Alignment.center,
+  //                     child: Text(
+  //                       buildGender(user.gender),
+  //                       textAlign: TextAlign.center,
+  //                       style: TextStyle(
+  //                         fontWeight: FontWeight.bold,
+  //                         fontSize: 16.0,
+  //                       ),
+  //                     ),
+  //                   )
+  //                 : Container(),
+  //   );
+  // }
 
   @override
   Widget build(context) {
@@ -521,19 +520,23 @@ class _ProfileHeader extends State<ProfileHeader> {
                       : Text(""),
                 ],
               ),
-              buildAgeAndGender(),
-              user.bio != "" ? const SizedBox(height: 24.0) : Container(),
+              // buildAgeAndGender(),
               user.bio != ""
-                  ? Container(
-                      alignment: Alignment.center,
-                      child: Text(
-                        user.bio,
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontWeight: FontWeight.normal,
-                          fontSize: 18.0,
+                  ? Column(
+                      children: [
+                        const SizedBox(height: 24.0),
+                        Container(
+                          alignment: Alignment.center,
+                          child: Text(
+                            user.bio,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontWeight: FontWeight.normal,
+                              fontSize: 18.0,
+                            ),
+                          ),
                         ),
-                      ),
+                      ],
                     )
                   : Container(),
               const SizedBox(height: 24.0),

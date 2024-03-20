@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:sm_app/api/firebase_api.dart';
 import 'package:sm_app/pages/friends.dart';
@@ -158,6 +159,7 @@ class _PostState extends State<Post> {
   bool postHeightIsSet = false;
   bool deleteInstant = false;
   String type;
+  bool isTimeAgo = true;
 
   _PostState({
     required this.postId,
@@ -228,7 +230,20 @@ class _PostState extends State<Post> {
                       onPressed: () => handleSignalPost(context),
                       icon: Icon(Icons.more_horiz_outlined),
                     ),
-              Text(timeago.format(timestamp.toDate(), locale: 'en_short')),
+              const SizedBox(
+                width: 4.0,
+              ),
+              GestureDetector(
+                onTap: () {
+                  setState(() {
+                    isTimeAgo = !isTimeAgo;
+                  });
+                },
+                child: isTimeAgo
+                    ? Text(
+                        timeago.format(timestamp.toDate(), locale: 'en_short'))
+                    : Text(DateFormat('HH:mm').format(timestamp.toDate())),
+              ),
             ],
           ),
         );

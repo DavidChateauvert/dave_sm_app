@@ -4,6 +4,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:sm_app/pages/friends.dart';
 import 'package:sm_app/pages/home.dart';
 import 'package:sm_app/pages/likePost.dart';
@@ -126,6 +127,7 @@ class _PostProfileState extends State<PostProfile> {
   bool postHeightIsSet = false;
   bool deleteInstant = false;
   String type;
+  bool isTimeAgo = true;
 
   _PostProfileState({
     required this.postId,
@@ -153,7 +155,6 @@ class _PostProfileState extends State<PostProfile> {
         }
         User user =
             User.fromDocument(snapshot.data as DocumentSnapshot<Object?>);
-        bool isPostOwner = currentUserId == ownerId;
         return ListTile(
           leading: CircleAvatar(
             backgroundImage: CachedNetworkImageProvider(user.photoUrl),
@@ -183,13 +184,24 @@ class _PostProfileState extends State<PostProfile> {
           trailing: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              isPostOwner
-                  ? IconButton(
-                      onPressed: () => handleDeletePost(context),
-                      icon: Icon(Icons.more_horiz),
-                    )
-                  : Text(''),
-              Text(timeago.format(timestamp.toDate(), locale: 'en_short')),
+              IconButton(
+                onPressed: () => handleDeletePost(context),
+                icon: Icon(Icons.more_horiz),
+              ),
+              const SizedBox(
+                width: 4.0,
+              ),
+              GestureDetector(
+                onTap: () {
+                  setState(() {
+                    isTimeAgo = !isTimeAgo;
+                  });
+                },
+                child: isTimeAgo
+                    ? Text(
+                        timeago.format(timestamp.toDate(), locale: 'en_short'))
+                    : Text(DateFormat('HH:mm').format(timestamp.toDate())),
+              ),
             ],
           ),
         );
