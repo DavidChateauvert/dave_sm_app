@@ -13,6 +13,7 @@ import 'package:image_size_getter/image_size_getter.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sm_app/api/firebase_api.dart';
 import 'package:sm_app/pages/home.dart';
+import 'package:sm_app/widgets/chooseGroups.dart';
 import 'package:sm_app/widgets/playVideo.dart';
 import 'package:sm_app/widgets/progress.dart';
 import 'package:status_alert/status_alert.dart';
@@ -48,6 +49,7 @@ class _UploadState extends State<Upload>
   late String otherUserToken;
   String type = "text";
   late VideoPlayerController _controller;
+  final sheet = GlobalKey<ChooseGroupsState>();
 
   @override
   void initState() {
@@ -85,6 +87,11 @@ class _UploadState extends State<Upload>
 
   handleTakePhotoFunctions() async {
     await handleTakePhoto();
+  }
+
+  expandGroupSheet() {
+    print("allo");
+    // sheet.currentState?.expand();
   }
 
   handleTakePhoto() async {
@@ -727,13 +734,35 @@ class _UploadState extends State<Upload>
           backgroundColor: Theme.of(context).colorScheme.background,
           appBar: AppBar(
             backgroundColor: Theme.of(context).colorScheme.primary,
-            leading: IconButton(
-              icon: Icon(
-                Icons.add_a_photo_outlined,
-                color: Colors.white,
-                size: 30.0,
-              ),
-              onPressed: () => selectImage(context),
+            leading: Row(
+              children: [
+                Flexible(
+                  child: Padding(
+                    padding: EdgeInsets.only(left: 4.0),
+                    child: IconButton(
+                      icon: Icon(
+                        Icons.add_a_photo_outlined,
+                        color: Colors.white,
+                        size: 32.0,
+                      ),
+                      onPressed: () => selectImage(context),
+                    ),
+                  ),
+                ),
+                Flexible(
+                  child: Padding(
+                    padding: EdgeInsets.only(left: 40.0, bottom: 4.0),
+                    child: IconButton(
+                        icon: Icon(
+                          CupertinoIcons.group_solid,
+                          color: Colors.white,
+                          size: 40.0,
+                        ),
+                        onPressed: null //  expandGroupSheet(),
+                        ),
+                  ),
+                ),
+              ],
             ),
             title: Text(
               AppLocalizations.of(context)!.make_a_post,
@@ -847,6 +876,7 @@ class _UploadState extends State<Upload>
                           : Text(""),
             ],
           ),
+          bottomSheet: ChooseGroups(child: Text("allo")),
         ),
       ),
     );

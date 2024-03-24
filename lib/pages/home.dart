@@ -389,7 +389,6 @@ class _HomeState extends State<Home> {
 
   @override
   Widget build(BuildContext context) {
-    print("allo");
     return isAuth ? buildAuthScreen() : buildUnAuthScreen();
   }
 }

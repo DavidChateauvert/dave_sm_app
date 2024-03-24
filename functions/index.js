@@ -87,14 +87,32 @@ exports.onCreatePost = functions.firestore
         const postCreated = snapshot.data();
         const userId = context.params.userId;
         const postId = context.params.postId;
+        let group = context.params.group;
+        let userRef;
 
-        // Get all followers who made follow the user who made the post
-        const userFriendsRef = admin.firestore()
+        if (!group) {
+            group = "all friends";
+        }
+
+        if (group === "all friends") {
+            userRef = admin.firestore()
             .collection('friends')
             .doc(userId)
             .collection('userFriends');
+        } else {
+            userRef = admin.firestore()
+            .collection('groups')
+            .doc(userId)
+            .collection('userGroups');
+        }
 
-        const querySnapshot = await userFriendsRef.get();
+        // Get all followers who made follow the user who made the post
+        // const userFriendsRef = admin.firestore()
+        //     .collection('friends')
+        //     .doc(userId)
+        //     .collection('userFriends');
+
+        const querySnapshot = await userRef.get();
 
         // The user
 
@@ -127,14 +145,32 @@ exports.onUpdatePost = functions.firestore
         const postUpdated = change.after.data();
         const userId = context.params.userId;
         const postId = context.params.postId;
+        let group = context.params.group;
+        let userRef;
+
+        if (!group) {
+            group = "all friends";
+        }
+
+        if (group === "all friends") {
+            userRef = admin.firestore()
+            .collection('friends')
+            .doc(userId)
+            .collection('userFriends');
+        } else {
+            userRef = admin.firestore()
+            .collection('groups')
+            .doc(userId)
+            .collection('userGroups');
+        }
 
         // Get all firend who have the post
-        const userFriendsRef = admin.firestore()
-        .collection('friends')
-        .doc(userId)
-        .collection('userFriends');
+        // const userFriendsRef = admin.firestore()
+        // .collection('friends')
+        // .doc(userId)
+        // .collection('userFriends');
 
-        const querySnapshot = await userFriendsRef.get();
+        const querySnapshot = await userRef.get();
 
         // And the user
         admin
@@ -184,14 +220,33 @@ exports.onDeletePost = functions.firestore
             .collection('timelinePosts')
             .doc(postId)
             .delete();
+            
+        let group = context.params.group;
+        let userRef;
 
-        // Delete post from each follower's timeline
-        const userFriendsRef = admin.firestore()
+        if (!group) {
+            group = "all friends";
+        }
+
+        if (group === "all friends") {
+            userRef = admin.firestore()
             .collection('friends')
             .doc(userId)
             .collection('userFriends');
+        } else {
+            userRef = admin.firestore()
+            .collection('groups')
+            .doc(userId)
+            .collection('userGroups');
+        }
 
-        const querySnapshot = await userFriendsRef.get();
+        // Delete post from each follower's timeline
+        // const userFriendsRef = admin.firestore()
+        //     .collection('friends')
+        //     .doc(userId)
+        //     .collection('userFriends');
+
+        const querySnapshot = await userRef.get();
 
         querySnapshot.docs.forEach(async doc => {
             const friendId = doc.id;
