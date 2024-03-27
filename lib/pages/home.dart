@@ -38,6 +38,7 @@ final messagesRef = FirebaseFirestore.instance.collection('messages');
 final friendsRef = FirebaseFirestore.instance.collection('friends');
 final tokensRef = FirebaseFirestore.instance.collection('tokens');
 final reportsRef = FirebaseFirestore.instance.collection('reports');
+final groupsRef = FirebaseFirestore.instance.collection('groups');
 final DateTime timestamp = DateTime.now();
 late DaveUser.User currentUser;
 

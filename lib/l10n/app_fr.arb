@@ -207,5 +207,7 @@
     "error_invalid_email": "Le courriel est invalide",
     "error_email_already_in_use": "Courriel déjà utilisé",
     "error_operation_not_allowed": "Operation non permise",
-    "error_weak_password": "Mot de passe trop faible"
+    "error_weak_password": "Mot de passe trop faible",
+    "groups": "Groupes",
+    "create_group": "Créer un groupe"
 }

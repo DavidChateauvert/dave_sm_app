@@ -67,8 +67,6 @@ class _Friends extends State<Friends> {
 
   @override
   Widget build(context) {
-    getFriends();
-
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: true,

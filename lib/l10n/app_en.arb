@@ -207,5 +207,8 @@
     "error_invalid_email": "Email is invalid",
     "error_email_already_in_use": "Email already in use",
     "error_operation_not_allowed": "Operation not allowed",
-    "error_weak_password": "Password not strong enough"
+    "error_weak_password": "Password not strong enough",
+    "groups": "Groups",
+    "add_group": "Add group",
+    "create_group": "Create a group"
 }
