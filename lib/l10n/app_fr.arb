@@ -209,5 +209,6 @@
     "error_operation_not_allowed": "Operation non permise",
     "error_weak_password": "Mot de passe trop faible",
     "groups": "Groupes",
-    "create_group": "Créer un groupe"
+    "create_group": "Créer un groupe",
+    "create_group_question": "Est-ce que vous voulez créer un groupe ?"
 }

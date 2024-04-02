@@ -210,5 +210,6 @@
     "error_weak_password": "Password not strong enough",
     "groups": "Groups",
     "add_group": "Add group",
-    "create_group": "Create a group"
+    "create_group": "Create a group",
+    "create_group_question": "Do you want to create a group ?"
 }

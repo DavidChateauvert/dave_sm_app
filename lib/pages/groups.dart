@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:sm_app/models/groups.dart';
 import 'package:sm_app/models/user.dart';
 import 'package:sm_app/pages/home.dart';
 import 'package:sm_app/widgets/userForGroup.dart';
@@ -16,15 +16,25 @@ class Groups extends StatefulWidget {
 class _GroupsState extends State<Groups> {
   String chosenGroup = "";
   List<User> userResult = [];
+  List<Group> selectedGroup = [];
 
   @override
   void initState() {
     super.initState();
-    // getGroups();
     getFriends();
+    getGroups();
   }
 
-  // getGroups()
+  getGroups() async {
+    QuerySnapshot groupsSnapshot =
+        await groupsRef.doc(currentUser.id).collection('userGroups').get();
+
+    // List<String> groupsIds = [];
+
+    groupsSnapshot.docs.forEach((element) {
+      print(element);
+    });
+  }
 
   getFriends() async {
     QuerySnapshot friendsSnapshot =
@@ -54,6 +64,41 @@ class _GroupsState extends State<Groups> {
     }
   }
 
+  createGroup() {}
+
+  showConfirmModal(parentContext) {
+    return showDialog(
+      context: parentContext,
+      builder: (context) {
+        return SimpleDialog(
+          title: Center(
+            child: Text(
+              AppLocalizations.of(context)!.create_group_question,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.primaryContainer,
+              ),
+            ),
+          ),
+          children: [
+            SimpleDialogOption(
+              onPressed: () {
+                createGroup();
+              },
+              child: Text(
+                AppLocalizations.of(context)!.create_group,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onBackground,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -62,7 +107,7 @@ class _GroupsState extends State<Groups> {
           backgroundColor: Theme.of(context).colorScheme.primary,
           leading: IconButton(
             icon: Icon(
-              CupertinoIcons.clear_thick,
+              Icons.clear,
               color: Colors.white,
               size: 32.0,
             ),
@@ -77,16 +122,14 @@ class _GroupsState extends State<Groups> {
           ),
           centerTitle: true,
           actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context, chosenGroup),
-              child: Text(
-                AppLocalizations.of(context)!.add_group,
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 18.0,
-                  fontWeight: FontWeight.bold,
-                ),
+            IconButton(
+              icon: Icon(
+                Icons.done,
+                color: Colors.white,
+                size: 32.0,
               ),
+              onPressed: () => showConfirmModal(
+                  context), // Navigator.pop(context, chosenGroup),
             ),
           ],
         ),
