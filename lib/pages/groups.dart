@@ -4,7 +4,9 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:sm_app/models/groups.dart';
 import 'package:sm_app/models/user.dart';
 import 'package:sm_app/pages/home.dart';
+import 'package:sm_app/widgets/groupsTile.dart';
 import 'package:sm_app/widgets/userForGroup.dart';
+import 'package:uuid/uuid.dart';
 
 class Groups extends StatefulWidget {
   const Groups({super.key});
@@ -14,25 +16,41 @@ class Groups extends StatefulWidget {
 }
 
 class _GroupsState extends State<Groups> {
-  String chosenGroup = "";
   List<User> userResult = [];
-  List<Group> selectedGroup = [];
+  Map<String, bool> selectedUser = {};
+  List<Group> groupResult = [];
+  Map<String, bool> selectedGroup = {};
 
   @override
   void initState() {
     super.initState();
-    getFriends();
     getGroups();
+    getFriends();
   }
 
   getGroups() async {
     QuerySnapshot groupsSnapshot =
         await groupsRef.doc(currentUser.id).collection('userGroups').get();
 
-    // List<String> groupsIds = [];
+    List<Group> groupResultInit = [];
 
-    groupsSnapshot.docs.forEach((element) {
-      print(element);
+    for (var doc in groupsSnapshot.docs) {
+      List<String> usersInGroup = [];
+      QuerySnapshot groupsSnapshotInside = await groupsRef
+          .doc(currentUser.id)
+          .collection('userGroups')
+          .doc(doc.id)
+          .collection("users")
+          .get();
+      groupsSnapshotInside.docs.forEach((doc) {
+        usersInGroup.add(doc.id);
+      });
+      groupResultInit.add(
+          Group(id: doc.id, name: doc['name'], usersInGroup: usersInGroup));
+    }
+
+    setState(() {
+      this.groupResult = groupResultInit;
     });
   }
 
@@ -54,6 +72,9 @@ class _GroupsState extends State<Groups> {
       if (userIds.contains(doc['id'])) {
         User user = User.fromDocument(doc);
         userForGroup.add(user);
+        setState(() {
+          selectedUser[user.id] = true;
+        });
       }
     });
 
@@ -64,7 +85,57 @@ class _GroupsState extends State<Groups> {
     }
   }
 
-  createGroup() {}
+  createGroup() {
+    String groupId = Uuid().v4();
+    groupsRef
+        .doc(currentUser.id)
+        .collection('userGroups')
+        .doc(groupId)
+        .set({"name": "Group ${groupResult.length + 1}"});
+
+    List<String> usersInGroup = [];
+    selectedUser.forEach((key, value) async {
+      if (value) {
+        usersInGroup.add(key);
+        await groupsRef
+            .doc(currentUser.id)
+            .collection('userGroups')
+            .doc(groupId)
+            .collection("users")
+            .doc(key)
+            .set({});
+      }
+    });
+
+    return Group(
+        id: groupId,
+        name: "Group ${groupResult.length + 1}",
+        usersInGroup: usersInGroup);
+  }
+
+  handleExit(BuildContext context) {
+    // If a group is selected
+    if (this.selectedGroup.values.contains(true)) {
+      Group? groupSelected;
+      this.selectedGroup.forEach((key, value) {
+        if (value) {
+          groupResult.forEach((doc) {
+            if (doc.id == key) {
+              groupSelected = doc;
+            }
+          });
+        }
+      });
+      if (groupSelected != null) {
+        Navigator.pop(context, groupSelected);
+      }
+    } // Ask to create a group
+    else if (this.selectedUser.values.contains(false)) {
+      showConfirmModal(context);
+    } else {
+      Navigator.pop(context);
+    }
+  }
 
   showConfirmModal(parentContext) {
     return showDialog(
@@ -83,7 +154,9 @@ class _GroupsState extends State<Groups> {
           children: [
             SimpleDialogOption(
               onPressed: () {
-                createGroup();
+                Group groupReturn = createGroup();
+                Navigator.pop(context);
+                Navigator.pop(context, groupReturn);
               },
               child: Text(
                 AppLocalizations.of(context)!.create_group,
@@ -97,6 +170,44 @@ class _GroupsState extends State<Groups> {
         );
       },
     );
+  }
+
+  toggleSelectedUser(String userId, bool isSelected) {
+    setState(() {
+      this.selectedUser[userId] = !isSelected;
+      selectedGroup.forEach((key, value) {
+        this.selectedGroup[key] = false;
+      });
+    });
+  }
+
+  toggleSelectedGroup(String groupId, bool isSelected) {
+    setState(() {
+      this.selectedGroup[groupId] = !isSelected;
+      selectedGroup.forEach((key, value) {
+        if (key != groupId) {
+          this.selectedGroup[key] = false;
+        }
+      });
+    });
+
+    if (!isSelected) {
+      this.groupResult.forEach((doc) {
+        if (doc.id == groupId) {
+          selectedUser.forEach((key, value) {
+            if (doc.usersInGroup.contains(key)) {
+              this.selectedUser[key] = !isSelected;
+            } else {
+              this.selectedUser[key] = false;
+            }
+          });
+        }
+      });
+    } else {
+      selectedUser.forEach((key, value) {
+        this.selectedUser[key] = true;
+      });
+    }
   }
 
   @override
@@ -128,8 +239,7 @@ class _GroupsState extends State<Groups> {
                 color: Colors.white,
                 size: 32.0,
               ),
-              onPressed: () => showConfirmModal(
-                  context), // Navigator.pop(context, chosenGroup),
+              onPressed: () => handleExit(context),
             ),
           ],
         ),
@@ -139,13 +249,18 @@ class _GroupsState extends State<Groups> {
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
               ListView.builder(
+                reverse: true,
                 shrinkWrap: true,
                 physics: NeverScrollableScrollPhysics(),
-                itemCount: userResult.length,
+                itemCount: groupResult.length,
                 itemBuilder: (context, index) {
-                  return UserForGroup(
-                    isSelected: false,
-                    user: this.userResult[index],
+                  return GroupTile(
+                    isSelected:
+                        this.selectedGroup[this.groupResult[index].id] ?? false,
+                    group: this.groupResult[index],
+                    onSelectedStateChanged: (groupId, isSelected) {
+                      toggleSelectedGroup(groupId, isSelected);
+                    },
                   );
                 },
               ),
@@ -156,8 +271,12 @@ class _GroupsState extends State<Groups> {
                 itemCount: userResult.length,
                 itemBuilder: (context, index) {
                   return UserForGroup(
-                    isSelected: false,
+                    isSelected:
+                        this.selectedUser[this.userResult[index].id] ?? false,
                     user: this.userResult[index],
+                    onSelectedStateChanged: (userId, isSelected) {
+                      toggleSelectedUser(userId, isSelected);
+                    },
                   );
                 },
               ),

@@ -12,6 +12,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:image_size_getter/image_size_getter.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sm_app/api/firebase_api.dart';
+import 'package:sm_app/models/groups.dart';
 import 'package:sm_app/pages/groups.dart';
 import 'package:sm_app/pages/home.dart';
 import 'package:sm_app/widgets/playVideo.dart';
@@ -49,6 +50,7 @@ class _UploadState extends State<Upload>
   late String otherUserToken;
   String type = "text";
   late VideoPlayerController _controller;
+  Group? group;
 
   @override
   void initState() {
@@ -88,8 +90,8 @@ class _UploadState extends State<Upload>
     await handleTakePhoto();
   }
 
-  void showGroupsPage(BuildContext context) {
-    Navigator.push(
+  void showGroupsPage(BuildContext context) async {
+    Group selectedGroup = await Navigator.push(
       context,
       PageRouteBuilder(
         transitionDuration:
@@ -110,6 +112,9 @@ class _UploadState extends State<Upload>
         },
       ),
     );
+    setState(() {
+      this.group = selectedGroup;
+    });
   }
 
   handleTakePhoto() async {
@@ -740,6 +745,44 @@ class _UploadState extends State<Upload>
     });
   }
 
+  buildGroupTile() {
+    return ListTile(
+      title: RichText(
+        overflow: TextOverflow.ellipsis,
+        text: TextSpan(
+          style: TextStyle(
+            fontSize: 20.0,
+            color: Theme.of(context).colorScheme.onBackground,
+          ),
+          children: [
+            TextSpan(
+              text: "To : ",
+              style: const TextStyle(fontWeight: FontWeight.normal),
+            ),
+            TextSpan(
+              text: '${group?.name}',
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+      ),
+      trailing: IconButton(
+        onPressed: () {
+          setState(() {
+            group = null;
+          });
+        },
+        icon: Icon(
+          Icons.clear,
+          color: Theme.of(context).colorScheme.onBackground,
+          size: 24,
+        ),
+      ),
+    );
+  }
+
   buildUploadForm() {
     if (file != null && type == "photo") {
       final fileImage = FileImage(file!);
@@ -792,6 +835,19 @@ class _UploadState extends State<Upload>
               Padding(
                 padding: EdgeInsets.only(top: 10.0),
               ),
+              group != null
+                  ? Divider(
+                      thickness: 0.5,
+                      color: Theme.of(context).colorScheme.secondary,
+                    )
+                  : Container(),
+              group != null ? buildGroupTile() : Container(),
+              group != null
+                  ? Divider(
+                      thickness: 0.5,
+                      color: Theme.of(context).colorScheme.secondary,
+                    )
+                  : Container(),
               ListTile(
                 leading: CircleAvatar(
                   backgroundImage:

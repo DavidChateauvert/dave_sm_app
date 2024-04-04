@@ -108,7 +108,6 @@ class _HomeState extends State<Home> {
 
   checkIfUserExist() async {
     final String userId;
-    print(4444);
     String provider =
         FirebaseAuth.instance.currentUser!.providerData[0].providerId;
     if (provider == "google.com") {
