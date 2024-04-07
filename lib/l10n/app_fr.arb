@@ -209,6 +209,19 @@
     "error_operation_not_allowed": "Operation non permise",
     "error_weak_password": "Mot de passe trop faible",
     "groups": "Groupes",
+    "add_group": "Ajouter groupe",
     "create_group": "Créer un groupe",
-    "create_group_question": "Est-ce que vous voulez créer un groupe ?"
+    "no_create_group": "Aller à la publication directement",
+    "create_group_question": "Voulez-vous créer un groupe avec les utilisateurs sélectionnés ?",
+    "your_groups": "Vos groupes",
+    "selected_user": "Utilisateurs choisis",
+    "enter_group_name": "Entrer le nom du groupe",
+    "confirm": "Confirmer",
+    "hint_text_group_name": "Nom du groupe",
+    "upload_to": "À : ",
+    "default_group": "Utilisateurs choisis",
+    "post_parameters": "Paramètres de la publications",
+    "sure_delete_post": "Êtes-vous de vouloir supprimer cette publication ?",
+    "who_can_see_post": "Qui peut voir cette publication",
+    "group": "Groupe"
 }

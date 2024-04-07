@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:sm_app/pages/GroupUsers.dart';
 import 'package:sm_app/pages/friends.dart';
 import 'package:sm_app/pages/home.dart';
 import 'package:sm_app/pages/likePost.dart';
@@ -33,6 +34,7 @@ class PostProfile extends StatefulWidget {
   final int commentCount;
   final Timestamp timestamp;
   final String type;
+  final String group;
 
   PostProfile({
     required this.postId,
@@ -48,11 +50,14 @@ class PostProfile extends StatefulWidget {
     required this.mentions,
     required this.timestamp,
     required this.type,
+    required this.group,
   });
 
   factory PostProfile.fromDocument(DocumentSnapshot doc) {
     final String type =
         doc.data().toString().contains('type') ? doc['type'] : "";
+    final String group =
+        doc.data().toString().contains('group') ? doc['group'] : "";
     return PostProfile(
       postId: doc['postId'],
       ownerId: doc['ownerId'],
@@ -67,6 +72,7 @@ class PostProfile extends StatefulWidget {
       mentions: doc['mentions'],
       timestamp: doc['timestamp'],
       type: type,
+      group: group,
     );
   }
 
@@ -100,6 +106,7 @@ class PostProfile extends StatefulWidget {
         mentions: mentions,
         timestamp: timestamp,
         type: type,
+        group: group,
       );
 }
 
@@ -128,6 +135,7 @@ class _PostProfileState extends State<PostProfile> {
   bool deleteInstant = false;
   String type;
   bool isTimeAgo = true;
+  String group;
 
   _PostProfileState({
     required this.postId,
@@ -144,6 +152,7 @@ class _PostProfileState extends State<PostProfile> {
     required this.mentions,
     required this.timestamp,
     required this.type,
+    required this.group,
   });
 
   buildPostHeader() {
@@ -185,7 +194,7 @@ class _PostProfileState extends State<PostProfile> {
             mainAxisSize: MainAxisSize.min,
             children: [
               IconButton(
-                onPressed: () => handleDeletePost(context),
+                onPressed: () => showPostParameters(context),
                 icon: Icon(Icons.more_horiz),
               ),
               const SizedBox(
@@ -204,6 +213,60 @@ class _PostProfileState extends State<PostProfile> {
               ),
             ],
           ),
+        );
+      },
+    );
+  }
+
+  showGroup(BuildContext parentContext) {
+    if (group == "") {
+      showFriends(context, profileId: currentUserId);
+    } else {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) {
+            return GroupUsers(
+              groupId: group,
+            );
+          },
+        ),
+      );
+    }
+  }
+
+  showPostParameters(BuildContext parentContext) {
+    return showDialog(
+      context: parentContext,
+      builder: (context) {
+        return SimpleDialog(
+          title: Text(
+            AppLocalizations.of(context)!.post_parameters,
+            textAlign: TextAlign.center,
+          ),
+          children: <Widget>[
+            SimpleDialogOption(
+              onPressed: () {
+                Navigator.pop(context);
+                showGroup(context);
+              },
+              child: Text(
+                AppLocalizations.of(context)!.who_can_see_post,
+                textAlign: TextAlign.center,
+              ),
+            ),
+            SimpleDialogOption(
+              onPressed: () {
+                Navigator.pop(context);
+                deletePostInstant();
+              },
+              child: Text(
+                AppLocalizations.of(context)!.remove_post,
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.red),
+              ),
+            ),
+          ],
         );
       },
     );

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:sm_app/api/firebase_api.dart';
+import 'package:sm_app/pages/GroupUsers.dart';
 import 'package:sm_app/pages/friends.dart';
 import 'package:sm_app/pages/home.dart';
 import 'package:sm_app/pages/likePost.dart';
@@ -37,6 +38,7 @@ class Post extends StatefulWidget {
   final double appBarSize;
   final Timestamp timestamp;
   final String type;
+  final String group;
 
   Post({
     required this.postId,
@@ -53,11 +55,14 @@ class Post extends StatefulWidget {
     required this.appBarSize,
     required this.timestamp,
     required this.type,
+    required this.group,
   });
 
   factory Post.fromDocument(DocumentSnapshot doc) {
     final String type =
         doc.data().toString().contains('type') ? doc['type'] : "";
+    final String group =
+        doc.data().toString().contains('group') ? doc['group'] : "";
     return Post(
       postId: doc['postId'],
       ownerId: doc['ownerId'],
@@ -73,6 +78,7 @@ class Post extends StatefulWidget {
       timestamp: doc['timestamp'],
       appBarSize: 112.0,
       type: type,
+      group: group,
     );
   }
 
@@ -80,6 +86,8 @@ class Post extends StatefulWidget {
       DocumentSnapshot doc, double appBarSize) {
     final String? type =
         doc.data().toString().contains('type') ? doc["type"] : "";
+    final String group =
+        doc.data().toString().contains('group') ? doc['group'] : "";
     return Post(
       postId: doc['postId'],
       ownerId: doc['ownerId'],
@@ -95,6 +103,7 @@ class Post extends StatefulWidget {
       timestamp: doc['timestamp'],
       appBarSize: appBarSize,
       type: type!,
+      group: group,
     );
   }
 
@@ -129,6 +138,7 @@ class Post extends StatefulWidget {
         appBarSize: appBarSize,
         timestamp: timestamp,
         type: type,
+        group: group,
       );
 }
 
@@ -160,6 +170,7 @@ class _PostState extends State<Post> {
   bool deleteInstant = false;
   String type;
   bool isTimeAgo = true;
+  String group;
 
   _PostState({
     required this.postId,
@@ -177,6 +188,7 @@ class _PostState extends State<Post> {
     required this.appBarSize,
     required this.timestamp,
     required this.type,
+    required this.group,
   });
 
   buildPostHeader() {
@@ -223,7 +235,7 @@ class _PostState extends State<Post> {
             children: [
               isPostOwner
                   ? IconButton(
-                      onPressed: () => handleDeletePost(context),
+                      onPressed: () => showPostParameters(context),
                       icon: Icon(Icons.more_horiz_outlined),
                     )
                   : IconButton(
@@ -246,6 +258,60 @@ class _PostState extends State<Post> {
               ),
             ],
           ),
+        );
+      },
+    );
+  }
+
+  showGroup(BuildContext parentContext) {
+    if (group == "") {
+      showFriends(context, profileId: currentUserId);
+    } else {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) {
+            return GroupUsers(
+              groupId: group,
+            );
+          },
+        ),
+      );
+    }
+  }
+
+  showPostParameters(BuildContext parentContext) {
+    return showDialog(
+      context: parentContext,
+      builder: (context) {
+        return SimpleDialog(
+          title: Text(
+            AppLocalizations.of(context)!.post_parameters,
+            textAlign: TextAlign.center,
+          ),
+          children: <Widget>[
+            SimpleDialogOption(
+              onPressed: () {
+                Navigator.pop(context);
+                showGroup(context);
+              },
+              child: Text(
+                AppLocalizations.of(context)!.who_can_see_post,
+                textAlign: TextAlign.center,
+              ),
+            ),
+            SimpleDialogOption(
+              onPressed: () {
+                Navigator.pop(context);
+                deletePostInstant();
+              },
+              child: Text(
+                AppLocalizations.of(context)!.remove_post,
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.red),
+              ),
+            ),
+          ],
         );
       },
     );

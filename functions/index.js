@@ -83,18 +83,15 @@ exports.onDeleteFriend = functions.firestore
 exports.onCreatePost = functions.firestore
     .document('/posts/{userId}/userPosts/{postId}')
     .onCreate(async (snapshot, context) => {
+        console.log("Post created after deploy");
 
         const postCreated = snapshot.data();
         const userId = context.params.userId;
         const postId = context.params.postId;
-        let group = context.params.group;
-        let userRef;
+        const group = postCreated.hasOwnProperty('group') ? postCreated.group : undefined;
+        let userRef
 
         if (!group) {
-            group = "all friends";
-        }
-
-        if (group === "all friends") {
             userRef = admin.firestore()
             .collection('friends')
             .doc(userId)
@@ -103,7 +100,9 @@ exports.onCreatePost = functions.firestore
             userRef = admin.firestore()
             .collection('groups')
             .doc(userId)
-            .collection('userGroups');
+            .collection('userGroups')
+            .doc(group)
+            .collection('users');
         }
 
         // Get all followers who made follow the user who made the post
@@ -145,14 +144,10 @@ exports.onUpdatePost = functions.firestore
         const postUpdated = change.after.data();
         const userId = context.params.userId;
         const postId = context.params.postId;
-        let group = context.params.group;
+        const group = postUpdated.hasOwnProperty('group') ? postUpdated.group : undefined;
         let userRef;
 
         if (!group) {
-            group = "all friends";
-        }
-
-        if (group === "all friends") {
             userRef = admin.firestore()
             .collection('friends')
             .doc(userId)
@@ -161,7 +156,9 @@ exports.onUpdatePost = functions.firestore
             userRef = admin.firestore()
             .collection('groups')
             .doc(userId)
-            .collection('userGroups');
+            .collection('userGroups')
+            .doc(group)
+            .collection('users');
         }
 
         // Get all firend who have the post
@@ -209,6 +206,7 @@ exports.onDeletePost = functions.firestore
 
         const userId = context.params.userId;
         const postId = context.params.postId;
+        const group = snapshot.data().hasOwnProperty('group') ? snapshot.data().group : undefined;
 
         // Get the media URL from the snapshot data
         const mediaURL = snapshot.data().mediaUrl;
@@ -220,15 +218,10 @@ exports.onDeletePost = functions.firestore
             .collection('timelinePosts')
             .doc(postId)
             .delete();
-            
-        let group = context.params.group;
+        
         let userRef;
 
         if (!group) {
-            group = "all friends";
-        }
-
-        if (group === "all friends") {
             userRef = admin.firestore()
             .collection('friends')
             .doc(userId)
@@ -237,7 +230,9 @@ exports.onDeletePost = functions.firestore
             userRef = admin.firestore()
             .collection('groups')
             .doc(userId)
-            .collection('userGroups');
+            .collection('userGroups')
+            .doc(group)
+            .collection('users');
         }
 
         // Delete post from each follower's timeline

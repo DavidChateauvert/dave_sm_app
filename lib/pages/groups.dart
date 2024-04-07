@@ -5,6 +5,7 @@ import 'package:sm_app/models/groups.dart';
 import 'package:sm_app/models/user.dart';
 import 'package:sm_app/pages/home.dart';
 import 'package:sm_app/widgets/groupsTile.dart';
+import 'package:sm_app/widgets/progress.dart';
 import 'package:sm_app/widgets/userForGroup.dart';
 import 'package:uuid/uuid.dart';
 
@@ -20,12 +21,16 @@ class _GroupsState extends State<Groups> {
   Map<String, bool> selectedUser = {};
   List<Group> groupResult = [];
   Map<String, bool> selectedGroup = {};
+  bool isGroupLoading = true;
+  bool isFriendLoading = true;
+  late TextEditingController controller;
 
   @override
   void initState() {
     super.initState();
     getGroups();
     getFriends();
+    controller = TextEditingController();
   }
 
   getGroups() async {
@@ -45,12 +50,15 @@ class _GroupsState extends State<Groups> {
       groupsSnapshotInside.docs.forEach((doc) {
         usersInGroup.add(doc.id);
       });
-      groupResultInit.add(
-          Group(id: doc.id, name: doc['name'], usersInGroup: usersInGroup));
+      if (doc['name'] != "") {
+        groupResultInit.add(
+            Group(id: doc.id, name: doc['name'], usersInGroup: usersInGroup));
+      }
     }
 
     setState(() {
       this.groupResult = groupResultInit;
+      isGroupLoading = false;
     });
   }
 
@@ -81,17 +89,17 @@ class _GroupsState extends State<Groups> {
     if (mounted) {
       setState(() {
         this.userResult = userForGroup;
+        this.isFriendLoading = false;
       });
     }
   }
 
-  createGroup() {
+  createGroup(bool createWithName) {
     String groupId = Uuid().v4();
-    groupsRef
-        .doc(currentUser.id)
-        .collection('userGroups')
-        .doc(groupId)
-        .set({"name": "Group ${groupResult.length + 1}"});
+    groupsRef.doc(currentUser.id).collection('userGroups').doc(groupId).set({
+      "name": createWithName ? controller.text : "",
+      "saveGroup": createWithName
+    });
 
     List<String> usersInGroup = [];
     selectedUser.forEach((key, value) async {
@@ -109,7 +117,7 @@ class _GroupsState extends State<Groups> {
 
     return Group(
         id: groupId,
-        name: "Group ${groupResult.length + 1}",
+        name: createWithName ? controller.text : "",
         usersInGroup: usersInGroup);
   }
 
@@ -137,6 +145,60 @@ class _GroupsState extends State<Groups> {
     }
   }
 
+  handleCreateGroup(context) {
+    Navigator.pop(context);
+    Group groupReturn = createGroup(true);
+    controller.clear();
+    Navigator.pop(context, groupReturn);
+  }
+
+  showCreateGroupModal(context) {
+    return showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: Text(AppLocalizations.of(context)!.enter_group_name),
+              content: TextField(
+                decoration: InputDecoration(
+                  hintText: AppLocalizations.of(context)!.hint_text_group_name,
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(
+                      color: Theme.of(context).colorScheme.primaryContainer,
+                    ),
+                  ),
+                ),
+                cursorColor: Theme.of(context).colorScheme.primaryContainer,
+                controller: controller,
+                onChanged: (_) {
+                  setState(() {}); // Update the state when text changes
+                },
+              ),
+              actions: [
+                TextButton(
+                  onPressed: controller.text.isEmpty
+                      ? null // Disable button if text is empty
+                      : () {
+                          handleCreateGroup(context);
+                        },
+                  child: Text(
+                    AppLocalizations.of(context)!.confirm,
+                    style: TextStyle(
+                      color: controller.text.isEmpty
+                          ? Colors.grey // Disable button if text is empty
+                          : Theme.of(context).colorScheme.primaryContainer,
+                    ),
+                  ),
+                )
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
   showConfirmModal(parentContext) {
     return showDialog(
       context: parentContext,
@@ -154,12 +216,25 @@ class _GroupsState extends State<Groups> {
           children: [
             SimpleDialogOption(
               onPressed: () {
-                Group groupReturn = createGroup();
+                Navigator.pop(context);
+                showCreateGroupModal(context);
+              },
+              child: Text(
+                AppLocalizations.of(context)!.create_group,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onBackground,
+                ),
+              ),
+            ),
+            SimpleDialogOption(
+              onPressed: () {
+                Group groupReturn = createGroup(false);
                 Navigator.pop(context);
                 Navigator.pop(context, groupReturn);
               },
               child: Text(
-                AppLocalizations.of(context)!.create_group,
+                AppLocalizations.of(context)!.no_create_group,
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: Theme.of(context).colorScheme.onBackground,
@@ -213,76 +288,111 @@ class _GroupsState extends State<Groups> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        backgroundColor: Theme.of(context).colorScheme.background,
-        appBar: AppBar(
-          backgroundColor: Theme.of(context).colorScheme.primary,
-          leading: IconButton(
+      backgroundColor: Theme.of(context).colorScheme.background,
+      appBar: AppBar(
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        leading: IconButton(
+          icon: Icon(
+            Icons.clear,
+            color: Colors.white,
+            size: 32.0,
+          ),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: Text(
+          AppLocalizations.of(context)!.groups,
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 30.0,
+          ),
+        ),
+        centerTitle: true,
+        actions: [
+          IconButton(
             icon: Icon(
-              Icons.clear,
+              Icons.done,
               color: Colors.white,
               size: 32.0,
             ),
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => handleExit(context),
           ),
-          title: Text(
-            AppLocalizations.of(context)!.groups,
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 30.0,
-            ),
-          ),
-          centerTitle: true,
-          actions: [
-            IconButton(
-              icon: Icon(
-                Icons.done,
-                color: Colors.white,
-                size: 32.0,
-              ),
-              onPressed: () => handleExit(context),
-            ),
-          ],
-        ),
-        body: SingleChildScrollView(
-          physics: AlwaysScrollableScrollPhysics(),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              ListView.builder(
-                reverse: true,
-                shrinkWrap: true,
-                physics: NeverScrollableScrollPhysics(),
-                itemCount: groupResult.length,
-                itemBuilder: (context, index) {
-                  return GroupTile(
-                    isSelected:
-                        this.selectedGroup[this.groupResult[index].id] ?? false,
-                    group: this.groupResult[index],
-                    onSelectedStateChanged: (groupId, isSelected) {
-                      toggleSelectedGroup(groupId, isSelected);
+        ],
+      ),
+      body: (!isGroupLoading && !isFriendLoading)
+          ? SingleChildScrollView(
+              physics: AlwaysScrollableScrollPhysics(),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  Container(
+                    padding: EdgeInsets.symmetric(vertical: 16.0),
+                    child: Text(
+                      AppLocalizations.of(context)!.your_groups,
+                      style: TextStyle(
+                        fontSize: 32.0,
+                        color: Theme.of(context).colorScheme.onBackground,
+                      ),
+                    ),
+                  ),
+                  Divider(
+                    thickness: 0.5,
+                    color: Theme.of(context).colorScheme.secondary,
+                  ),
+                  ListView.builder(
+                    reverse: true,
+                    shrinkWrap: true,
+                    physics: NeverScrollableScrollPhysics(),
+                    itemCount: groupResult.length,
+                    itemBuilder: (context, index) {
+                      return GroupTile(
+                        isSelected:
+                            this.selectedGroup[this.groupResult[index].id] ??
+                                false,
+                        group: this.groupResult[index],
+                        onSelectedStateChanged: (groupId, isSelected) {
+                          toggleSelectedGroup(groupId, isSelected);
+                        },
+                      );
                     },
-                  );
-                },
-              ),
-              Divider(),
-              ListView.builder(
-                shrinkWrap: true,
-                physics: NeverScrollableScrollPhysics(),
-                itemCount: userResult.length,
-                itemBuilder: (context, index) {
-                  return UserForGroup(
-                    isSelected:
-                        this.selectedUser[this.userResult[index].id] ?? false,
-                    user: this.userResult[index],
-                    onSelectedStateChanged: (userId, isSelected) {
-                      toggleSelectedUser(userId, isSelected);
+                  ),
+                  Divider(
+                    thickness: 0.5,
+                    color: Theme.of(context).colorScheme.secondary,
+                  ),
+                  Container(
+                    padding: EdgeInsets.symmetric(vertical: 16.0),
+                    child: Text(
+                      AppLocalizations.of(context)!.friends,
+                      style: TextStyle(
+                        fontSize: 32.0,
+                        color: Theme.of(context).colorScheme.onBackground,
+                      ),
+                    ),
+                  ),
+                  Divider(
+                    thickness: 0.5,
+                    color: Theme.of(context).colorScheme.secondary,
+                  ),
+                  ListView.builder(
+                    shrinkWrap: true,
+                    physics: NeverScrollableScrollPhysics(),
+                    itemCount: userResult.length,
+                    itemBuilder: (context, index) {
+                      return UserForGroup(
+                        isSelected:
+                            this.selectedUser[this.userResult[index].id] ??
+                                false,
+                        user: this.userResult[index],
+                        onSelectedStateChanged: (userId, isSelected) {
+                          toggleSelectedUser(userId, isSelected);
+                        },
+                      );
                     },
-                  );
-                },
+                  ),
+                ],
               ),
-              Divider(),
-            ],
-          ),
-        ));
+            )
+          : circularProgress(),
+    );
   }
 }

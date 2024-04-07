@@ -51,6 +51,7 @@ class _UploadState extends State<Upload>
   String type = "text";
   late VideoPlayerController _controller;
   Group? group;
+  List<String>? selectedUserName;
 
   @override
   void initState() {
@@ -115,6 +116,22 @@ class _UploadState extends State<Upload>
     setState(() {
       this.group = selectedGroup;
     });
+    selectedUserName =
+        getDisplaysFromIds(mentionsDataInit, selectedGroup.usersInGroup);
+  }
+
+  List<String> getDisplaysFromIds(
+      List<Map<String, String>> mentionsDataInit, List<String> ids) {
+    List<String> displays = [];
+    for (String id in ids) {
+      String? display = mentionsDataInit.firstWhere(
+        (mention) => mention['id'] == id,
+      )['display'];
+      if (display != null) {
+        displays.add(display);
+      }
+    }
+    return displays;
   }
 
   handleTakePhoto() async {
@@ -608,6 +625,7 @@ class _UploadState extends State<Upload>
       "commentCount": 0,
       "mentions": mentionsMapFiltered,
       "type": type,
+      if (group != null) "group": group!.id,
     });
 
     usersRef.doc(currentUser.id).update({
@@ -703,6 +721,7 @@ class _UploadState extends State<Upload>
       }
 
       setState(() {
+        group = null;
         file = null;
         isUploading = false;
         postId = Uuid().v4();
@@ -745,8 +764,22 @@ class _UploadState extends State<Upload>
     });
   }
 
+  Widget buildSelectedUserName(String name) {
+    return Container(
+      padding: EdgeInsets.symmetric(vertical: 8.0),
+      child: Text(
+        name,
+        style: TextStyle(
+          fontSize: 16.0,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
+
   buildGroupTile() {
-    return ListTile(
+    return ExpansionTile(
+      shape: RoundedRectangleBorder(),
       title: RichText(
         overflow: TextOverflow.ellipsis,
         text: TextSpan(
@@ -756,11 +789,13 @@ class _UploadState extends State<Upload>
           ),
           children: [
             TextSpan(
-              text: "To : ",
+              text: AppLocalizations.of(context)!.upload_to,
               style: const TextStyle(fontWeight: FontWeight.normal),
             ),
             TextSpan(
-              text: '${group?.name}',
+              text: group?.name != ""
+                  ? '${group?.name}'
+                  : AppLocalizations.of(context)!.default_group,
               style: const TextStyle(
                 fontWeight: FontWeight.bold,
               ),
@@ -768,7 +803,7 @@ class _UploadState extends State<Upload>
           ],
         ),
       ),
-      trailing: IconButton(
+      leading: IconButton(
         onPressed: () {
           setState(() {
             group = null;
@@ -780,6 +815,11 @@ class _UploadState extends State<Upload>
           size: 24,
         ),
       ),
+      children: group != null && selectedUserName != null
+          ? selectedUserName!
+              .map((name) => buildSelectedUserName(name))
+              .toList()
+          : [],
     );
   }
 
@@ -832,9 +872,11 @@ class _UploadState extends State<Upload>
           body: ListView(
             children: <Widget>[
               isUploading ? linearProgress() : Text(""),
-              Padding(
-                padding: EdgeInsets.only(top: 10.0),
-              ),
+              group != null
+                  ? Container()
+                  : Padding(
+                      padding: EdgeInsets.only(top: 10.0),
+                    ),
               group != null
                   ? Divider(
                       thickness: 0.5,
