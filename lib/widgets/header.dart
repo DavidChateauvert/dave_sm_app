@@ -36,7 +36,8 @@ AppBar header(
         //         effects: [FadeEffect()],
         //       )
         //     :
-        (titleText == "Profile" && removeBackButton == true)
+        (titleText == AppLocalizations.of(context)!.profile &&
+                removeBackButton == true)
             ? Builder(
                 builder: (BuildContext context) {
                   return IconButton(

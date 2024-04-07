@@ -1,7 +1,9 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:provider/provider.dart';
 import 'package:sm_app/pages/authentification/authentification_service.dart';
+import 'package:sm_app/providers/locale_provider.dart';
 import 'package:sm_app/widgets/progress.dart';
 
 class SignUp extends StatefulWidget {
@@ -292,28 +294,54 @@ class _SignUpState extends State<SignUp> {
                   const SizedBox(
                     height: 24.0,
                   ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        AppLocalizations.of(context)!.already_member,
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.secondary,
+                  Provider.of<LocaleProvider>(context, listen: false)
+                              .getLocaleFormatString() ==
+                          "en"
+                      ? Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              AppLocalizations.of(context)!.already_member,
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.secondary,
+                              ),
+                            ),
+                            GestureDetector(
+                              onTap: widget.onTap,
+                              child: Text(
+                                AppLocalizations.of(context)!.sign_in_button,
+                                style: TextStyle(
+                                  color:
+                                      Theme.of(context).colorScheme.secondary,
+                                  fontWeight: FontWeight.bold,
+                                  decoration: TextDecoration.underline,
+                                ),
+                              ),
+                            ),
+                          ],
+                        )
+                      : Column(
+                          children: [
+                            Text(
+                              AppLocalizations.of(context)!.already_member,
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.secondary,
+                              ),
+                            ),
+                            GestureDetector(
+                              onTap: widget.onTap,
+                              child: Text(
+                                AppLocalizations.of(context)!.sign_in_button,
+                                style: TextStyle(
+                                  color:
+                                      Theme.of(context).colorScheme.secondary,
+                                  fontWeight: FontWeight.bold,
+                                  decoration: TextDecoration.underline,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
-                      GestureDetector(
-                        onTap: widget.onTap,
-                        child: Text(
-                          AppLocalizations.of(context)!.sign_in_button,
-                          style: TextStyle(
-                            color: Theme.of(context).colorScheme.secondary,
-                            fontWeight: FontWeight.bold,
-                            decoration: TextDecoration.underline,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
                 ],
               ),
             ),

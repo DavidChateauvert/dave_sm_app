@@ -9,6 +9,7 @@ import 'package:sm_app/pages/settings.dart';
 import 'package:sm_app/widgets/header.dart';
 import 'package:sm_app/widgets/post.dart';
 import 'package:sm_app/widgets/profileHeader.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import '../models/user.dart';
 import '../widgets/post_profile.dart';
@@ -109,7 +110,7 @@ class _Profile extends State<Profile> {
   Widget build(context) {
     return Scaffold(
       appBar: header(context,
-          titleText: "Profile",
+          titleText: AppLocalizations.of(context)!.profile,
           removeBackButton: currentUserId == widget.profileId,
           showMessageButton: currentUserId == widget.profileId),
       body: currentUserId == widget.profileId

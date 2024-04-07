@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:sm_app/models/user.dart';
-import 'package:sm_app/pages/create_account.dart';
+import 'package:sm_app/pages/onboarding.dart';
 import 'package:sm_app/providers/locale_provider.dart';
 
 class Intro extends StatefulWidget {
@@ -19,11 +19,11 @@ class _IntroState extends State<Intro> {
   final _scaffoldKey = GlobalKey<ScaffoldState>();
   final List<bool> _selectedLanguage = <bool>[true, false];
 
-  showCreateAccount() async {
+  showOnboarding() async {
     final User user = await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => CreateAccount(
+        builder: (context) => Onboarding(
           userId: widget.userId,
         ),
       ),
@@ -114,27 +114,28 @@ class _IntroState extends State<Intro> {
               ],
             ),
             Padding(
-                padding: const EdgeInsets.only(top: 32.0),
-                child: IntrinsicWidth(
-                  child: TextButton(
-                    onPressed: () => showCreateAccount(),
-                    child: Row(
-                      children: [
-                        Text(
-                          AppLocalizations.of(context)!.set_up_account,
-                          style: TextStyle(
-                            fontSize: 24.0,
-                            color: Colors.white,
-                          ),
-                        ),
-                        const Icon(
-                          CupertinoIcons.forward,
+              padding: const EdgeInsets.only(top: 32.0),
+              child: IntrinsicWidth(
+                child: TextButton(
+                  onPressed: () => showOnboarding(),
+                  child: Row(
+                    children: [
+                      Text(
+                        AppLocalizations.of(context)!.continue_intro,
+                        style: TextStyle(
+                          fontSize: 24.0,
                           color: Colors.white,
                         ),
-                      ],
-                    ),
+                      ),
+                      const Icon(
+                        CupertinoIcons.forward,
+                        color: Colors.white,
+                      ),
+                    ],
                   ),
-                )),
+                ),
+              ),
+            ),
           ],
         ),
       ),

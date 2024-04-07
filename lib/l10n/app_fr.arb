@@ -223,5 +223,14 @@
     "post_parameters": "Paramètres de la publications",
     "sure_delete_post": "Êtes-vous de vouloir supprimer cette publication ?",
     "who_can_see_post": "Qui peut voir cette publication",
-    "group": "Groupe"
+    "group": "Groupe",
+    "skip": "Passer",
+    "next": "Prochain",
+    "onboarding_screen_1_top": "Lorsqu'on parle dans la vraie vie, ce qu'on dit est perdu à tous jamais",
+    "onboarding_screen_1_bottom": "Dave applique cette même logique mais sous forme de réseau social",
+    "onboarding_screen_2_top": "Pour faire cela, vous pouvez seulement voir chaque publication une seule fois",
+    "onboarding_screen_3_top": "Pour les messages privés, vous pouvez seulement voir les messages qui sont visibles dans la hauteur de votre écran, vous ne pouvez pas les faire défiler vers le haut",
+    "onboarding_screen_4_top": "Le reste de l'application est une application de réseau social assez standard ",
+    "onboarding_screen_5_top": "Il est maintenant temps de configurer votre profil !",
+    "continue_intro": "Continuer"
 }

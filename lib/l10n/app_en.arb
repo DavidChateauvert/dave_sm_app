@@ -223,5 +223,14 @@
     "post_parameters": "Post Parameters",
     "sure_delete_post": "Are you sure you want to delete this post ?",
     "who_can_see_post": "Who can see this post",
-    "group": "Group"
+    "group": "Group",
+    "skip": "Skip",
+    "next": "Next",
+    "onboarding_screen_1_top": "When you speak in real life, what you say goes up in the air and is gone forever",
+    "onboarding_screen_1_bottom": "Dave applies this same logic, but in social media form",
+    "onboarding_screen_2_top": "To do so, you can only see each post once",
+    "onboarding_screen_3_top": "In the private messages section, you can only see the messages that are visible within the height of the screen. You can't scroll them up",
+    "onboarding_screen_4_top": "The rest of the app is a pretty standard social media app",
+    "onboarding_screen_5_top": "Let's get your account set up !",
+    "continue_intro": "Continue"
 }

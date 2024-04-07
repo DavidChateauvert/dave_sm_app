@@ -66,6 +66,8 @@ dependencies:
   status_alert: ^1.0.1
   age_calculator: ^1.0.0
   flutter_native_splash: ^2.3.7
+  smooth_page_indicator: ^1.1.0
+  lottie: ^2.7.0
 
 dev_dependencies:
   flutter_test:
@@ -112,6 +114,9 @@ flutter:
     - assets/images/no_post.svg
     - assets/images/google_logo.png
     - assets/images/logo/logo_launch.png
+    - assets/animations/speaking1.json
+    - assets/onboarding/screen-4-en.png
+    - assets/onboarding/screen-4-fr.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
