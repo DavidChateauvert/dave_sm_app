@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:sm_app/models/user.dart';
 import 'package:sm_app/pages/create_account.dart';
 import 'package:sm_app/pages/onboarding_screens/screen-1.dart';
@@ -6,6 +7,7 @@ import 'package:sm_app/pages/onboarding_screens/screen-2.dart';
 import 'package:sm_app/pages/onboarding_screens/screen-3.dart';
 import 'package:sm_app/pages/onboarding_screens/screen-4.dart';
 import 'package:sm_app/pages/onboarding_screens/screen-5.dart';
+import 'package:sm_app/providers/locale_provider.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
@@ -43,8 +45,14 @@ class _OnboardingState extends State<Onboarding> {
           controller: _pageController,
           children: [
             OnboardingScreen1(),
-            OnboardingScreen2(),
-            OnboardingScreen3(),
+            OnboardingScreen2(
+              locale: Provider.of<LocaleProvider>(context, listen: false)
+                  .getLocaleFormatString(),
+            ),
+            OnboardingScreen3(
+              locale: Provider.of<LocaleProvider>(context, listen: false)
+                  .getLocaleFormatString(),
+            ),
             OnboardingScreen4(),
             OnboardingScreen5(
               goToCreateAccount: showCreateAccount,
@@ -64,7 +72,7 @@ class _OnboardingState extends State<Onboarding> {
               TextButton(
                 onPressed: activePage != 4
                     ? () {
-                        showCreateAccount();
+                        _pageController.jumpToPage(4);
                       }
                     : null,
                 child: Text(

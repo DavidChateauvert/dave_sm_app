@@ -115,8 +115,13 @@ flutter:
     - assets/images/google_logo.png
     - assets/images/logo/logo_launch.png
     - assets/animations/speaking1.json
+    - assets/animations/scrolling_down_pink.json
     - assets/onboarding/screen-4-en.png
     - assets/onboarding/screen-4-fr.png
+    - assets/onboarding/video-screen-2-en.mp4
+    - assets/onboarding/video-screen-2-fr.mp4
+    - assets/onboarding/video-screen-3-en.mp4
+    - assets/onboarding/video-screen-3-fr.mp4
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
