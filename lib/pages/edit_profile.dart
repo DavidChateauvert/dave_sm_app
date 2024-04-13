@@ -10,6 +10,7 @@ import 'package:image/image.dart' as Im;
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sm_app/pages/home.dart';
+import 'package:sm_app/pages/report_delete_user.dart';
 import 'package:sm_app/widgets/profileHeader.dart';
 import 'package:sm_app/widgets/progress.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
@@ -412,7 +413,6 @@ class _EditProfileState extends State<EditProfile> {
         transitionDuration: Duration(seconds: 0),
       ),
     );
-    // Navigator.push(context, MaterialPageRoute(builder: (context) => Home()));
   }
 
   handleTakePhoto() async {
@@ -567,12 +567,103 @@ class _EditProfileState extends State<EditProfile> {
     await selectImage(context);
   }
 
+  showDeleteReason(BuildContext context) {
+    Navigator.push(context, MaterialPageRoute(builder: (context) {
+      return ReportDeleteUser(
+        userId: currentUser.id,
+      );
+    }));
+  }
+
+  handleDeleteUser(BuildContext parentContext) {
+    return showDialog(
+      context: parentContext,
+      builder: (context) {
+        return SimpleDialog(
+          title: Text(
+            AppLocalizations.of(context)!.are_you_sure_delete_user,
+            textAlign: TextAlign.center,
+          ),
+          children: <Widget>[
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 8.0),
+              child: Text(
+                AppLocalizations.of(context)!.are_you_sure_delete_user_2,
+                textAlign: TextAlign.center,
+              ),
+            ),
+            const SizedBox(
+              height: 8.0,
+            ),
+            SimpleDialogOption(
+              onPressed: () {
+                Navigator.pop(context);
+                showDeleteReason(context);
+              },
+              child: Text(
+                AppLocalizations.of(context)!.delete_user,
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.red),
+              ),
+            ),
+            SimpleDialogOption(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: Text(
+                AppLocalizations.of(context)!.cancel,
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  buildDeleteUser() {
+    return Padding(
+      padding: const EdgeInsets.only(top: 32.0),
+      child: IntrinsicWidth(
+        child: TextButton(
+          onPressed: () => handleDeleteUser(context),
+          child: Row(
+            children: [
+              const Icon(
+                CupertinoIcons.delete,
+                color: Colors.red,
+              ),
+              const SizedBox(
+                width: 4.0,
+              ),
+              Text(
+                AppLocalizations.of(context)!.delete_user,
+                style: TextStyle(
+                  color: Colors.red,
+                  fontSize: 20.0,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       key: _scaffoldKey,
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.primary,
+        leading: IconButton(
+          icon: Icon(
+            Icons.clear,
+            color: Colors.white,
+            size: 32.0,
+          ),
+          onPressed: () => Navigator.pop(context),
+        ),
         title: Text(
           AppLocalizations.of(context)!.edit_profile,
           style: const TextStyle(color: Colors.white, fontSize: 20.0),
@@ -642,6 +733,7 @@ class _EditProfileState extends State<EditProfile> {
                             buildDateOfBirthField(),
                             buildGenderField(),
                             buildBioField(),
+                            buildDeleteUser(),
                           ],
                         ),
                       )

@@ -264,6 +264,191 @@ exports.onDeletePost = functions.firestore
         }
     });
 
+exports.onDeleteUser = functions.firestore
+    .document("/users/{userId}")
+    .onDelete(async (snapshot, context) => {
+        const userId = context.params.userId;
+
+        // Delete user's token
+        await admin
+            .firestore()
+            .collection('tokens')
+            .doc(userId)
+            .delete();
+
+        // Delete user's posts
+        const userPostsRef = admin
+            .firestore()
+            .collection('posts')
+            .doc(userId)
+            .collection('userPosts');
+
+        const userPostsbatch = admin.firestore().batch();
+
+        const userPostsQuerySnapshot = await userPostsRef.get();
+        
+        userPostsQuerySnapshot.forEach((doc) => {
+            userPostsbatch.delete(doc.ref);
+        });
+
+        await userPostsbatch.commit();
+
+        // Delete user's notification feed
+        const feedRef = admin
+            .firestore()
+            .collection('feed')
+            .doc(userId)
+            .collection('feedItems');
+
+        const feedBatch = admin.firestore().batch();
+
+        const feedQuerySnapshot = await feedRef.get();
+        
+        feedQuerySnapshot.forEach((doc) => {
+            feedBatch.delete(doc.ref);
+        });
+
+        await feedBatch.commit();
+
+        // Delete user's timeline
+        const timelineRef = admin
+            .firestore()
+            .collection('timeline')
+            .doc(userId)
+            .collection('feedItems');
+
+        const timelineBatch = admin.firestore().batch();
+
+        const timelineQuerySnapshot = await timelineRef.get();
+        
+        timelineQuerySnapshot.forEach((doc) => {
+            timelineBatch.delete(doc.ref);
+        });
+
+        await timelineBatch.commit();
+
+        // Delete user's messages
+        const messagesRef = admin
+            .firestore()
+            .collection('messages')
+            .doc(userId)
+            .collection('and')
+
+        const messagesQuerySnapshot = await messagesRef.get();
+
+        messagesQuerySnapshot.docs.forEach(async (doc) => {
+            const messageQuerySnapshot = await doc.ref.collection('message').get();
+
+            messageQuerySnapshot.docs.forEach(async (doc2) => {
+                doc2.ref.delete();
+            });
+
+            const messageRef = admin
+                .firestore()
+                .collection('messages')
+                .doc(doc.id)
+                .collection('and')
+                .doc(userId)
+                .collection('message')
+            
+            const messagesFriendsQuerySnapshot = await messageRef.get();
+
+            await messagesFriendsQuerySnapshot.docs.forEach(async (doc3) => {
+                await doc3.ref.delete();
+            });
+
+            await admin
+                .firestore()
+                .collection('messages')
+                .doc(doc.id)
+                .collection('and')
+                .doc(userId)
+                .delete();
+            
+            doc.ref.delete();
+        });
+
+        // Delete user's friends
+        const friendsRef = admin
+            .firestore()
+            .collection('friends')
+            .doc(userId)
+            .collection('userFriends');
+
+        const friendsQuerySnapshot = await friendsRef.get();
+
+        friendsQuerySnapshot.docs.forEach(async (doc) => {
+            await admin
+                .firestore()
+                .collection('friends')
+                .doc(doc.id)
+                .collection('userFriends')
+                .doc(userId)
+                .delete();
+            
+            await doc.ref.delete();
+        });     
+
+        // Delete followers
+        const followingRef = admin
+            .firestore()
+            .collection('following')
+            .doc(userId)
+            .collection('userFollowing');
+
+        const followingQuerySnapshot = await followingRef.get();
+
+        followingQuerySnapshot.docs.forEach(async (doc) => {
+            await admin
+                .firestore()
+                .collection('followers')
+                .doc(doc.id)
+                .collection('userFollowers')
+                .doc(userId)
+                .delete();
+            
+            await doc.ref.delete();
+        });
+
+        // Delete followers
+        const followersRef = admin
+            .firestore()
+            .collection('followers')
+            .doc(userId)
+            .collection('userFollowers');
+
+        const followersQuerySnapshot = await followersRef.get();
+
+        followersQuerySnapshot.docs.forEach(async (doc) => {
+            await admin
+                .firestore()
+                .collection('following')
+                .doc(doc.id)
+                .collection('userFollowing')
+                .doc(userId)
+                .delete();
+            
+            await doc.ref.delete();
+        });
+
+        // Delete user's group
+        const groupRef = admin
+            .firestore()
+            .collection('groups')
+            .doc(userId)
+            .collection('feedItems');
+
+        const groupBatch = admin.firestore().batch();
+
+        const groupQuerySnapshot = await groupRef.get();
+        
+        groupQuerySnapshot.forEach((doc) => {
+            groupBatch.delete(doc.ref);
+        });
+
+        await groupBatch.commit();
+    });
+
     // exports.postCleanup = onSchedule("every day 00:00", async (event) => {
     //     const allUsers = admin.firestore().collection("users");
     //     const currentDate = new Date();
@@ -277,7 +462,7 @@ exports.onDeletePost = functions.firestore
     //         const querySnapshot2 = await userPosts.get();
     
     //         querySnapshot2.docs.forEach(async postDoc => {
-    //             const postTimestamp = postDoc.data().timestamp.toDate(); // Convert Firestore timestamp to JavaScript Date object
+    //             const postTimestamp = postDoc.data().timestamp.toDate();
                 
     //             if (postTimestamp < thirtyDaysAgo) {
     //                 logger.log(postDoc.data().postId);

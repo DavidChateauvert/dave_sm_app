@@ -95,8 +95,7 @@ class _UploadState extends State<Upload>
     Group selectedGroup = await Navigator.push(
       context,
       PageRouteBuilder(
-        transitionDuration:
-            Duration(milliseconds: 500), // Adjust duration as needed
+        transitionDuration: Duration(milliseconds: 500),
         pageBuilder: (context, animation, secondaryAnimation) => Groups(),
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           var begin = Offset(0.0, 1.0);

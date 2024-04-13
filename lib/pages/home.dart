@@ -85,33 +85,16 @@ class _HomeState extends State<Home> {
     // });
   }
 
-  getActiveUser() async {
-    final String userId;
-    if (await FirebaseAuth.instance.currentUser!.providerData[0].providerId ==
-        "google.com") {
-      userId = googleSignIn.currentUser!.id;
-    } else {
-      userId = FirebaseAuth.instance.currentUser!.uid;
-    }
-    DocumentSnapshot doc = await usersRef.doc(userId).get();
-    // if (!doc.exists) {
-    currentUser = DaveUser.User.fromDocument(doc);
-    Provider.of<ThemeProvider>(context, listen: false)
-        .toggleThemeToParam(currentUser.theme);
-    Provider.of<LocaleProvider>(context, listen: false)
-        .toggleLocaleToParam(currentUser.locale);
-    await FirebaseApi().initMessaging(currentUser.id);
-    // } else {
-    //   FirebaseAuth.instance.signOut();
-    // }
-  }
-
   checkIfUserExist() async {
     final String userId;
     String provider =
         FirebaseAuth.instance.currentUser!.providerData[0].providerId;
     if (provider == "google.com") {
-      userId = googleSignIn.currentUser!.id;
+      GoogleSignInAccount? googleUser = googleSignIn.currentUser;
+      if (googleUser == null) {
+        googleUser = await googleSignIn.signInSilently();
+      }
+      userId = googleUser!.id;
     } else {
       userId = FirebaseAuth.instance.currentUser!.uid;
     }

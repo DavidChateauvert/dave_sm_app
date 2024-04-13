@@ -4,13 +4,15 @@ import 'package:sm_app/pages/home.dart';
 
 class AuthentificationService {
   signInWithGoogle() async {
-    final GoogleSignInAccount? gUser = await googleSignIn.signIn();
-    final GoogleSignInAuthentication gAuth = await gUser!.authentication;
+    GoogleSignInAccount? googleSignInAccount = await googleSignIn.signIn();
+    GoogleSignInAuthentication googleSignInAuthentication =
+        await googleSignInAccount!.authentication;
 
-    final credential = GoogleAuthProvider.credential(
-      accessToken: gAuth.accessToken,
-      idToken: gAuth.idToken,
+    AuthCredential credential = GoogleAuthProvider.credential(
+      accessToken: googleSignInAuthentication.accessToken,
+      idToken: googleSignInAuthentication.idToken,
     );
+
     await FirebaseAuth.instance.signInWithCredential(credential);
   }
 }

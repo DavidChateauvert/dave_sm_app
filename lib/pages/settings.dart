@@ -35,14 +35,6 @@ class _SettingsPageState extends State<SettingsPage> {
     FirebaseApi().deleteUserToken(currentUser.id);
     FirebaseAuth.instance.signOut();
     Navigator.pop(context);
-    // Navigator.pushReplacement(
-    //   context,
-    //   PageRouteBuilder(
-    //     pageBuilder: (context, animation1, animation2) => Home(),
-    //     transitionDuration: Duration(seconds: 0),
-    //   ),
-    // );
-    // Navigator.push(context, MaterialPageRoute(builder: (context) => Home()));
   }
 
   setThemeInFirestore() async {

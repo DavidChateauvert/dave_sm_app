@@ -78,9 +78,8 @@ class _CreateAccountState extends State<CreateAccount> {
       StatusAlert.show(
         context,
         duration: Duration(seconds: 2),
-        subtitle:
-            AppLocalizations.of(context)!.welcomeMessage(user.displayName),
-        configuration: IconConfiguration(icon: Icons.done),
+        title: AppLocalizations.of(context)!.welcomeMessage(user.displayName),
+        configuration: IconConfiguration(icon: Icons.waving_hand),
         maxWidth: 260,
         backgroundColor: Theme.of(context).colorScheme.secondary,
       );
