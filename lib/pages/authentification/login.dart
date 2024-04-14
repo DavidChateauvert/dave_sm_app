@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:sm_app/pages/authentification/authentification_service.dart';
+import 'package:sm_app/pages/authentification/reset_password.dart';
 import 'package:sm_app/providers/locale_provider.dart';
 import 'package:sm_app/widgets/progress.dart';
 
@@ -18,6 +19,37 @@ class Login extends StatefulWidget {
 class _LoginState extends State<Login> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
+
+  @override
+  void dispose() {
+    emailController.dispose();
+    passwordController.dispose();
+    super.dispose();
+  }
+
+  showResetPassword() async {
+    await Navigator.push(
+      context,
+      PageRouteBuilder(
+        transitionDuration: Duration(milliseconds: 500),
+        pageBuilder: (context, animation, secondaryAnimation) =>
+            ResetPassword(),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          var begin = Offset(0.0, 1.0);
+          var end = Offset.zero;
+          var curve = Curves.ease;
+
+          var tween =
+              Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+
+          return SlideTransition(
+            position: animation.drive(tween),
+            child: child,
+          );
+        },
+      ),
+    );
+  }
 
   signInUser() async {
     showDialog(
@@ -166,8 +198,11 @@ class _LoginState extends State<Login> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        Text(
-                          AppLocalizations.of(context)!.forgot_password,
+                        GestureDetector(
+                          onTap: showResetPassword,
+                          child: Text(
+                            AppLocalizations.of(context)!.forgot_password,
+                          ),
                         ),
                       ],
                     ),

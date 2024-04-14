@@ -239,5 +239,16 @@
     "are_you_sure_delete_user_2": "All your information would be lost",
     "reason_delete_user": "Please tell us why you are leaving Dave ?",
     "why": "Why ?",
-    "goodbye": "Goodbye, we will miss you"
+    "goodbye": "Goodbye, we will miss you",
+    "reset_password_message": "Please enter your email and we will send you a link to reset your password",
+    "reset_password": "Reset Password",
+    "reset_password_sent_success": "Email sent to {email} with success. Please check you email",
+    "@reset_password_sent_success": {
+        "placeholders": {
+            "email": {
+                "type": "String"
+            }
+        }
+    },
+    "error_reset_password": "There is no user corresponding to this email address"
 }

@@ -20,6 +20,14 @@ class _SignUpState extends State<SignUp> {
   final passwordController = TextEditingController();
   final confirmPasswordController = TextEditingController();
 
+  @override
+  void dispose() {
+    emailController.dispose();
+    passwordController.dispose();
+    confirmPasswordController.dispose();
+    super.dispose();
+  }
+
   signUpUser() async {
     showDialog(
       context: context,
@@ -199,21 +207,7 @@ class _SignUpState extends State<SignUp> {
                     ),
                   ),
                   const SizedBox(
-                    height: 8.0,
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 25.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        Text(
-                          AppLocalizations.of(context)!.forgot_password,
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(
-                    height: 24.0,
+                    height: 40.0,
                   ),
                   GestureDetector(
                     onTap: signUpUser,

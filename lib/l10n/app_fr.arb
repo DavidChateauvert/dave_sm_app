@@ -239,5 +239,16 @@
     "are_you_sure_delete_user_2": "Tous vos informations seront perdus",
     "reason_delete_user": "Veuillez-nous dire pourquoi vous avez décidé de partir de Dave ?",
     "why": "Pourquoi ?",
-    "goodbye": "Au revoie, vous allez nous manquer"
+    "goodbye": "Au revoie, vous allez nous manquer",
+    "reset_password_message": "Veuillez rentrer votre courriel et vous recevrez un courriel pour réinitialiser votre courriel",
+    "reset_password": "Réinitialiser mot de passe",
+    "reset_password_sent_success": "Courriel envoyé à {email} avec succès. Veuillez vérifier votre boîte courriel",
+    "@reset_password_sent_success": {
+        "placeholders": {
+            "email": {
+                "type": "String"
+            }
+        }
+    },
+    "error_reset_password": "Il n'y a pas d'utilisateur correspondant à cet adresse courriel"
 }
