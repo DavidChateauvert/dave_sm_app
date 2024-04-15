@@ -172,7 +172,7 @@ class UserResult extends StatelessWidget {
                   user.verified
                       ? Icon(
                           Icons.verified_sharp,
-                          color: Theme.of(context).colorScheme.primary,
+                          color: Theme.of(context).colorScheme.primaryContainer,
                           size: 17.0,
                         )
                       : Text(""),

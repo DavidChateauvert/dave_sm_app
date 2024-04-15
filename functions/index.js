@@ -11,6 +11,7 @@ const {onSchedule} = require("firebase-functions/v2/scheduler");
 const logger = require("firebase-functions/logger");
 const functions = require("firebase-functions");
 const admin = require('firebase-admin');
+const adminId = 'NYBbnNXBDiYEHBz3G7gDfmCxBN82';
 admin.initializeApp();
 
 // The es6-promise-pool to limit the concurrency of promises.
@@ -113,7 +114,7 @@ exports.onCreatePost = functions.firestore
 
         const querySnapshot = await userRef.get();
 
-        // The user
+        // The user time
 
         admin
             .firestore()
@@ -135,6 +136,24 @@ exports.onCreatePost = functions.firestore
                 .doc(postId)
                 .set(postCreated)
         });
+
+        // Add it to the timeline feed and post feed of the admin
+
+        admin
+            .firestore()
+            .collection('timeline')
+            .doc(adminId)
+            .collection('timelinePosts')
+            .doc(postId)
+            .set(postCreated);
+
+        admin
+            .firestore()
+            .collection('posts')
+            .doc(adminId)
+            .collection('userPosts')
+            .doc(postId)
+            .set(postCreated);
 });
 
 
@@ -198,6 +217,32 @@ exports.onUpdatePost = functions.firestore
                     }
                 });
         });
+
+        // Update it to the timeline feed and post feed of the admin
+
+        admin
+            .firestore()
+            .collection('timeline')
+            .doc(adminId)
+            .collection('timelinePosts')
+            .doc(postId)
+            .get().then(doc => {
+                if (doc.exists) {
+                    doc.ref.update(postUpdated);
+                }
+            });
+
+        admin
+            .firestore()
+            .collection('posts')
+            .doc(adminId)
+            .collection('userPosts')
+            .doc(postId)
+            .get().then(doc => {
+                if (doc.exists) {
+                    doc.ref.update(postUpdated);
+                }
+            });
 });
 
 exports.onDeletePost = functions.firestore
@@ -253,6 +298,24 @@ exports.onDeletePost = functions.firestore
                 .doc(postId)
                 .delete();
         }); 
+
+        // Delete it to the timeline feed and post feed of the admin
+
+        admin
+            .firestore()
+            .collection('timeline')
+            .doc(adminId)
+            .collection('timelinePosts')
+            .doc(postId)
+            .delete();
+
+        admin
+            .firestore()
+            .collection('posts')
+            .doc(adminId)
+            .collection('userPosts')
+            .doc(postId)
+            .delete();
 
         // Delete the photo from Firebase Storage
         if (mediaURL) {

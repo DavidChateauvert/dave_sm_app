@@ -6,6 +6,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:sm_app/pages/GroupUsers.dart';
+import 'package:sm_app/pages/admin_delete_post.dart';
 import 'package:sm_app/pages/friends.dart';
 import 'package:sm_app/pages/home.dart';
 import 'package:sm_app/pages/likePost.dart';
@@ -220,7 +221,7 @@ class _PostProfileState extends State<PostProfile> {
 
   showGroup(BuildContext parentContext) {
     if (group == "") {
-      showFriends(context, profileId: currentUserId);
+      showFriends(context, profileId: widget.ownerId);
     } else {
       Navigator.push(
         context,
@@ -272,39 +273,27 @@ class _PostProfileState extends State<PostProfile> {
     );
   }
 
-  handleDeletePost(BuildContext parentContext) {
-    return showDialog(
-      context: parentContext,
-      builder: (context) {
-        return SimpleDialog(
-          title: Text(
-            AppLocalizations.of(context)!.remove_post,
-            textAlign: TextAlign.center,
-          ),
-          children: <Widget>[
-            SimpleDialogOption(
-              onPressed: () {
-                Navigator.pop(context);
-                deletePostInstant();
-              },
-              child: Text(
-                AppLocalizations.of(context)!.delete,
-                textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.red),
-              ),
-            ),
-          ],
-        );
-      },
-    );
-  }
+  deletePostInstant() async {
+    bool isNotAdmin = true;
+    if (currentUserId == "NYBbnNXBDiYEHBz3G7gDfmCxBN82") {
+      isNotAdmin = false;
+      isNotAdmin = await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) {
+            return AdminDeletePost();
+          },
+        ),
+      );
+    }
 
-  deletePostInstant() {
-    setState(() {
-      seen = true;
-      deleteInstant = true;
-    });
-    deletePost();
+    if (isNotAdmin) {
+      setState(() {
+        seen = true;
+        deleteInstant = true;
+      });
+      deletePost();
+    }
   }
 
   deletePost() async {
@@ -315,7 +304,7 @@ class _PostProfileState extends State<PostProfile> {
       }
     });
 
-    usersRef.doc(currentUserId).update({
+    usersRef.doc(ownerId).update({
       "postsCount": FieldValue.increment(-1),
     });
 

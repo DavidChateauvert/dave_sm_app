@@ -250,5 +250,6 @@
             }
         }
     },
-    "error_reset_password": "There is no user corresponding to this email address"
+    "error_reset_password": "There is no user corresponding to this email address",
+    "reset_selected_friends": "Reset selected friends"
 }

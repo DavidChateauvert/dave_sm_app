@@ -87,6 +87,16 @@ class _EditProfileState extends State<EditProfile> {
     );
   }
 
+  buildEmail() {
+    return Text(
+      currentUser.email,
+      style: TextStyle(
+        fontSize: 14.0,
+        fontWeight: FontWeight.normal,
+      ),
+    );
+  }
+
   Column buildFirstNameField() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -384,7 +394,8 @@ class _EditProfileState extends State<EditProfile> {
         "displayNameLower": displayName.toLowerCase(),
         "bio": bioController.text,
         "photoUrl": newPhotoUrl,
-        "dateOfBirth": Timestamp.fromDate(newDateOfBirth!),
+        "dateOfBirth":
+            newDateOfBirth != null ? Timestamp.fromDate(newDateOfBirth!) : null,
         "gender": currentGenderOptions == "specify"
             ? genderController.text
             : currentGenderOptions,
@@ -725,6 +736,7 @@ class _EditProfileState extends State<EditProfile> {
                         child: Column(
                           children: <Widget>[
                             buildName(),
+                            buildEmail(),
                             buildFirstNameField(),
                             buildLastNameField(),
                             const SizedBox(

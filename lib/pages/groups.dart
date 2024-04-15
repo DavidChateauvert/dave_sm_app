@@ -256,6 +256,14 @@ class _GroupsState extends State<Groups> {
     });
   }
 
+  resetSelectedUser() {
+    setState(() {
+      selectedUser.forEach((key, _) {
+        selectedUser[key] = false;
+      });
+    });
+  }
+
   toggleSelectedGroup(String groupId, bool isSelected) {
     setState(() {
       this.selectedGroup[groupId] = !isSelected;
@@ -326,12 +334,33 @@ class _GroupsState extends State<Groups> {
                 children: [
                   Container(
                     padding: EdgeInsets.symmetric(vertical: 16.0),
-                    child: Text(
-                      AppLocalizations.of(context)!.your_groups,
-                      style: TextStyle(
-                        fontSize: 32.0,
-                        color: Theme.of(context).colorScheme.onBackground,
-                      ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Center(
+                            child: Text(
+                              AppLocalizations.of(context)!.groups,
+                              style: TextStyle(
+                                fontSize: 32.0,
+                                color:
+                                    Theme.of(context).colorScheme.onBackground,
+                              ),
+                            ),
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: null,
+                          child: Text(
+                            AppLocalizations.of(context)!
+                                .reset_selected_friends,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.background,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                   Divider(
@@ -361,12 +390,35 @@ class _GroupsState extends State<Groups> {
                   ),
                   Container(
                     padding: EdgeInsets.symmetric(vertical: 16.0),
-                    child: Text(
-                      AppLocalizations.of(context)!.friends,
-                      style: TextStyle(
-                        fontSize: 32.0,
-                        color: Theme.of(context).colorScheme.onBackground,
-                      ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Center(
+                            child: Text(
+                              AppLocalizations.of(context)!.friends,
+                              style: TextStyle(
+                                fontSize: 32.0,
+                                color:
+                                    Theme.of(context).colorScheme.onBackground,
+                              ),
+                            ),
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: resetSelectedUser,
+                          child: Text(
+                            AppLocalizations.of(context)!
+                                .reset_selected_friends,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .primaryContainer,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                   Divider(
