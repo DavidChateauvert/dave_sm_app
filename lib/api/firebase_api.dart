@@ -1,15 +1,16 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sm_app/pages/home.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 
 import 'package:sm_app/providers/locale_provider.dart';
 
 class FirebaseApi {
   final _firebaseMessaging = FirebaseMessaging.instance;
+  FirebaseFunctions functions =
+      FirebaseFunctions.instanceFor(region: 'us-central1');
   late String fCMToken;
 
   Future<void> initMessaging(currentUserId) async {
@@ -107,32 +108,17 @@ class FirebaseApi {
     }
 
     try {
-      await http.post(Uri.parse('https://fcm.googleapis.com/fcm/send'),
-          headers: <String, String>{
-            'Content-type': 'application/json',
-            'Authorization':
-                'key=AAAA5hU-q8Q:APA91bEsFeg67RQ2qtOnphuadgkwsmZ4K3zgdwHEvtnoIfdTS1hUvPbe-kUhuyZe0NvJiYnGwaikAp339wIGD_DmvunTzNK5oMNwhwN-hbCsqm-PC1kiO3wJOiYfNSQHbw3LiRFV-Vkp',
-          },
-          body: jsonEncode(<String, dynamic>{
-            'priority': 'high',
-            'data': <String, dynamic>{
-              'click_action': 'FLUTTER_NOTIFICATION_CLICK',
-              'status': 'done',
-              'body': message,
-              'title': "Vous avez recu un message",
-              'screen': "${currentUser.id}",
-              'type': "message",
-            },
-            "notification": <String, dynamic>{
-              "title": "$senderName",
-              "body": textNotification,
-            },
-            "category": "message",
-            "content_available": true,
-            "to": userTokens,
-          }));
+      final HttpsCallable callable =
+          functions.httpsCallable('sendNotification');
+      await callable.call({
+        'tokens': userTokens,
+        'title': "$senderName",
+        'body': textNotification,
+        'screen': "${currentUser.id}",
+        'type': "message",
+      });
     } catch (e) {
-      print("erreur de send Notifcation");
+      print('Error sending message: $e');
     }
   }
 
@@ -149,32 +135,17 @@ class FirebaseApi {
     }
 
     try {
-      await http.post(Uri.parse('https://fcm.googleapis.com/fcm/send'),
-          headers: <String, String>{
-            'Content-type': 'application/json',
-            'Authorization':
-                'key=AAAA5hU-q8Q:APA91bEsFeg67RQ2qtOnphuadgkwsmZ4K3zgdwHEvtnoIfdTS1hUvPbe-kUhuyZe0NvJiYnGwaikAp339wIGD_DmvunTzNK5oMNwhwN-hbCsqm-PC1kiO3wJOiYfNSQHbw3LiRFV-Vkp',
-          },
-          body: jsonEncode(<String, dynamic>{
-            'priority': 'high',
-            'data': <String, dynamic>{
-              'click_action': 'FLUTTER_NOTIFICATION_CLICK',
-              'status': 'done',
-              'body': "Dave",
-              'title': "Dave",
-              'screen': "${postId}",
-              'senderId': "${currentUser.id}",
-              'type': "mention",
-            },
-            "notification": <String, dynamic>{
-              "title": "Dave",
-              "body": textNotification,
-            },
-            "content_available": true,
-            "to": userTokens,
-          }));
+      final HttpsCallable callable =
+          functions.httpsCallable('sendNotification');
+      await callable.call({
+        'tokens': userTokens,
+        'title': "Dave",
+        'body': textNotification,
+        'screen': "${postId}",
+        'type': "mention",
+      });
     } catch (e) {
-      print("erreur de send Notifcation");
+      print('Error sending message: $e');
     }
   }
 
@@ -191,31 +162,17 @@ class FirebaseApi {
     }
 
     try {
-      await http.post(Uri.parse('https://fcm.googleapis.com/fcm/send'),
-          headers: <String, String>{
-            'Content-type': 'application/json',
-            'Authorization':
-                'key=AAAA5hU-q8Q:APA91bEsFeg67RQ2qtOnphuadgkwsmZ4K3zgdwHEvtnoIfdTS1hUvPbe-kUhuyZe0NvJiYnGwaikAp339wIGD_DmvunTzNK5oMNwhwN-hbCsqm-PC1kiO3wJOiYfNSQHbw3LiRFV-Vkp',
-          },
-          body: jsonEncode(<String, dynamic>{
-            'priority': 'high',
-            'data': <String, dynamic>{
-              'click_action': 'FLUTTER_NOTIFICATION_CLICK',
-              'status': 'done',
-              'body': "Dave",
-              'title': "Dave",
-              'screen': "${currentUser.id}",
-              'type': "friend request question",
-            },
-            "notification": <String, dynamic>{
-              "title": "Dave",
-              "body": textNotification,
-            },
-            "content_available": true,
-            "to": userTokens,
-          }));
+      final HttpsCallable callable =
+          functions.httpsCallable('sendNotification');
+      await callable.call({
+        'tokens': userTokens,
+        'title': "Dave",
+        'body': textNotification,
+        'screen': "${currentUser.id}",
+        'type': "friend request question",
+      });
     } catch (e) {
-      print("erreur de send Notifcation");
+      print('Error sending message: $e');
     }
   }
 
@@ -232,31 +189,17 @@ class FirebaseApi {
     }
 
     try {
-      await http.post(Uri.parse('https://fcm.googleapis.com/fcm/send'),
-          headers: <String, String>{
-            'Content-type': 'application/json',
-            'Authorization':
-                'key=AAAA5hU-q8Q:APA91bEsFeg67RQ2qtOnphuadgkwsmZ4K3zgdwHEvtnoIfdTS1hUvPbe-kUhuyZe0NvJiYnGwaikAp339wIGD_DmvunTzNK5oMNwhwN-hbCsqm-PC1kiO3wJOiYfNSQHbw3LiRFV-Vkp',
-          },
-          body: jsonEncode(<String, dynamic>{
-            'priority': 'high',
-            'data': <String, dynamic>{
-              'click_action': 'FLUTTER_NOTIFICATION_CLICK',
-              'status': 'done',
-              'body': "Dave",
-              'title': "Dave",
-              'screen': "${currentUser.id}",
-              'type': "friend request accept",
-            },
-            "notification": <String, dynamic>{
-              "title": "Dave",
-              "body": textNotification,
-            },
-            "content_available": true,
-            "to": userTokens,
-          }));
+      final HttpsCallable callable =
+          functions.httpsCallable('sendNotification');
+      await callable.call({
+        'tokens': userTokens,
+        'title': "Dave",
+        'body': textNotification,
+        'screen': "${currentUser.id}",
+        'type': "friend request accept",
+      });
     } catch (e) {
-      print("erreur de send Notifcation");
+      print('Error sending message: $e');
     }
   }
 
@@ -273,32 +216,17 @@ class FirebaseApi {
     }
 
     try {
-      await http.post(Uri.parse('https://fcm.googleapis.com/fcm/send'),
-          headers: <String, String>{
-            'Content-type': 'application/json',
-            'Authorization':
-                'key=AAAA5hU-q8Q:APA91bEsFeg67RQ2qtOnphuadgkwsmZ4K3zgdwHEvtnoIfdTS1hUvPbe-kUhuyZe0NvJiYnGwaikAp339wIGD_DmvunTzNK5oMNwhwN-hbCsqm-PC1kiO3wJOiYfNSQHbw3LiRFV-Vkp',
-          },
-          body: jsonEncode(<String, dynamic>{
-            'priority': 'high',
-            'data': <String, dynamic>{
-              'click_action': 'FLUTTER_NOTIFICATION_CLICK',
-              'status': 'done',
-              'body': "Dave",
-              'title': "Dave",
-              'screen': "${postId}",
-              'senderId': "${currentUser.id}",
-              'type': "like",
-            },
-            "notification": <String, dynamic>{
-              "title": "Dave",
-              "body": textNotification,
-            },
-            "content_available": true,
-            "to": userTokens,
-          }));
+      final HttpsCallable callable =
+          functions.httpsCallable('sendNotification');
+      await callable.call({
+        'tokens': userTokens,
+        'title': "Dave",
+        'body': textNotification,
+        'screen': "${postId}",
+        'type': "like",
+      });
     } catch (e) {
-      print("erreur de send Notifcation");
+      print('Error sending message: $e');
     }
   }
 
@@ -315,32 +243,17 @@ class FirebaseApi {
     }
 
     try {
-      await http.post(Uri.parse('https://fcm.googleapis.com/fcm/send'),
-          headers: <String, String>{
-            'Content-type': 'application/json',
-            'Authorization':
-                'key=AAAA5hU-q8Q:APA91bEsFeg67RQ2qtOnphuadgkwsmZ4K3zgdwHEvtnoIfdTS1hUvPbe-kUhuyZe0NvJiYnGwaikAp339wIGD_DmvunTzNK5oMNwhwN-hbCsqm-PC1kiO3wJOiYfNSQHbw3LiRFV-Vkp',
-          },
-          body: jsonEncode(<String, dynamic>{
-            'priority': 'high',
-            'data': <String, dynamic>{
-              'click_action': 'FLUTTER_NOTIFICATION_CLICK',
-              'status': 'done',
-              'body': "Dave",
-              'title': "Dave",
-              'screen': "${postId}",
-              'senderId': "${currentUser.id}",
-              'type': "commentLike",
-            },
-            "notification": <String, dynamic>{
-              "title": "Dave",
-              "body": textNotification,
-            },
-            "content_available": true,
-            "to": userTokens,
-          }));
+      final HttpsCallable callable =
+          functions.httpsCallable('sendNotification');
+      await callable.call({
+        'tokens': userTokens,
+        'title': "Dave",
+        'body': textNotification,
+        'screen': "${postId}",
+        'type': "commentLike",
+      });
     } catch (e) {
-      print("erreur de send Notifcation");
+      print('Error sending message: $e');
     }
   }
 
@@ -357,32 +270,17 @@ class FirebaseApi {
     }
 
     try {
-      await http.post(Uri.parse('https://fcm.googleapis.com/fcm/send'),
-          headers: <String, String>{
-            'Content-type': 'application/json',
-            'Authorization':
-                'key=AAAA5hU-q8Q:APA91bEsFeg67RQ2qtOnphuadgkwsmZ4K3zgdwHEvtnoIfdTS1hUvPbe-kUhuyZe0NvJiYnGwaikAp339wIGD_DmvunTzNK5oMNwhwN-hbCsqm-PC1kiO3wJOiYfNSQHbw3LiRFV-Vkp',
-          },
-          body: jsonEncode(<String, dynamic>{
-            'priority': 'high',
-            'data': <String, dynamic>{
-              'click_action': 'FLUTTER_NOTIFICATION_CLICK',
-              'status': 'done',
-              'body': "Dave",
-              'title': "Dave",
-              'screen': "${postId}",
-              'senderId': "${currentUser.id}",
-              'type': "comment",
-            },
-            "notification": <String, dynamic>{
-              "title": "Dave",
-              "body": textNotification,
-            },
-            "content_available": true,
-            "to": userTokens,
-          }));
+      final HttpsCallable callable =
+          functions.httpsCallable('sendNotification');
+      await callable.call({
+        'tokens': userTokens,
+        'title': "Dave",
+        'body': textNotification,
+        'screen': "${postId}",
+        'type': "comment",
+      });
     } catch (e) {
-      print("erreur de send Notifcation");
+      print('Error sending message: $e');
     }
   }
 }

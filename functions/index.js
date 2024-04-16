@@ -21,6 +21,21 @@ admin.initializeApp();
 // Create and deploy your first functions
 // https://firebase.google.com/docs/functions/get-started
 
+exports.sendNotification = functions.https.onCall(async (data, context) => {
+    await admin.messaging().send({
+        token: data.tokens,
+        data: {
+            title: data.title,
+            body: data.body,
+            screen: data.screen,
+            type: data.type
+          },
+      }).catch((error) => {
+        console.log('Error sending message:', error);
+      });
+  });
+  
+
 exports.onCreateFriend = functions.firestore
     .document("/friends/{userId}/userFriends/{friendId}")
     .onCreate(async (snapshot, context) => {

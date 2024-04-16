@@ -69,7 +69,8 @@ class _HomeState extends State<Home> {
     FirebaseMessaging.onMessageOpenedApp.listen((message) {
       handleNotificationOnClick(message);
     });
-    FirebaseMessaging.onBackgroundMessage(handleBackGroundMessage);
+    FirebaseMessaging.onBackgroundMessage(
+        (message) => handleBackGroundMessage(message));
     // googleSignIn.signIn();
     // Detects when user signed in
     // googleSignIn.onCurrentUserChanged.listen((account) {
@@ -194,6 +195,15 @@ class _HomeState extends State<Home> {
   Future<void> handleBackGroundMessage(RemoteMessage message) async {
     Provider.of<NotificationProvider>(context, listen: false)
         .receiveNotificationHandler(message);
+
+    String type = message.data['type'] ?? "";
+    int typeId = typeToId(type);
+    String screen = message.data['screen'] ?? "";
+
+    String title = message.data['title'] ?? "";
+    String body = message.data['body'] ?? "";
+    NotificationsApi.showNotification(
+        id: typeId, title: title, body: body, payload: screen);
   }
 
   void handleNotificationInside(RemoteMessage message) {
@@ -205,8 +215,8 @@ class _HomeState extends State<Home> {
     String screen = message.data['screen'] ?? "";
 
     if (!checkIfUserIsAlreadyInPage(typeId, screen)) {
-      String title = message.notification?.title ?? "";
-      String body = message.notification?.body ?? "";
+      String title = message.data['title'] ?? "";
+      String body = message.data['body'] ?? "";
       NotificationsApi.showNotification(
           id: typeId, title: title, body: body, payload: screen);
 
