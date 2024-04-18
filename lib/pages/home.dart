@@ -1,7 +1,6 @@
 // ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables, use_build_context_synchronously
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -10,16 +9,12 @@ import 'package:provider/provider.dart';
 import 'package:sm_app/api/firebase_api.dart';
 import 'package:sm_app/api/notification_api.dart';
 import 'package:sm_app/pages/intro.dart';
-import 'package:sm_app/pages/message_feed.dart';
-import 'package:sm_app/pages/message_screen.dart';
 import 'package:sm_app/pages/profile.dart';
 import 'package:sm_app/pages/search.dart';
 import 'package:sm_app/pages/timeline.dart';
 import 'package:sm_app/pages/upload.dart';
 import 'package:sm_app/providers/locale_provider.dart';
 import 'package:sm_app/providers/notification_provider.dart';
-import 'package:sm_app/providers/reload_provider.dart';
-import 'package:sm_app/providers/route_observer_provider.dart';
 import 'package:sm_app/providers/theme_provider.dart';
 import '../models/user.dart' as DaveUser;
 import 'activity_feed.dart';
@@ -48,6 +43,7 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
+  late NotificationsApi notificationsApi;
   bool isAuth = false;
   PageController pageController =
       PageController(initialPage: 0, keepPage: false);
@@ -59,31 +55,14 @@ class _HomeState extends State<Home> {
   void initState() {
     //initializeFirebase();
     super.initState();
+    notificationsApi = NotificationsApi();
 
     checkIfUserExist();
-    // getActiveUser();
     initLocalNotifications();
-    FirebaseMessaging.onMessage.listen((message) {
-      handleNotificationInside(message);
-    });
-    FirebaseMessaging.onMessageOpenedApp.listen((message) {
-      handleNotificationOnClick(message);
-    });
-    FirebaseMessaging.onBackgroundMessage(
-        (message) => handleBackGroundMessage(message));
-    // googleSignIn.signIn();
-    // Detects when user signed in
-    // googleSignIn.onCurrentUserChanged.listen((account) {
-    //   handleSignIn();
-    // }, onError: (err) {
-    //   print('Error signing in: $err');
-    // });
-    // // Reauthenticated user when pp is opened
-    // googleSignIn.signInSilently(suppressErrors: false).then((account) {
-    //   handleSignIn();
-    // }).catchError((err) {
-    //   print('Error signing in: $err');
-    // });
+  }
+
+  BuildContext getAppContext() {
+    return context;
   }
 
   checkIfUserExist() async {
@@ -164,140 +143,6 @@ class _HomeState extends State<Home> {
     setState(() {
       this.pageIndex = pageIndex;
     });
-  }
-
-  int typeToId(String type) {
-    switch (type) {
-      case "message":
-        return 1;
-      case "mention":
-      case "friend request question":
-      case "friend request accept":
-      case "like":
-      case "comment":
-        return 2;
-      default:
-        return 2;
-    }
-  }
-
-  bool checkIfUserIsAlreadyInPage(int typeId, String screenValue) {
-    final String currentRoute =
-        Provider.of<RouteObserverProvider>(context, listen: false).currentRoute;
-
-    if (currentRoute == screenValue) {
-      return true;
-    } else {
-      return false;
-    }
-  }
-
-  Future<void> handleBackGroundMessage(RemoteMessage message) async {
-    Provider.of<NotificationProvider>(context, listen: false)
-        .receiveNotificationHandler(message);
-
-    String type = message.data['type'] ?? "";
-    int typeId = typeToId(type);
-    String screen = message.data['screen'] ?? "";
-
-    String title = message.data['title'] ?? "";
-    String body = message.data['body'] ?? "";
-    NotificationsApi.showNotification(
-        id: typeId, title: title, body: body, payload: screen);
-  }
-
-  void handleNotificationInside(RemoteMessage message) {
-    Provider.of<NotificationProvider>(context, listen: false)
-        .receiveNotificationHandler(message);
-
-    String type = message.data['type'] ?? "";
-    int typeId = typeToId(type);
-    String screen = message.data['screen'] ?? "";
-
-    if (!checkIfUserIsAlreadyInPage(typeId, screen)) {
-      String title = message.data['title'] ?? "";
-      String body = message.data['body'] ?? "";
-      NotificationsApi.showNotification(
-          id: typeId, title: title, body: body, payload: screen);
-
-      Provider.of<ReloadNotifier>(context, listen: false)
-          .setShouldReloadActivityFeed(true);
-      if (Provider.of<RouteObserverProvider>(context, listen: false)
-              .currentRoute ==
-          "message-feed") {
-        Provider.of<ReloadNotifier>(context, listen: false)
-            .setShouldReloadMessageFeed(true);
-      }
-    } else {
-      messagesRef
-          .doc(currentUser.id)
-          .collection("and")
-          .doc(screen)
-          .update({"seen": true});
-      Provider.of<NotificationProvider>(context, listen: false)
-          .seenNotificationMessage(screen);
-    }
-  }
-
-  void handleNotificationOnClick(RemoteMessage message) async {
-    String type = message.data['type'] ?? "";
-    if (type != "") {
-      String screenValue = message.data['screen'] ?? "";
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (context) => Home()),
-        (route) => false,
-      );
-      if (type == "message") {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => MessageFeed(),
-          ),
-        );
-        Provider.of<RouteObserverProvider>(context, listen: false)
-            .setCurrentRoute("message-feed");
-        if (screenValue != "") {
-          Provider.of<RouteObserverProvider>(context, listen: false)
-              .setCurrentRoute(screenValue);
-          Provider.of<NotificationProvider>(context, listen: false)
-              .seenNotificationMessage(screenValue);
-          await Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => MessageScreen(
-                otherUserId: screenValue,
-                updateMessage: (newMessage) => null,
-              ),
-            ),
-          );
-          Provider.of<RouteObserverProvider>(context, listen: false)
-              .setCurrentRoute("message-feed");
-        }
-      } else if (type == "mention") {
-        //String senderId = message.data['senderId'] ?? "";
-        onTap(4);
-        // Navigator.push(
-        //   context,
-        //   MaterialPageRoute(
-        //     builder: (context) =>
-        //         PostScreen(userId: senderId, postId: screenValue, type: type),
-        //   ),
-        // );
-        // Provider.of<NotificationProvider>(context, listen: false)
-        //     .seenNotificationActivityFeed(screenValue);
-      } else if (type == "friend request question" ||
-          type == "friend request accept") {
-        onTap(4);
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => Profile(profileId: screenValue),
-          ),
-        );
-        Provider.of<NotificationProvider>(context, listen: false)
-            .seenNotificationActivityFeed(screenValue);
-      }
-    }
   }
 
   onTap(int pageIndex) {

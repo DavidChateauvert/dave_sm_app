@@ -1,5 +1,7 @@
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:sm_app/api/notification_api.dart';
 import 'package:sm_app/pages/authentification/authenfication_page.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -14,6 +16,13 @@ import 'package:sm_app/providers/theme_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  FirebaseMessaging.onMessage.listen((message) {
+    NotificationsApi().handleNotificationInside(message);
+  });
+  FirebaseMessaging.onMessageOpenedApp.listen((message) {
+    NotificationsApi().handleNotificationOnClick(message);
+  });
+  FirebaseMessaging.onBackgroundMessage(handleBackGroundMessage);
   await Firebase.initializeApp();
   //initializeFirebase();
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp])
@@ -34,6 +43,11 @@ void main() async {
   });
 }
 
+Future<void> handleBackGroundMessage(RemoteMessage message) async {
+  await Firebase.initializeApp();
+  return NotificationsApi().handleBackGroundMessage(message);
+}
+
 void initializeFirebase() async {
   await Firebase.initializeApp();
   // await Firebase.initializeApp(
@@ -52,6 +66,7 @@ void initializeFirebase() async {
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    NotificationsApi.initialize(context);
     return MaterialApp(
       title: 'Dave',
       debugShowCheckedModeBanner: false,

@@ -14,7 +14,15 @@ class FirebaseApi {
   late String fCMToken;
 
   Future<void> initMessaging(currentUserId) async {
-    await _firebaseMessaging.requestPermission();
+    await _firebaseMessaging.requestPermission(
+      alert: true,
+      announcement: false,
+      badge: true,
+      carPlay: false,
+      criticalAlert: false,
+      provisional: false,
+      sound: true,
+    );
     final fCMToken = await _firebaseMessaging.getToken();
     print(fCMToken);
 
@@ -29,29 +37,6 @@ class FirebaseApi {
     tokensRef.doc(currentUserId).set({
       "token": "",
     });
-  }
-
-  requestPermissionText() async {
-    FirebaseMessaging messaging = FirebaseMessaging.instance;
-
-    NotificationSettings settings = await messaging.requestPermission(
-      alert: true,
-      announcement: false,
-      badge: true,
-      carPlay: false,
-      criticalAlert: false,
-      provisional: false,
-      sound: true,
-    );
-
-    if (settings.authorizationStatus == AuthorizationStatus.authorized) {
-      print("all good");
-    } else if (settings.authorizationStatus ==
-        AuthorizationStatus.provisional) {
-      print("all good-ish");
-    } else {
-      print("not good");
-    }
   }
 
   Future<String?> getToken(String receiverId) async {
