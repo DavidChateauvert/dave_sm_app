@@ -101,6 +101,7 @@ class CommentsState extends State<Comments> {
           "seen": false,
           // "mediaUrl": mediaUrl,
           "timestamp": DateTime.now(),
+          "postOwnerId": postOwnerId
         });
       }
       // Update post

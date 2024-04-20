@@ -251,5 +251,6 @@
         }
     },
     "error_reset_password": "Il n'y a pas d'utilisateur correspondant à cet adresse courriel",
-    "reset_selected_friends": "Réinitialiser amis choisis"
+    "reset_selected_friends": "Réinitialiser amis choisis",
+    "clean_timeline": "Vider le fil d'actualités"
 }

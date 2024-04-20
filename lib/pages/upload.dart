@@ -114,9 +114,9 @@ class _UploadState extends State<Upload>
     );
     setState(() {
       this.group = selectedGroup;
+      selectedUserName =
+          getDisplaysFromIds(mentionsDataInit, selectedGroup.usersInGroup);
     });
-    selectedUserName =
-        getDisplaysFromIds(mentionsDataInit, selectedGroup.usersInGroup);
   }
 
   List<String> getDisplaysFromIds(
@@ -632,11 +632,26 @@ class _UploadState extends State<Upload>
     });
 
     if (mentionsMap.containsKey("all")) {
-      Map<String, String> mentionsMapAllFriends =
-          mentionsDataInit.fold({}, (map, mention) {
-        map[mention['id']!] = mention['display']!;
-        return map;
-      });
+      Map<String, String> mentionsMapAllFriends;
+      if (group?.usersInGroup != null) {
+        List<Map<String, String>> mentionsMapAllFriendsInGroup;
+
+        mentionsMapAllFriendsInGroup = mentionsDataInit
+            .where((mention) => group!.usersInGroup.contains(mention['id']))
+            .toList();
+
+        mentionsMapAllFriends =
+            mentionsMapAllFriendsInGroup.fold({}, (map, mention) {
+          map[mention['id']!] = mention['display']!;
+          return map;
+        });
+      } else {
+        mentionsMapAllFriends = mentionsDataInit.fold({}, (map, mention) {
+          map[mention['id']!] = mention['display']!;
+          return map;
+        });
+      }
+
       for (var mention in mentionsMapAllFriends.entries) {
         activityFeedRef.doc(mention.key).collection("feedItems").add({
           "type": "mention",
@@ -750,7 +765,17 @@ class _UploadState extends State<Upload>
   Future<void> handleSearch(String query) async {
     String lowercasedQuery = query.toLowerCase();
 
-    List<Map<String, String>> filteredData = mentionsDataInit
+    List<Map<String, String>> mentionsDataInitForSearch;
+
+    if (group?.usersInGroup != null) {
+      mentionsDataInitForSearch = mentionsDataInit
+          .where((mention) => group!.usersInGroup.contains(mention['id']))
+          .toList();
+    } else {
+      mentionsDataInitForSearch = mentionsDataInit;
+    }
+
+    List<Map<String, String>> filteredData = mentionsDataInitForSearch
         .where(
             (user) => user['display']!.toLowerCase().contains(lowercasedQuery))
         .toList();

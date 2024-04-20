@@ -24,6 +24,7 @@ class ActivityFeedItem extends StatefulWidget {
   final String commentData;
   final bool seen;
   final Timestamp timestamp;
+  final String postOwnerId;
 
   ActivityFeedItem({
     required this.username,
@@ -35,11 +36,15 @@ class ActivityFeedItem extends StatefulWidget {
     required this.commentData,
     required this.seen,
     required this.timestamp,
+    required this.postOwnerId,
   });
 
   factory ActivityFeedItem.fromDocument(DocumentSnapshot doc) {
     final String commentData =
         doc['type'] == "comment" ? doc['commentData'] : '';
+
+    final String postOwnerId =
+        doc.data().toString().contains('postOwnerId') ? doc["postOwnerId"] : "";
 
     return ActivityFeedItem(
       username: doc['username'],
@@ -50,6 +55,7 @@ class ActivityFeedItem extends StatefulWidget {
       commentData: commentData,
       seen: doc['seen'],
       timestamp: doc['timestamp'],
+      postOwnerId: postOwnerId,
     );
   }
 
@@ -64,6 +70,7 @@ class ActivityFeedItem extends StatefulWidget {
         commentData: commentData,
         seen: seen,
         timestamp: timestamp,
+        postOwnerId: postOwnerId,
       );
 }
 
@@ -78,6 +85,7 @@ class _ActivityFeedItem extends State<ActivityFeedItem> {
   bool seen = false;
   bool deleteInstant = false;
   final Timestamp timestamp;
+  final String postOwnerId;
 
   _ActivityFeedItem({
     required this.username,
@@ -88,6 +96,7 @@ class _ActivityFeedItem extends State<ActivityFeedItem> {
     required this.commentData,
     required this.seen,
     required this.timestamp,
+    required this.postOwnerId,
   });
 
   configureMediaPreview(context) {
@@ -276,8 +285,12 @@ class _ActivityFeedItem extends State<ActivityFeedItem> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) =>
-            PostScreen(userId: userId, postId: postId, type: type),
+        builder: (context) => PostScreen(
+          userId: userId,
+          postId: postId,
+          type: type,
+          postOwnerId: postOwnerId,
+        ),
       ),
     );
   }

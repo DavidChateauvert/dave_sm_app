@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sm_app/pages/home.dart';
 import 'package:sm_app/providers/post_counter.dart';
+import 'package:sm_app/widgets/cleanTimeline.dart';
 import 'package:sm_app/widgets/header.dart';
 import 'package:sm_app/widgets/post.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -75,6 +76,14 @@ class TimelineState extends State<Timeline> {
     });
   }
 
+  int determineTimelineLength(List<Post> posts) {
+    if (posts.isEmpty) {
+      return 0;
+    } else {
+      return posts.length + 1;
+    }
+  }
+
   buildTimeline(context) {
     if (!timelineIsEmpty) {
       return RefreshIndicator.adaptive(
@@ -83,8 +92,18 @@ class TimelineState extends State<Timeline> {
           key: _listKey,
           controller: _scrollController,
           physics: AlwaysScrollableScrollPhysics(),
-          itemCount: posts.length,
+          itemCount: determineTimelineLength(posts),
           itemBuilder: (BuildContext context, int index) {
+            if (index == posts.length) {
+              return CleantTimeline(
+                handleCleanTimeline: () {
+                  deleteAllPostInTimeline();
+                  setState(() {
+                    timelineIsEmpty = true;
+                  });
+                },
+              );
+            }
             return posts[index];
           },
         ),
@@ -92,6 +111,17 @@ class TimelineState extends State<Timeline> {
     } else {
       return buildEmptyTimeline(context);
     }
+  }
+
+  deleteAllPostInTimeline() async {
+    QuerySnapshot timelineSnapshot =
+        await timelineRef.doc(currentUser.id).collection('timelinePosts').get();
+
+    timelineSnapshot.docs.forEach((doc) {
+      if (doc.exists) {
+        doc.reference.delete();
+      }
+    });
   }
 
   buildEmptyTimeline(context) {

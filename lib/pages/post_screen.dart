@@ -10,11 +10,13 @@ class PostScreen extends StatefulWidget {
   final String userId;
   final String postId;
   final String type;
+  final String postOwnerId;
 
   PostScreen({
     required this.userId,
     required this.postId,
     required this.type,
+    required this.postOwnerId,
   });
 
   @override
@@ -38,7 +40,9 @@ class _ProfileScreen extends State<PostScreen> {
 
     try {
       DocumentSnapshot doc;
-      if (["like", "comment"].contains(widget.type)) {
+      if (["like", "comment"].contains(widget.type) ||
+          (widget.type == "commentLike" &&
+              widget.postOwnerId == currentUser.id)) {
         doc = await postsRef
             .doc(currentUser.id)
             .collection('userPosts')
