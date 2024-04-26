@@ -47,6 +47,24 @@ class CommentsState extends State<Comments> {
     // required this.mediaUrl,
   });
 
+  bool isFocused = false;
+
+  @override
+  void initState() {
+    super.initState();
+    commentFocusNode.addListener(() {
+      setState(() {
+        isFocused = commentFocusNode.hasFocus;
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    commentFocusNode.dispose();
+    super.dispose();
+  }
+
   buildComment() {
     return StreamBuilder(
       stream: commentsRef
@@ -139,7 +157,9 @@ class CommentsState extends State<Comments> {
               controller: commentController,
               focusNode: commentFocusNode,
               decoration: InputDecoration(
-                  labelText: AppLocalizations.of(context)!.write_a_comment),
+                labelText: AppLocalizations.of(context)!.write_a_comment,
+                border: isFocused ? UnderlineInputBorder() : InputBorder.none,
+              ),
               onChanged: (value) {
                 setState(() {
                   isCommentNotEmpty = value.trim().isNotEmpty;
@@ -156,6 +176,9 @@ class CommentsState extends State<Comments> {
               ),
               child: Text(AppLocalizations.of(context)!.send_comment),
             ),
+          ),
+          const SizedBox(
+            height: 16.0,
           ),
         ],
       ),

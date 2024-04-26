@@ -74,10 +74,11 @@ class _HomeState extends State<Home> {
       if (googleUser == null) {
         googleUser = await googleSignIn.signInSilently();
       }
-      userId = googleUser!.id;
-    } else {
-      userId = FirebaseAuth.instance.currentUser!.uid;
+      // userId = googleUser!.id;
     }
+    // else {
+    userId = FirebaseAuth.instance.currentUser!.uid;
+    //}
     DocumentSnapshot doc = await usersRef.doc(userId).get();
     if (!doc.exists) {
       final DaveUser.User newUser = await Navigator.push(

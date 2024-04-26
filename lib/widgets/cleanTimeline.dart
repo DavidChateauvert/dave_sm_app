@@ -16,7 +16,7 @@ class _CleantTimelineState extends State<CleantTimeline> {
     return Container(
       child: Center(
         child: Padding(
-          padding: const EdgeInsets.only(top: 32.0),
+          padding: const EdgeInsets.symmetric(vertical: 32.0),
           child: IntrinsicWidth(
             child: TextButton(
               onPressed: widget.handleCleanTimeline,

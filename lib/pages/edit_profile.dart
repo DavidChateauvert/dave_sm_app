@@ -642,6 +642,7 @@ class _EditProfileState extends State<EditProfile> {
               const Icon(
                 CupertinoIcons.delete,
                 color: Colors.red,
+                size: 24.0,
               ),
               const SizedBox(
                 width: 4.0,
@@ -650,7 +651,7 @@ class _EditProfileState extends State<EditProfile> {
                 AppLocalizations.of(context)!.delete_user,
                 style: TextStyle(
                   color: Colors.red,
-                  fontSize: 20.0,
+                  fontSize: 16.0,
                 ),
               ),
             ],

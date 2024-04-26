@@ -15,6 +15,7 @@ class OnboardingScreen5 extends StatelessWidget {
       backgroundColor: Theme.of(context).colorScheme.secondary,
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Padding(
             padding: EdgeInsets.symmetric(horizontal: 8.0),
@@ -33,23 +34,25 @@ class OnboardingScreen5 extends StatelessWidget {
           ),
           Padding(
             padding: const EdgeInsets.only(top: 32.0),
-            child: IntrinsicWidth(
-              child: TextButton(
-                onPressed: () => goToCreateAccount(),
-                child: Row(
-                  children: [
-                    Text(
-                      AppLocalizations.of(context)!.set_up_account,
-                      style: TextStyle(
-                        fontSize: 24.0,
+            child: Center(
+              child: IntrinsicWidth(
+                child: TextButton(
+                  onPressed: () => goToCreateAccount(),
+                  child: Row(
+                    children: [
+                      Text(
+                        AppLocalizations.of(context)!.set_up_account,
+                        style: TextStyle(
+                          fontSize: 24.0,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                      ),
+                      Icon(
+                        CupertinoIcons.forward,
                         color: Theme.of(context).colorScheme.primary,
                       ),
-                    ),
-                    Icon(
-                      CupertinoIcons.forward,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),

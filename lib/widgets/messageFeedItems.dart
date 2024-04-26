@@ -221,6 +221,7 @@ class _MessageFeedItem extends State<MessageFeedItem> {
                   onPressed: () => showMessage(context),
                   child: ListTile(
                     title: RichText(
+                      maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       text: TextSpan(
                         style: TextStyle(

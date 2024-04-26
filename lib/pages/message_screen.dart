@@ -47,6 +47,23 @@ class MessageScreeState extends State<MessageScreen> {
   late final String otherUserId;
   late final Function(String) updateMessage;
   bool isCommentNotEmpty = false;
+  bool isFocused = false;
+
+  @override
+  void initState() {
+    super.initState();
+    messageFocusNode.addListener(() {
+      setState(() {
+        isFocused = messageFocusNode.hasFocus;
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    messageFocusNode.dispose();
+    super.dispose();
+  }
 
   MessageScreeState({
     required this.otherUserId,
@@ -445,8 +462,12 @@ class MessageScreeState extends State<MessageScreen> {
                         controller: messageController,
                         focusNode: messageFocusNode,
                         decoration: InputDecoration(
-                            labelText: AppLocalizations.of(context)!
-                                .message_controller_placeholder),
+                          labelText: AppLocalizations.of(context)!
+                              .message_controller_placeholder,
+                          border: isFocused
+                              ? UnderlineInputBorder()
+                              : InputBorder.none,
+                        ),
                         maxLines: null,
                         onChanged: (value) {
                           setState(() {
@@ -475,6 +496,9 @@ class MessageScreeState extends State<MessageScreen> {
                           ),
                         ],
                       ),
+                    ),
+                    const SizedBox(
+                      height: 16.0,
                     ),
                   ],
                 ),

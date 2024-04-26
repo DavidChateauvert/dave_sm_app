@@ -144,8 +144,6 @@ showPhoto(
   Navigator.push(
     context,
     PageRouteBuilder(
-      // transitionDuration: Duration(
-      //     milliseconds: 200), // Adjust the transition duration as desired
       pageBuilder: (_, __, ___) => Photo(
         photoUrl: photoUrl,
         aspectRatio: aspectRatio,
