@@ -8,6 +8,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:provider/provider.dart';
 import 'package:sm_app/api/firebase_api.dart';
 import 'package:sm_app/api/notification_api.dart';
+import 'package:sm_app/pages/authentification/authentification_service.dart';
 import 'package:sm_app/pages/intro.dart';
 import 'package:sm_app/pages/profile.dart';
 import 'package:sm_app/pages/search.dart';
@@ -34,6 +35,7 @@ final friendsRef = FirebaseFirestore.instance.collection('friends');
 final tokensRef = FirebaseFirestore.instance.collection('tokens');
 final reportsRef = FirebaseFirestore.instance.collection('reports');
 final groupsRef = FirebaseFirestore.instance.collection('groups');
+final transferRef = FirebaseFirestore.instance.collection('transferred');
 final DateTime timestamp = DateTime.now();
 late DaveUser.User currentUser;
 
@@ -61,8 +63,19 @@ class _HomeState extends State<Home> {
     initLocalNotifications();
   }
 
-  BuildContext getAppContext() {
-    return context;
+  checkIfTransferred(String newUserId) async {
+    String userEmail = FirebaseAuth.instance.currentUser!.email!;
+    // Check if email is in the map
+    if (AuthentificationService().doesEmailExist(userEmail)) {
+      // Check if already tranferred
+      bool alreadyTransferred =
+          await AuthentificationService().checkIfAlreadyTransferred(newUserId);
+      if (!alreadyTransferred) {
+        String oldUserId =
+            await AuthentificationService().getOldUserIdFromEmail(userEmail);
+        AuthentificationService().transferUser(context, oldUserId, newUserId);
+      }
+    }
   }
 
   checkIfUserExist() async {
@@ -79,6 +92,7 @@ class _HomeState extends State<Home> {
     // else {
     userId = FirebaseAuth.instance.currentUser!.uid;
     //}
+    await checkIfTransferred(userId);
     DocumentSnapshot doc = await usersRef.doc(userId).get();
     if (!doc.exists) {
       final DaveUser.User newUser = await Navigator.push(
