@@ -47,7 +47,6 @@ class _ReportDeleteUserState extends State<ReportDeleteUser> {
   }
 
   deleteUser() async {
-    print(currentUser.id);
     Navigator.pop(context);
     Navigator.pop(context);
     await usersRef.doc(currentUser.id).delete();

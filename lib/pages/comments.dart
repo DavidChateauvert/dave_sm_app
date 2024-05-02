@@ -127,6 +127,15 @@ class CommentsState extends State<Comments> {
         "commentCount": FieldValue.increment(1),
         'comments.${currentUser.id}': true,
       });
+      // Update timeline to be quicker
+      timelineRef
+          .doc(currentUser.id)
+          .collection('timelinePosts')
+          .doc(postId)
+          .update({
+        "commentCount": FieldValue.increment(1),
+        'comments.${currentUser.id}': true,
+      });
 
       if (postOwnerId != currentUser.id) {
         sendNotification(commentTrim);

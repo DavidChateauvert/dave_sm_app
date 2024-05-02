@@ -6,6 +6,7 @@ import 'package:sm_app/providers/reload_provider.dart';
 import 'package:sm_app/widgets/activityFeedItems.dart';
 import 'package:sm_app/widgets/header.dart';
 import 'package:sm_app/widgets/progress.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class ActivityFeed extends StatefulWidget {
   @override
@@ -13,20 +14,47 @@ class ActivityFeed extends StatefulWidget {
 }
 
 class _ActivityFeed extends State<ActivityFeed> {
+  bool isFeedEmpty = false;
+
   getActivityFeed() async {
+    List<ActivityFeedItem> feedItems = [];
     QuerySnapshot snapshot = await activityFeedRef
         .doc(currentUser.id)
         .collection('feedItems')
         .orderBy('timestamp', descending: true)
         .limit(50)
         .get();
-    List<ActivityFeedItem> feedItems = [];
-    snapshot.docs.forEach((doc) {
-      feedItems.add(ActivityFeedItem.fromDocument(doc));
-    });
-    Provider.of<ReloadNotifier>(context, listen: false)
-        .setShouldReloadActivityFeed(false);
+    if (snapshot.docs.isNotEmpty) {
+      snapshot.docs.forEach((doc) {
+        feedItems.add(ActivityFeedItem.fromDocument(doc));
+      });
+      Provider.of<ReloadNotifier>(context, listen: false)
+          .setShouldReloadActivityFeed(false);
+    } else {
+      setState(() {
+        isFeedEmpty = true;
+      });
+    }
+
     return feedItems;
+  }
+
+  buildEmptyTimeline(context) {
+    return Container(
+      alignment: Alignment.center,
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 16.0),
+        child: Text(
+          AppLocalizations.of(context)!.message_empty_activity_feed,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.w400,
+            color: Theme.of(context).colorScheme.primaryContainer,
+          ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -34,21 +62,23 @@ class _ActivityFeed extends State<ActivityFeed> {
     return Scaffold(
       appBar:
           header(context, titleText: "Notifications", removeBackButton: true),
-      body: Container(
-        child: FutureBuilder(
-          key: ValueKey(
-              context.watch<ReloadNotifier>().shouldReloadActivityFeed),
-          future: getActivityFeed(),
-          builder: (context, snapshot) {
-            if (!snapshot.hasData) {
-              return circularProgress();
-            }
-            return ListView(
-              children: snapshot.data as List<Widget>,
-            );
-          },
-        ),
-      ),
+      body: !isFeedEmpty
+          ? Container(
+              child: FutureBuilder(
+                key: ValueKey(
+                    context.watch<ReloadNotifier>().shouldReloadActivityFeed),
+                future: getActivityFeed(),
+                builder: (context, snapshot) {
+                  if (!snapshot.hasData) {
+                    return circularProgress();
+                  }
+                  return ListView(
+                    children: snapshot.data as List<Widget>,
+                  );
+                },
+              ),
+            )
+          : buildEmptyTimeline(context),
     );
   }
 }

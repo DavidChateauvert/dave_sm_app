@@ -1,4 +1,4 @@
-package com.example.sm_app
+package com.dchateauvert.sm_app
 
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.android.FlutterFragmentActivity

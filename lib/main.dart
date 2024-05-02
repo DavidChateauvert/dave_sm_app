@@ -22,7 +22,9 @@ void main() async {
   FirebaseMessaging.onMessageOpenedApp.listen((message) {
     NotificationsApi().handleNotificationOnClick(message);
   });
-  FirebaseMessaging.onBackgroundMessage(handleBackGroundMessage);
+  FirebaseMessaging.onBackgroundMessage(_handleBackGroundMessage);
+
+  // FirebaseMessaging.onBackgroundMessage(handleBackGroundMessage);
   await Firebase.initializeApp();
   //initializeFirebase();
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp])
@@ -43,9 +45,9 @@ void main() async {
   });
 }
 
-Future<void> handleBackGroundMessage(RemoteMessage message) async {
+Future<void> _handleBackGroundMessage(RemoteMessage message) async {
   await Firebase.initializeApp();
-  return NotificationsApi().handleBackGroundMessage(message);
+  NotificationsApi().handleBackGroundMessage(message);
 }
 
 void initializeFirebase() async {

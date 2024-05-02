@@ -43,9 +43,6 @@ class NotificationsApi {
   }
 
   Future<void> handleBackGroundMessage(RemoteMessage message) async {
-    // Provider.of<NotificationProvider>(context, listen: false)
-    //     .receiveNotificationHandler(message);
-
     String type = message.data['type'] ?? "";
     int typeId = typeToId(type);
     String screen = message.data['screen'] ?? "";
@@ -54,6 +51,9 @@ class NotificationsApi {
     String body = message.data['body'] ?? "";
     NotificationsApi.showNotification(
         id: typeId, title: title, body: body, payload: screen);
+
+    Provider.of<NotificationProvider>(_context, listen: false)
+        .receiveNotificationHandler(message);
   }
 
   int typeToId(String type) {

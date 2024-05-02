@@ -7,6 +7,42 @@
   "client": [
     {
       "client_info": {
+        "mobilesdk_app_id": "1:988198906820:android:5f8dc1bf5f8768d8bc5291",
+        "android_client_info": {
+          "package_name": "com.dchateauvert.sm_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "988198906820-lgahfcum9mk8t2ekjpem4ri292sdtqmb.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAYHFhT6TEqi2dPIXpsftD1QhmVsV69CP0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "988198906820-b5fu2k9q20rh5df227lios6613s5vsth.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "988198906820-phdskarkitjcj1mjrvmqmo6250gpa51j.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.dchateauvert.smApp"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
         "mobilesdk_app_id": "1:988198906820:android:8d12697ecaed9b20bc5291",
         "android_client_info": {
           "package_name": "com.example.sm_app"
@@ -14,11 +50,11 @@
       },
       "oauth_client": [
         {
-          "client_id": "988198906820-4n0ivrp6j9pfq9nu3d9suk2h6l3ntiul.apps.googleusercontent.com",
+          "client_id": "988198906820-pgm3vkmv9h5tqp101ea7oah6jb584f73.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "com.example.sm_app",
-            "certificate_hash": "8865e4850e3df7969d4757831f6da991965bd7e3"
+            "certificate_hash": "63af6f3b74fed3ad6a9906e858ee61b65cd3cc27"
           }
         },
         {

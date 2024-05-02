@@ -252,5 +252,7 @@
     },
     "error_reset_password": "There is no user corresponding to this email address",
     "reset_selected_friends": "Reset selected friends",
-    "clean_timeline": "Clean Timeline"
+    "clean_timeline": "Clean Timeline",
+    "message_empty_activity_feed": "Your notifications is empty for the moment",
+    "message_empty_message_feed": "Your messages feed is empty for the moment. Add some friends to fill it !"
 }

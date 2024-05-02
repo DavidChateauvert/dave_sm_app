@@ -434,9 +434,16 @@ class _PostState extends State<Post> {
   handleLikePost() {
     bool _isLiked = likes[currentUserId] == true;
     if (_isLiked) {
+      // Modified owner post
       postsRef
           .doc(ownerId)
           .collection('userPosts')
+          .doc(postId)
+          .update({'likes.$currentUserId': false});
+      // Modified timeline post to show quickly
+      timelineRef
+          .doc(currentUserId)
+          .collection('timelinePosts')
           .doc(postId)
           .update({'likes.$currentUserId': false});
       removeLikeFromActivityFeed();
@@ -451,8 +458,12 @@ class _PostState extends State<Post> {
           .collection('userPosts')
           .doc(postId)
           .update({'likes.$currentUserId': true});
+      timelineRef
+          .doc(currentUserId)
+          .collection('timelinePosts')
+          .doc(postId)
+          .update({'likes.$currentUserId': true});
       addLikeToActivityFeed();
-
       setState(() {
         likeCount += 1;
         isLiked = true;
