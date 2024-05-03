@@ -67,7 +67,6 @@ class AuthentificationService {
     QuerySnapshot transferSnapshot = await transferRef.get();
 
     transferSnapshot.docs.forEach((doc) {
-      print(doc.id);
       if (doc.id == newUserId) {
         alreadyTranferred = true;
       }
@@ -125,11 +124,7 @@ class AuthentificationService {
           "dateOfBirth": user.dateOfBirth,
         });
       }
-    } catch (e) {
-      print("Error duplicating user");
-    }
-    // Transfer friends
-    try {
+
       QuerySnapshot userFriends =
           await friendsRef.doc(oldUserId).collection('userFriends').get();
 
@@ -146,11 +141,7 @@ class AuthentificationService {
             .doc(newUserId)
             .set({});
       });
-    } catch (e) {
-      print("Error duplicating following");
-    }
-    // Transfer followers
-    try {
+
       QuerySnapshot userFollowers =
           await followersRef.doc(oldUserId).collection('userFollowers').get();
 
@@ -168,12 +159,6 @@ class AuthentificationService {
             .set({});
       });
 
-      // await followersRef.doc(oldUserId).delete();
-    } catch (e) {
-      print("Error duplicating followers");
-    }
-    // Transfer following
-    try {
       QuerySnapshot userFollowing =
           await followingRef.doc(oldUserId).collection('userFollowing').get();
 
@@ -190,22 +175,14 @@ class AuthentificationService {
             .doc(newUserId)
             .set({});
       });
-    } catch (e) {
-      print("Error duplicating following");
-    }
-    // Add to transfer
-    try {
-      await transferRef.doc(newUserId).set({});
-    } catch (e) {
-      print("Error create transfer");
-    }
-    // Delete old user
-    try {
-      await usersRef.doc(oldUserId).delete();
-    } catch (e) {
-      print("Error deleting oldUser");
-    }
 
-    Navigator.pop(context);
+      await transferRef.doc(newUserId).set({});
+
+      await usersRef.doc(oldUserId).delete();
+      Navigator.pop(context);
+    } catch (e) {
+      Navigator.pop(context);
+      print("Error Transfering Data");
+    }
   }
 }

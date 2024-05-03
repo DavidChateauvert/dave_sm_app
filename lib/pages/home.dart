@@ -92,7 +92,7 @@ class _HomeState extends State<Home> {
     // else {
     userId = FirebaseAuth.instance.currentUser!.uid;
     //}
-    // await checkIfTransferred(userId);
+    await checkIfTransferred(userId);
     DocumentSnapshot doc = await usersRef.doc(userId).get();
     if (!doc.exists) {
       final DaveUser.User newUser = await Navigator.push(

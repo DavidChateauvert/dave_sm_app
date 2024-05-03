@@ -6,7 +6,6 @@ import 'package:sm_app/providers/reload_provider.dart';
 import 'package:sm_app/widgets/header.dart';
 import 'package:sm_app/widgets/messageFeedItems.dart';
 import 'package:sm_app/widgets/progress.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class MessageFeed extends StatefulWidget {
   @override
@@ -14,9 +13,6 @@ class MessageFeed extends StatefulWidget {
 }
 
 class _MessageFeed extends State<MessageFeed> {
-  bool isFeedEmpty = false;
-
-  List<MessageFeedItem> feedItems = [];
   getMessageFeed() async {
     QuerySnapshot snapshot = await messagesRef
         .doc(currentUser.id)
@@ -24,38 +20,13 @@ class _MessageFeed extends State<MessageFeed> {
         .orderBy('timestamp', descending: true)
         .limit(50)
         .get();
-
-    if (snapshot.docs.isNotEmpty) {
-      snapshot.docs.forEach((doc) {
-        feedItems.add(MessageFeedItem.fromDocument(doc));
-      });
-      Provider.of<ReloadNotifier>(context, listen: false)
-          .setShouldReloadMessageFeed(false);
-    } else {
-      setState(() {
-        isFeedEmpty = true;
-      });
-    }
-
+    List<MessageFeedItem> feedItems = [];
+    snapshot.docs.forEach((doc) {
+      feedItems.add(MessageFeedItem.fromDocument(doc));
+    });
+    Provider.of<ReloadNotifier>(context, listen: false)
+        .setShouldReloadMessageFeed(false);
     return feedItems;
-  }
-
-  buildEmptyTimeline(context) {
-    return Container(
-      alignment: Alignment.center,
-      child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 16.0),
-        child: Text(
-          AppLocalizations.of(context)!.message_empty_message_feed,
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.w400,
-            color: Theme.of(context).colorScheme.primaryContainer,
-          ),
-        ),
-      ),
-    );
   }
 
   @override
@@ -65,23 +36,21 @@ class _MessageFeed extends State<MessageFeed> {
           titleText: "Messages",
           showMessageButton: false,
           showAddMessageButton: true),
-      body: !isFeedEmpty
-          ? Container(
-              child: FutureBuilder(
-                key: ValueKey(
-                    context.watch<ReloadNotifier>().shouldReloadMessageFeed),
-                future: getMessageFeed(),
-                builder: (context, snapshot) {
-                  if (!snapshot.hasData) {
-                    return circularProgress();
-                  }
-                  return ListView(
-                    children: snapshot.data as List<Widget>,
-                  );
-                },
-              ),
-            )
-          : buildEmptyTimeline(context),
+      body: Container(
+        child: FutureBuilder(
+          key:
+              ValueKey(context.watch<ReloadNotifier>().shouldReloadMessageFeed),
+          future: getMessageFeed(),
+          builder: (context, snapshot) {
+            if (!snapshot.hasData) {
+              return circularProgress();
+            }
+            return ListView(
+              children: snapshot.data as List<Widget>,
+            );
+          },
+        ),
+      ),
     );
   }
 }

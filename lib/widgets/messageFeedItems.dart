@@ -191,10 +191,6 @@ class _MessageFeedItem extends State<MessageFeedItem> {
         ? Container()
         : Column(
             children: [
-              Divider(
-                color: Theme.of(context).colorScheme.secondary,
-                height: 0.0,
-              ),
               Slidable(
                 endActionPane: ActionPane(
                   motion: StretchMotion(),
@@ -252,6 +248,10 @@ class _MessageFeedItem extends State<MessageFeedItem> {
                     ),
                   ),
                 ),
+              ),
+              Divider(
+                color: Theme.of(context).colorScheme.secondary,
+                height: 0.0,
               ),
             ],
           );

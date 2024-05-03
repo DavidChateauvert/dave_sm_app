@@ -10,6 +10,7 @@ import 'package:sm_app/pages/profile.dart';
 import 'package:sm_app/providers/notification_provider.dart';
 import 'package:sm_app/providers/reload_provider.dart';
 import 'package:sm_app/providers/route_observer_provider.dart';
+import 'package:sm_app/providers/shared_preferences.dart';
 
 class NotificationsApi {
   static late BuildContext _context;
@@ -42,7 +43,11 @@ class NotificationsApi {
             handleClick(context, details));
   }
 
-  Future<void> handleBackGroundMessage(RemoteMessage message) async {
+  Future<void> checkBackgroundMessage(BuildContext context) async {
+    SharedPreferencesProvider().getMessagesFromSharedPreferences(context);
+  }
+
+  handleBackGroundMessage(RemoteMessage message) {
     String type = message.data['type'] ?? "";
     int typeId = typeToId(type);
     String screen = message.data['screen'] ?? "";
@@ -52,8 +57,16 @@ class NotificationsApi {
     NotificationsApi.showNotification(
         id: typeId, title: title, body: body, payload: screen);
 
-    Provider.of<NotificationProvider>(_context, listen: false)
-        .receiveNotificationHandler(message);
+    if (_context.mounted) {
+      // Ios
+      Provider.of<NotificationProvider>(_context, listen: false)
+          .receiveNotificationHandler(message);
+    } else {
+      // Android
+      OutsideMessage outsideMessage =
+          OutsideMessage(type: type, screen: screen);
+      SharedPreferencesProvider().setNotif(outsideMessage);
+    }
   }
 
   int typeToId(String type) {

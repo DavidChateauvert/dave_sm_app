@@ -1,6 +1,7 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_app_badger/flutter_app_badger.dart';
+import 'package:sm_app/providers/shared_preferences.dart';
 
 class NotificationProvider extends ChangeNotifier {
   int _notificationBadgerCount = 0;
@@ -29,6 +30,24 @@ class NotificationProvider extends ChangeNotifier {
   void receiveNotificationHandler(RemoteMessage message) {
     String type = message.data['type'] ?? "";
     String screen = message.data['screen'] ?? "";
+
+    if (type == "message") {
+      receiveNotificationMessage(screen);
+    } else if ([
+      "like",
+      "comment",
+      "mention",
+      "friend request question",
+      "friend request accept"
+    ].contains(type)) {
+      receiveNotificationActivity(screen);
+    }
+  }
+
+  // Android
+  void receiveNotificationHandlerAndroid(OutsideMessage message) {
+    String type = message.type;
+    String screen = message.screen;
 
     if (type == "message") {
       receiveNotificationMessage(screen);

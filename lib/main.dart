@@ -1,5 +1,6 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_app_badger/flutter_app_badger.dart';
 import 'package:provider/provider.dart';
 import 'package:sm_app/api/notification_api.dart';
 import 'package:sm_app/pages/authentification/authenfication_page.dart';
@@ -22,9 +23,8 @@ void main() async {
   FirebaseMessaging.onMessageOpenedApp.listen((message) {
     NotificationsApi().handleNotificationOnClick(message);
   });
-  FirebaseMessaging.onBackgroundMessage(_handleBackGroundMessage);
 
-  // FirebaseMessaging.onBackgroundMessage(handleBackGroundMessage);
+  FirebaseMessaging.onBackgroundMessage(_handleBackGroundMessage);
   await Firebase.initializeApp();
   //initializeFirebase();
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp])
@@ -45,8 +45,10 @@ void main() async {
   });
 }
 
+@pragma('vm:entry-point')
 Future<void> _handleBackGroundMessage(RemoteMessage message) async {
   await Firebase.initializeApp();
+  FlutterAppBadger.updateBadgeCount(1);
   NotificationsApi().handleBackGroundMessage(message);
 }
 
@@ -65,7 +67,31 @@ void initializeFirebase() async {
   // await FirebaseApi().initMessaging(currentUser.id);
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
+  @override
+  _MyAppState createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      NotificationsApi().checkBackgroundMessage(context);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     NotificationsApi.initialize(context);
