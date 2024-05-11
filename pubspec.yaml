@@ -70,6 +70,7 @@ dependencies:
   lottie: ^2.7.0
   cloud_functions: ^4.6.0
   shared_preferences: ^2.2.3
+  sign_in_with_apple: ^5.0.0
 
 dev_dependencies:
   flutter_test:
@@ -115,6 +116,7 @@ flutter:
     - assets/images/plus_sign.svg
     - assets/images/no_post.svg
     - assets/images/google_logo.png
+    - assets/images/apple_logo.png
     - assets/images/logo/logo_launch.png
     - assets/animations/speaking1.json
     - assets/animations/scrolling_down_pink.json

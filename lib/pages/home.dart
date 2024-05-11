@@ -110,7 +110,7 @@ class _HomeState extends State<Home> {
         "photoUrl": newUser.photoUrl != ""
             ? newUser.photoUrl
             : "https://firebasestorage.googleapis.com/v0/b/sm-app-4347b.appspot.com/o/Photo%20de%20profil%2Fperson-circle.png?alt=media&token=11b8cad9-ebf5-4ff2-860a-357b07548a75",
-        "email": FirebaseAuth.instance.currentUser!.email,
+        "email": FirebaseAuth.instance.currentUser!.email ?? "",
         "firstName": newUser.firstName,
         "lastName": newUser.lastName,
         "displayName": newUser.displayName,

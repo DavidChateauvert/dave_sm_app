@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
@@ -129,8 +131,8 @@ class _LoginState extends State<Login> {
                     fit: BoxFit.cover,
                     width: 280,
                   ),
-                  const SizedBox(
-                    height: 94.0,
+                  SizedBox(
+                    height: Platform.isIOS ? 64.0 : 94.0,
                   ),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 25.0),
@@ -271,7 +273,7 @@ class _LoginState extends State<Login> {
                     ),
                   ),
                   const SizedBox(
-                    height: 24.0,
+                    height: 32.0,
                   ),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -281,13 +283,49 @@ class _LoginState extends State<Login> {
                             AuthentificationService().signInWithGoogle(),
                         child: Image.asset(
                           'assets/images/google_logo.png',
-                          height: 64,
+                          height: Platform.isIOS ? 52.0 : 64.0,
                         ),
                       ),
                     ],
                   ),
+                  Platform.isIOS
+                      ? SizedBox(
+                          height: 16.0,
+                        )
+                      : Container(),
+                  Platform.isIOS
+                      ? Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            GestureDetector(
+                              onTap: () =>
+                                  AuthentificationService().signInWithApple(),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  Image.asset(
+                                    'assets/images/apple_logo.png',
+                                    height: 52,
+                                  ),
+                                  const SizedBox(
+                                    width: 8.0,
+                                  ),
+                                  Text(
+                                    "Apple",
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w400,
+                                      fontSize: 40.0,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        )
+                      : Container(),
                   const SizedBox(
-                    height: 24.0,
+                    height: 32.0,
                   ),
                   Provider.of<LocaleProvider>(context, listen: false)
                               .getLocaleFormatString() ==
