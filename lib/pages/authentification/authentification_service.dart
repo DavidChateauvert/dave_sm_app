@@ -2,7 +2,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:sm_app/pages/home.dart';
 import 'package:sm_app/widgets/progress.dart';
 import '../../models/user.dart' as DaveUser;
@@ -23,30 +22,11 @@ class AuthentificationService {
 
   signInWithApple() async {
     try {
-      // OAuthProvider('apple.com').addScope('email').addScope('fullName');
+      var appleProvider = AppleAuthProvider();
+      appleProvider.addScope('email');
+      appleProvider.addScope('name');
 
-      final AuthorizationCredentialAppleID appleCredential =
-          await SignInWithApple.getAppleIDCredential(
-        scopes: [
-          AppleIDAuthorizationScopes.email,
-          AppleIDAuthorizationScopes.fullName,
-        ],
-      );
-
-      print(appleCredential);
-
-      if (appleCredential.identityToken == null) {
-        print("No identity token received.");
-        return;
-      }
-
-      final OAuthCredential credential = OAuthProvider('apple.com').credential(
-        idToken: appleCredential.identityToken,
-      );
-
-      print(credential);
-
-      await FirebaseAuth.instance.signInWithCredential(credential);
+      await FirebaseAuth.instance.signInWithProvider(appleProvider);
     } catch (e) {
       print("Error signing in with Apple: $e");
     }

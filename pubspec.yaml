@@ -70,7 +70,6 @@ dependencies:
   lottie: ^2.7.0
   cloud_functions: ^4.6.0
   shared_preferences: ^2.2.3
-  sign_in_with_apple: ^5.0.0
 
 dev_dependencies:
   flutter_test:
