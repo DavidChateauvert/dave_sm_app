@@ -36,6 +36,8 @@ final tokensRef = FirebaseFirestore.instance.collection('tokens');
 final reportsRef = FirebaseFirestore.instance.collection('reports');
 final groupsRef = FirebaseFirestore.instance.collection('groups');
 final transferRef = FirebaseFirestore.instance.collection('transferred');
+final blockedRef = FirebaseFirestore.instance.collection('blocked');
+final blockingRef = FirebaseFirestore.instance.collection('blocking');
 final DateTime timestamp = DateTime.now();
 late DaveUser.User currentUser;
 

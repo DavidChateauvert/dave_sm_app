@@ -12,6 +12,7 @@ import 'package:sm_app/pages/photo.dart';
 import 'package:sm_app/providers/locale_provider.dart';
 import 'package:sm_app/widgets/progress.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:status_alert/status_alert.dart';
 
 import '../models/user.dart';
 
@@ -30,6 +31,7 @@ class _ProfileHeader extends State<ProfileHeader> {
   bool isFollowers = false;
   bool isFriend = false;
   bool isLoading = false;
+  bool isBlocking = false;
   int followersCount = 0;
   int followingCount = 0;
   int friendsCount = 0;
@@ -42,6 +44,18 @@ class _ProfileHeader extends State<ProfileHeader> {
     checkIfFriend();
     checkIfFollowing();
     checkIfFollowers();
+    checkIfBlocking();
+  }
+
+  checkIfBlocking() async {
+    DocumentSnapshot doc = await blockingRef
+        .doc(currentUserId)
+        .collection('userBlocking')
+        .doc(widget.profileId)
+        .get();
+    setState(() {
+      isBlocking = doc.exists;
+    });
   }
 
   checkIfFollowing() async {
@@ -208,14 +222,13 @@ class _ProfileHeader extends State<ProfileHeader> {
           ),
         ),
         child: Container(
-          width: 200.0,
           height: 26.0,
           alignment: Alignment.center,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
-                "Send message",
+                AppLocalizations.of(context)!.send_message,
                 style: TextStyle(
                   color: Theme.of(context).colorScheme.primaryContainer,
                   fontWeight: FontWeight.bold,
@@ -461,6 +474,126 @@ class _ProfileHeader extends State<ProfileHeader> {
   //   );
   // }
 
+  blockUser() async {
+    setState(() {
+      isBlocking = true;
+    });
+    await blockingRef
+        .doc(currentUserId)
+        .collection('userBlocking')
+        .doc(widget.profileId)
+        .set({});
+    await blockedRef
+        .doc(widget.profileId)
+        .collection('userBlocking')
+        .doc(currentUserId)
+        .set({});
+    handleUnfollowUser();
+  }
+
+  unblockUser() async {
+    setState(() {
+      isBlocking = true;
+    });
+    await blockingRef
+        .doc(currentUserId)
+        .collection('userBlocking')
+        .doc(widget.profileId)
+        .delete();
+    await blockedRef
+        .doc(widget.profileId)
+        .collection('userBlocking')
+        .doc(currentUserId)
+        .delete();
+  }
+
+  showBlockUserModal(parentContext) {
+    return showDialog(
+      context: parentContext,
+      builder: (context) {
+        return SimpleDialog(
+          title: Text(
+            AppLocalizations.of(context)!.block_user_title,
+            textAlign: TextAlign.center,
+          ),
+          children: <Widget>[
+            SimpleDialogOption(
+              onPressed: () {
+                blockUser();
+                Navigator.pop(context);
+                StatusAlert.show(
+                  context,
+                  duration: Duration(seconds: 2),
+                  subtitle: AppLocalizations.of(context)!.user_blocked,
+                  configuration: IconConfiguration(icon: Icons.block),
+                  maxWidth: 260,
+                  backgroundColor: Theme.of(context).colorScheme.secondary,
+                );
+              },
+              child: Text(
+                AppLocalizations.of(context)!.confirm,
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.red),
+              ),
+            ),
+            SimpleDialogOption(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: Text(
+                AppLocalizations.of(context)!.cancel,
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  showUnBlockUserModal(parentContext) {
+    return showDialog(
+      context: parentContext,
+      builder: (context) {
+        return SimpleDialog(
+          title: Text(
+            AppLocalizations.of(context)!.unblock_user_title,
+            textAlign: TextAlign.center,
+          ),
+          children: <Widget>[
+            SimpleDialogOption(
+              onPressed: () {
+                unblockUser();
+                Navigator.pop(context);
+                StatusAlert.show(
+                  context,
+                  duration: Duration(seconds: 2),
+                  subtitle: AppLocalizations.of(context)!.user_unblocked,
+                  configuration: IconConfiguration(icon: Icons.done),
+                  maxWidth: 260,
+                  backgroundColor: Theme.of(context).colorScheme.secondary,
+                );
+              },
+              child: Text(
+                AppLocalizations.of(context)!.confirm,
+                textAlign: TextAlign.center,
+              ),
+            ),
+            SimpleDialogOption(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: Text(
+                AppLocalizations.of(context)!.cancel,
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(context) {
     return FutureBuilder(
@@ -581,10 +714,27 @@ class _ProfileHeader extends State<ProfileHeader> {
                       AppLocalizations.of(context)!.friends, friendsCount),
                 ],
               ),
-              const SizedBox(height: 24.0),
+              const SizedBox(
+                height: 24.0,
+              ),
               buildProfileButton(),
-              const SizedBox(height: 24.0),
+              const SizedBox(
+                height: 24.0,
+              ),
               isFriend ? buildMessageButton() : Container(),
+              currentUserId != widget.profileId
+                  ? const SizedBox(
+                      height: 24.0,
+                    )
+                  : Container(),
+              currentUserId != widget.profileId
+                  ? IconButton(
+                      onPressed: () => isBlocking
+                          ? showUnBlockUserModal(context)
+                          : showBlockUserModal(context),
+                      icon: Icon(Icons.more_horiz_outlined),
+                    )
+                  : Container(),
             ],
           ),
         );
