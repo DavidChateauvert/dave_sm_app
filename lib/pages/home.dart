@@ -126,6 +126,7 @@ class _HomeState extends State<Home> {
         "postsCount": 0,
         "gender": newUser.gender,
         "dateOfBirth": newUser.dateOfBirth,
+        "acceptedEULA": true,
       });
       // Make new user their own follower
       await followersRef

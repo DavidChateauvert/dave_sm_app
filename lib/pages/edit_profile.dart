@@ -14,6 +14,7 @@ import 'package:sm_app/widgets/profileHeader.dart';
 import 'package:sm_app/widgets/progress.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:status_alert/status_alert.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../models/user.dart';
 
@@ -44,6 +45,7 @@ class _EditProfileState extends State<EditProfile> {
   String newPhotoUrl = "";
   String currentGenderOptions = "";
   DateTime? newDateOfBirth;
+  final Uri url = Uri.parse('https://appdave.com/#/contact-us');
 
   @override
   void initState() {
@@ -585,6 +587,36 @@ class _EditProfileState extends State<EditProfile> {
     }));
   }
 
+  buildNeedModify() {
+    return Padding(
+      padding: EdgeInsets.only(
+        top: 32.0,
+      ),
+      child: Column(
+        children: [
+          Text(
+            AppLocalizations.of(context)!.need_modify_user,
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(
+            height: 4.0,
+          ),
+          GestureDetector(
+            onTap: () => launchUrl(url),
+            child: Text(
+              "https://appdave.com/#/contact-us",
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.primary,
+                decoration: TextDecoration.underline,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   handleDeleteUser(BuildContext parentContext) {
     return showDialog(
       context: parentContext,
@@ -745,6 +777,7 @@ class _EditProfileState extends State<EditProfile> {
                             buildDateOfBirthField(),
                             buildGenderField(),
                             buildBioField(),
+                            buildNeedModify(),
                             buildDeleteUser(),
                           ],
                         ),

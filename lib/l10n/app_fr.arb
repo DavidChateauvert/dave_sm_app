@@ -264,5 +264,6 @@
     "terms_of_aggreements": "J'ai lu et j'accepte les conditions d'utilisation.",
     "terms_and_conditions": "Conditions d'utilisation",
     "see_terms_and_conditions": "Lire les conditions d'utilisation",
-    "need_terms_and_conditions": "Vous avez besoin d'accepter les conditions d'utilisation pour pouvoir utiliser Dave"
+    "need_terms_and_conditions": "Vous avez besoin d'accepter les conditions d'utilisation pour pouvoir utiliser Dave",
+    "need_modify_user": "Si vous voulez désactivé ou changer quoique que ce soit sur votre compte, veuillez visiter :"
 }
