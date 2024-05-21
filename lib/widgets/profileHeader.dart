@@ -32,6 +32,7 @@ class _ProfileHeader extends State<ProfileHeader> {
   bool isFriend = false;
   bool isLoading = false;
   bool isBlocking = false;
+  bool isBlocked = false;
   int followersCount = 0;
   int followingCount = 0;
   int friendsCount = 0;
@@ -45,6 +46,7 @@ class _ProfileHeader extends State<ProfileHeader> {
     checkIfFollowing();
     checkIfFollowers();
     checkIfBlocking();
+    checkIfBlocked();
   }
 
   checkIfBlocking() async {
@@ -55,6 +57,17 @@ class _ProfileHeader extends State<ProfileHeader> {
         .get();
     setState(() {
       isBlocking = doc.exists;
+    });
+  }
+
+  checkIfBlocked() async {
+    DocumentSnapshot doc = await blockedRef
+        .doc(currentUserId)
+        .collection('userBlocking')
+        .doc(widget.profileId)
+        .get();
+    setState(() {
+      isBlocked = doc.exists;
     });
   }
 
@@ -172,37 +185,93 @@ class _ProfileHeader extends State<ProfileHeader> {
     editPorfileAsync();
   }
 
-  Container buildButton({String? text, Function? function}) {
+  Container buildButton({
+    required String text,
+    required Function function,
+  }) {
+    bool disabled = isBlocked || isBlocking;
     return Container(
       padding: EdgeInsets.only(top: 2.0),
       child: TextButton(
-        onPressed: function as void Function()?,
+        onPressed: disabled ? null : function as void Function()?,
         child: IntrinsicWidth(
           child: Container(
             padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
             alignment: Alignment.center,
             decoration: BoxDecoration(
-              color: isFollowing
-                  ? Theme.of(context).colorScheme.background
-                  : Theme.of(context).colorScheme.onBackground,
+              color: disabled
+                  ? Colors.grey
+                  : isFollowing
+                      ? Theme.of(context).colorScheme.background
+                      : Theme.of(context).colorScheme.onBackground,
               border: Border.all(
-                color: isFollowing
+                color: disabled
                     ? Colors.grey
-                    : Theme.of(context).colorScheme.primary,
+                    : isFollowing
+                        ? Colors.grey
+                        : Theme.of(context).colorScheme.primary,
               ),
               borderRadius: BorderRadius.circular(100.0),
             ),
             child: Text(
-              text!,
+              text,
               style: TextStyle(
-                color: isFollowing
-                    ? Theme.of(context).colorScheme.onBackground
-                    : Theme.of(context).colorScheme.background,
+                color: disabled
+                    ? Color.fromARGB(255, 101, 101, 101)
+                    : isFollowing
+                        ? Theme.of(context).colorScheme.onBackground
+                        : Theme.of(context).colorScheme.background,
                 fontWeight: FontWeight.bold,
                 fontSize: 16.0,
               ),
             ),
           ),
+        ),
+      ),
+    );
+  }
+
+  Container buildBlockedMessage() {
+    return Container(
+      padding: EdgeInsets.only(top: 2.0),
+      child: Container(
+        height: 26.0,
+        alignment: Alignment.center,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              AppLocalizations.of(context)!.blocked_message,
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onBackground,
+                fontWeight: FontWeight.bold,
+                fontSize: 20.0,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Container buildBlockingMessage() {
+    return Container(
+      padding: EdgeInsets.only(top: 2.0),
+      child: Container(
+        height: 26.0,
+        alignment: Alignment.center,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              AppLocalizations.of(context)!.user_blocked,
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onBackground,
+                fontWeight: FontWeight.bold,
+                fontSize: 20.0,
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -493,7 +562,7 @@ class _ProfileHeader extends State<ProfileHeader> {
 
   unblockUser() async {
     setState(() {
-      isBlocking = true;
+      isBlocking = false;
     });
     await blockingRef
         .doc(currentUserId)
@@ -721,7 +790,13 @@ class _ProfileHeader extends State<ProfileHeader> {
               const SizedBox(
                 height: 24.0,
               ),
-              isFriend ? buildMessageButton() : Container(),
+              isBlocked
+                  ? buildBlockedMessage()
+                  : isBlocking
+                      ? buildBlockingMessage()
+                      : isFriend
+                          ? buildMessageButton()
+                          : Container(),
               currentUserId != widget.profileId
                   ? const SizedBox(
                       height: 24.0,

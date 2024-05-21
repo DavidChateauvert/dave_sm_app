@@ -259,5 +259,10 @@
     "block_user_title": "Bloquer cette utilisateur ?",
     "user_blocked": "Cet utilisateur est bloqué",
     "unblock_user_title": "Débloquer cette utilisateur ?",
-    "user_unblocked": "Cet utilisateur est débloqué"
+    "user_unblocked": "Cet utilisateur est débloqué",
+    "blocked_message": "Cet utilisateur vous a bloqué",
+    "terms_of_aggreements": "J'ai lu et j'accepte les conditions d'utilisation.",
+    "terms_and_conditions": "Conditions d'utilisation",
+    "see_terms_and_conditions": "Lire les conditions d'utilisation",
+    "need_terms_and_conditions": "Vous avez besoin d'accepter les conditions d'utilisation pour pouvoir utiliser Dave"
 }

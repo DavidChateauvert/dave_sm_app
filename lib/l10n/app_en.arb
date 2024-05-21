@@ -259,5 +259,10 @@
     "block_user_title": "Block this user ?",
     "user_blocked": "This user has been blocked",
     "unblock_user_title": "Unblock this user ?",
-    "user_unblocked": "This user has been unblocked"
+    "user_unblocked": "This user has been unblocked",
+    "blocked_message": "This user has blocked you",
+    "terms_of_aggreements": "I have read and agreed to the end-user licence agreement.",
+    "terms_and_conditions": "End-User Licence Agreement",
+    "see_terms_and_conditions": "See End-User Licence Agreement",
+    "need_terms_and_conditions": "You need to agree to the End-User Licence Agreement to be able to use Dave"
 }

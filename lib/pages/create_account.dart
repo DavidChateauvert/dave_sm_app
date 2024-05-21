@@ -12,6 +12,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:sm_app/models/user.dart';
+import 'package:sm_app/pages/eulaEN.dart';
+import 'package:sm_app/pages/eulaFR.dart';
 import 'package:sm_app/pages/home.dart';
 import 'package:sm_app/providers/locale_provider.dart';
 import 'package:sm_app/providers/theme_provider.dart';
@@ -46,46 +48,61 @@ class _CreateAccountState extends State<CreateAccount> {
   late String bio;
   String currentGenderOptions = "";
   TextEditingController genderController = TextEditingController();
+  bool? isChecked = false;
 
   submit() {
     final form = _formKey.currentState;
 
-    if (form!.validate()) {
-      form.save();
+    if (isChecked != null && isChecked == false) {
+      showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Text(
+              AppLocalizations.of(context)!.need_terms_and_conditions,
+            ),
+          );
+        },
+      );
+    } else {
+      if (form!.validate()) {
+        form.save();
 
-      User user = User(
-        id: widget.userId,
-        username: "",
-        email: "",
-        photoUrl: photoUrl,
-        firstName: firstName,
-        lastName: lastName,
-        displayName: "${firstName} ${lastName}",
-        bio: bio,
-        verified: false,
-        timestamp: Timestamp.now(),
-        theme: Provider.of<ThemeProvider>(context, listen: false)
-            .getThemeDataFormatString(),
-        locale: Provider.of<LocaleProvider>(context, listen: false)
-            .getLocaleFormatString(),
-        postsCount: 0,
-        gender: currentGenderOptions == "specify"
-            ? genderController.text
-            : currentGenderOptions,
-        dateOfBirth:
-            newDateOfBirth == null ? null : Timestamp.fromDate(newDateOfBirth!),
-      );
-      StatusAlert.show(
-        context,
-        duration: Duration(seconds: 2),
-        title: AppLocalizations.of(context)!.welcomeMessage(user.displayName),
-        configuration: IconConfiguration(icon: Icons.waving_hand),
-        maxWidth: 260,
-        backgroundColor: Theme.of(context).colorScheme.secondary,
-      );
-      Future.delayed(Duration(seconds: 1), () {
-        Navigator.pop(context, user);
-      });
+        User user = User(
+          id: widget.userId,
+          username: "",
+          email: "",
+          photoUrl: photoUrl,
+          firstName: firstName,
+          lastName: lastName,
+          displayName: "${firstName} ${lastName}",
+          bio: bio,
+          verified: false,
+          timestamp: Timestamp.now(),
+          theme: Provider.of<ThemeProvider>(context, listen: false)
+              .getThemeDataFormatString(),
+          locale: Provider.of<LocaleProvider>(context, listen: false)
+              .getLocaleFormatString(),
+          postsCount: 0,
+          gender: currentGenderOptions == "specify"
+              ? genderController.text
+              : currentGenderOptions,
+          dateOfBirth: newDateOfBirth == null
+              ? null
+              : Timestamp.fromDate(newDateOfBirth!),
+        );
+        StatusAlert.show(
+          context,
+          duration: Duration(seconds: 2),
+          title: AppLocalizations.of(context)!.welcomeMessage(user.displayName),
+          configuration: IconConfiguration(icon: Icons.waving_hand),
+          maxWidth: 260,
+          backgroundColor: Theme.of(context).colorScheme.secondary,
+        );
+        Future.delayed(Duration(seconds: 1), () {
+          Navigator.pop(context, user);
+        });
+      }
     }
   }
 
@@ -570,6 +587,90 @@ class _CreateAccountState extends State<CreateAccount> {
     );
   }
 
+  showTermsAndAggreementPage(String locale) async {
+    await Navigator.push(
+      context,
+      PageRouteBuilder(
+        transitionDuration: Duration(milliseconds: 500),
+        pageBuilder: (context, animation, secondaryAnimation) =>
+            locale == "fr" ? EulaPageFR() : EulaPageEN(),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          var begin = Offset(0.0, 1.0);
+          var end = Offset.zero;
+          var curve = Curves.ease;
+
+          var tween =
+              Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+
+          return SlideTransition(
+            position: animation.drive(tween),
+            child: child,
+          );
+        },
+      ),
+    );
+  }
+
+  buildTermsAndAggreement() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        ElevatedButton(
+          onPressed: () => showTermsAndAggreementPage(
+            Provider.of<LocaleProvider>(context, listen: false)
+                .getLocaleFormatString(),
+          ),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.white,
+            foregroundColor: Theme.of(context).colorScheme.primary,
+            textStyle: const TextStyle(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          child: Text(
+            AppLocalizations.of(context)!.see_terms_and_conditions,
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.primary,
+              fontSize: 16.0,
+              fontWeight: FontWeight.normal,
+            ),
+          ),
+        ),
+        const SizedBox(
+          height: 4.0,
+        ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Checkbox(
+              value: isChecked,
+              onChanged: (newBool) {
+                setState(() {
+                  isChecked = newBool;
+                });
+              },
+            ),
+            Flexible(
+              child: Text(
+                AppLocalizations.of(context)!.terms_of_aggreements,
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onBackground,
+                  fontSize: 16.0,
+                  fontWeight: FontWeight.normal,
+                ),
+                overflow: TextOverflow.visible,
+                softWrap: true,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(
+          height: 8.0,
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(context) {
     return Scaffold(
@@ -608,6 +709,10 @@ class _CreateAccountState extends State<CreateAccount> {
                         buildGenderField(),
                         buildFormBio(),
                         buildProfilePicture(),
+                        const SizedBox(
+                          height: 16.0,
+                        ),
+                        buildTermsAndAggreement(),
                       ],
                     ),
                   ),
