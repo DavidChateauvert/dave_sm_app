@@ -5,13 +5,14 @@ import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
-import 'package:sm_app/models/user.dart';
+import 'package:sm_app/models/user.dart' as DaveUser;
 import 'package:sm_app/pages/eulaEN.dart';
 import 'package:sm_app/pages/eulaFR.dart';
 import 'package:sm_app/pages/home.dart';
@@ -68,7 +69,7 @@ class _CreateAccountState extends State<CreateAccount> {
       if (form!.validate()) {
         form.save();
 
-        User user = User(
+        DaveUser.User daveUser = DaveUser.User(
           id: widget.userId,
           username: "",
           email: "",
@@ -94,19 +95,26 @@ class _CreateAccountState extends State<CreateAccount> {
         StatusAlert.show(
           context,
           duration: Duration(seconds: 2),
-          title: AppLocalizations.of(context)!.welcomeMessage(user.displayName),
+          title: AppLocalizations.of(context)!
+              .welcomeMessage(daveUser.displayName),
           configuration: IconConfiguration(icon: Icons.waving_hand),
           maxWidth: 260,
           backgroundColor: Theme.of(context).colorScheme.secondary,
         );
         Future.delayed(Duration(seconds: 1), () {
-          Navigator.pop(context, user);
+          Navigator.pop(context, daveUser);
         });
       }
     }
   }
 
   buildFormFirstName() {
+    String initialFirstName = "";
+    FirebaseAuth.instance.currentUser!.providerData.forEach((element) {
+      if (element.providerId == "apple.com") {
+        initialFirstName = element.displayName!.split(' ').first;
+      }
+    });
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -118,6 +126,7 @@ class _CreateAccountState extends State<CreateAccount> {
           ),
         ),
         TextFormField(
+          initialValue: initialFirstName,
           validator: (val) {
             if (val!.trim().length < 1 || val.isEmpty) {
               return AppLocalizations.of(context)!.first_name_too_short;
@@ -138,6 +147,12 @@ class _CreateAccountState extends State<CreateAccount> {
   }
 
   buildFormLastName() {
+    String initialLastName = "";
+    FirebaseAuth.instance.currentUser!.providerData.forEach((element) {
+      if (element.providerId == "apple.com") {
+        initialLastName = element.displayName!.split(' ').last;
+      }
+    });
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -149,6 +164,7 @@ class _CreateAccountState extends State<CreateAccount> {
           ),
         ),
         TextFormField(
+          initialValue: initialLastName,
           validator: (val) {
             if (val!.trim().length < 1 || val.isEmpty) {
               return AppLocalizations.of(context)!.last_name_too_short;
