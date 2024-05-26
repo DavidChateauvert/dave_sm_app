@@ -234,6 +234,7 @@
     "onboarding_screen_4_top": "Le reste de l'application est une application de réseau social assez standard ",
     "onboarding_screen_5_top": "Il est maintenant temps de configurer votre profil !",
     "continue_intro": "Continuer",
+    "return_intro": "Retourner à la connexion",
     "delete_user": "Supprimer ce compte",
     "are_you_sure_delete_user": "Êtes-vous sûr vous voulez supprimer ce compte ?",
     "are_you_sure_delete_user_2": "Tous vos informations seront perdus",

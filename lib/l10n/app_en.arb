@@ -234,6 +234,7 @@
     "onboarding_screen_4_top": "The rest of the app is a pretty standard social media app",
     "onboarding_screen_5_top": "Let's get your account set up !",
     "continue_intro": "Continue",
+    "return_intro": "Return to login",
     "delete_user": "Delete this account",
     "are_you_sure_delete_user": "Are you sure you want to delete this account ?",
     "are_you_sure_delete_user_2": "All your information would be lost",

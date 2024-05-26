@@ -81,70 +81,77 @@ class _HomeState extends State<Home> {
   }
 
   checkIfUserExist() async {
-    final String userId;
-    String provider =
-        FirebaseAuth.instance.currentUser!.providerData[0].providerId;
-    if (provider == "google.com") {
-      GoogleSignInAccount? googleUser = googleSignIn.currentUser;
-      if (googleUser == null) {
-        googleUser = await googleSignIn.signInSilently();
+    try {
+      final String userId;
+      String provider =
+          FirebaseAuth.instance.currentUser!.providerData[0].providerId;
+      if (provider == "google.com") {
+        GoogleSignInAccount? googleUser = googleSignIn.currentUser;
+        if (googleUser == null) {
+          googleUser = await googleSignIn.signInSilently();
+        }
+        // userId = googleUser!.id;
       }
-      // userId = googleUser!.id;
-    }
-    // else {
-    userId = FirebaseAuth.instance.currentUser!.uid;
-    //}
-    await checkIfTransferred(userId);
-    DocumentSnapshot doc = await usersRef.doc(userId).get();
-    if (!doc.exists) {
-      final DaveUser.User newUser = await Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => Intro(
-            userId: userId,
+      // else {
+      userId = FirebaseAuth.instance.currentUser!.uid;
+      //}
+      await checkIfTransferred(userId);
+      DocumentSnapshot doc = await usersRef.doc(userId).get();
+      if (!doc.exists) {
+        final DaveUser.User newUser = await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => Intro(
+              userId: userId,
+            ),
           ),
-        ),
-      );
-      await usersRef.doc(userId).set({
-        "id": userId,
-        "username": newUser.displayName,
-        "usernameLower": newUser.displayName.toString().toLowerCase(),
-        "photoUrl": newUser.photoUrl != ""
-            ? newUser.photoUrl
-            : "https://firebasestorage.googleapis.com/v0/b/sm-app-4347b.appspot.com/o/Photo%20de%20profil%2Fperson-circle.png?alt=media&token=11b8cad9-ebf5-4ff2-860a-357b07548a75",
-        "email": FirebaseAuth.instance.currentUser!.email ?? "",
-        "firstName": newUser.firstName,
-        "lastName": newUser.lastName,
-        "displayName": newUser.displayName,
-        "displayNameLower": newUser.displayName.toLowerCase(),
-        "bio": newUser.bio,
-        "timestamp": timestamp,
-        "theme": newUser.theme,
-        "verified": false,
-        "locale": Provider.of<LocaleProvider>(context, listen: false)
-            .getLocaleFormatString(),
-        "postsCount": 0,
-        "gender": newUser.gender,
-        "dateOfBirth": newUser.dateOfBirth,
-        "acceptedEULA": true,
+        );
+        await usersRef.doc(userId).set({
+          "id": userId,
+          "username": newUser.displayName,
+          "usernameLower": newUser.displayName.toString().toLowerCase(),
+          "photoUrl": newUser.photoUrl != ""
+              ? newUser.photoUrl
+              : "https://firebasestorage.googleapis.com/v0/b/sm-app-4347b.appspot.com/o/Photo%20de%20profil%2Fperson-circle.png?alt=media&token=11b8cad9-ebf5-4ff2-860a-357b07548a75",
+          "email": FirebaseAuth.instance.currentUser!.email ?? "",
+          "firstName": newUser.firstName,
+          "lastName": newUser.lastName,
+          "displayName": newUser.displayName,
+          "displayNameLower": newUser.displayName.toLowerCase(),
+          "bio": newUser.bio,
+          "timestamp": timestamp,
+          "theme": newUser.theme,
+          "verified": false,
+          "locale": Provider.of<LocaleProvider>(context, listen: false)
+              .getLocaleFormatString(),
+          "postsCount": 0,
+          "gender": newUser.gender,
+          "dateOfBirth": newUser.dateOfBirth,
+          "acceptedEULA": true,
+        });
+        // Make new user their own follower
+        await followersRef
+            .doc(userId)
+            .collection('userFollowers')
+            .doc(userId)
+            .set({});
+        doc = await usersRef.doc(userId).get();
+      }
+      currentUser = DaveUser.User.fromDocument(doc);
+      Provider.of<ThemeProvider>(context, listen: false)
+          .toggleThemeToParam(currentUser.theme);
+      Provider.of<LocaleProvider>(context, listen: false)
+          .toggleLocaleToParam(currentUser.locale);
+      await FirebaseApi().initMessaging(currentUser.id);
+      Provider.of<NotificationProvider>(context, listen: false)
+          .resetNotificationCount();
+      NotificationsApi().checkBackgroundMessage(context);
+      setState(() {
+        isAuth = true;
       });
-      // Make new user their own follower
-      await followersRef
-          .doc(userId)
-          .collection('userFollowers')
-          .doc(userId)
-          .set({});
-      doc = await usersRef.doc(userId).get();
+    } catch (e) {
+      FirebaseAuth.instance.signOut();
     }
-    currentUser = DaveUser.User.fromDocument(doc);
-    Provider.of<ThemeProvider>(context, listen: false)
-        .toggleThemeToParam(currentUser.theme);
-    Provider.of<LocaleProvider>(context, listen: false)
-        .toggleLocaleToParam(currentUser.locale);
-    await FirebaseApi().initMessaging(currentUser.id);
-    setState(() {
-      isAuth = true;
-    });
   }
 
   void initLocalNotifications() async {

@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -44,7 +45,54 @@ class NotificationsApi {
   }
 
   Future<void> checkBackgroundMessage(BuildContext context) async {
-    SharedPreferencesProvider().getMessagesFromSharedPreferences(context);
+    try {
+      final messagesFuture = messagesRef
+          .doc(currentUser.id)
+          .collection('and')
+          .orderBy('timestamp', descending: true)
+          .limit(10)
+          .get();
+
+      final activityFuture = activityFeedRef
+          .doc(currentUser.id)
+          .collection('feedItems')
+          .orderBy('timestamp', descending: true)
+          .limit(10)
+          .get();
+
+      final results = await Future.wait([messagesFuture, activityFuture]);
+
+      final snapshotMessages = results[0];
+      if (snapshotMessages.docs.isNotEmpty) {
+        snapshotMessages.docs.forEach((doc) {
+          if (doc['seen'] == false) {
+            Provider.of<NotificationProvider>(context, listen: false)
+                .receiveNotificationMessage(doc['userId']);
+          }
+        });
+      }
+
+      final snapshotActivity = results[1];
+      if (snapshotActivity.docs.isNotEmpty) {
+        snapshotActivity.docs.forEach((doc) {
+          if (doc['seen'] == false) {
+            String id = getIdFromType(doc);
+            Provider.of<NotificationProvider>(context, listen: false)
+                .receiveNotificationActivity(id);
+          }
+        });
+      }
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  getIdFromType(DocumentSnapshot doc) {
+    if (doc['type'] == "follow") {
+      return doc['userId'];
+    } else {
+      return doc['postId'];
+    }
   }
 
   handleBackGroundMessage(RemoteMessage message) {

@@ -1,8 +1,9 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
-import 'package:sm_app/models/user.dart';
+import 'package:sm_app/models/user.dart' as DaveUser;
 import 'package:sm_app/pages/onboarding.dart';
 import 'package:sm_app/providers/locale_provider.dart';
 
@@ -20,7 +21,7 @@ class _IntroState extends State<Intro> {
   final List<bool> _selectedLanguage = <bool>[true, false];
 
   showOnboarding() async {
-    final User user = await Navigator.push(
+    final DaveUser.User user = await Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => Onboarding(
@@ -113,28 +114,64 @@ class _IntroState extends State<Intro> {
                 ),
               ],
             ),
-            Padding(
-              padding: const EdgeInsets.only(top: 32.0),
-              child: IntrinsicWidth(
-                child: TextButton(
-                  onPressed: () => showOnboarding(),
-                  child: Row(
-                    children: [
-                      Text(
-                        AppLocalizations.of(context)!.continue_intro,
-                        style: TextStyle(
-                          fontSize: 24.0,
+            Column(
+              children: [
+                IntrinsicWidth(
+                  child: TextButton(
+                    onPressed: () => showOnboarding(),
+                    child: Row(
+                      children: [
+                        const Icon(
+                          CupertinoIcons.chevron_back,
+                          color: Colors.transparent,
+                        ),
+                        Text(
+                          AppLocalizations.of(context)!.continue_intro,
+                          style: TextStyle(
+                            fontSize: 36.0,
+                            color: Colors.white,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const Icon(
+                          CupertinoIcons.chevron_forward,
                           color: Colors.white,
                         ),
-                      ),
-                      const Icon(
-                        CupertinoIcons.forward,
-                        color: Colors.white,
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
-              ),
+                const SizedBox(
+                  height: 16.0,
+                ),
+                IntrinsicWidth(
+                  child: TextButton(
+                    onPressed: () {
+                      FirebaseAuth.instance.signOut();
+                      Navigator.pop(context);
+                    },
+                    child: Row(
+                      children: [
+                        const Icon(
+                          CupertinoIcons.chevron_back,
+                          color: Colors.white,
+                        ),
+                        Text(
+                          AppLocalizations.of(context)!.return_intro,
+                          style: TextStyle(
+                            fontSize: 20.0,
+                            color: Colors.white,
+                          ),
+                        ),
+                        const Icon(
+                          CupertinoIcons.chevron_forward,
+                          color: Colors.transparent,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
