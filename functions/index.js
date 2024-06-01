@@ -108,6 +108,22 @@ exports.onCreatePost = functions.firestore
         const postId = context.params.postId;
         const group = postCreated.hasOwnProperty('group') ? postCreated.group : undefined;
         let userRef
+        
+        if(postCreated.hasOwnProperty('group') == false) {
+            postCreated.group = ""
+
+            admin
+            .firestore()
+            .collection('posts')
+            .doc(userId)
+            .collection('userPosts')
+            .doc(postId)
+            .get().then(doc => {
+                if (doc.exists) {
+                    doc.ref.update(postCreated);
+                }
+            });
+        }
 
         if (!group) {
             userRef = admin.firestore()
