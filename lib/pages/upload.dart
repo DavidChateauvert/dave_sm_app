@@ -624,7 +624,7 @@ class _UploadState extends State<Upload>
       "commentCount": 0,
       "mentions": mentionsMapFiltered,
       "type": type,
-      if (group != null) "group": group!.id,
+      "group": group != null ? group!.id : "",
     });
 
     usersRef.doc(currentUser.id).update({
