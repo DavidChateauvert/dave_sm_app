@@ -68,9 +68,10 @@ exports.onCreateFriend = functions.firestore
             if (doc.exists) {
                 const postId = doc.id;
                 const postData = doc.data();
-                if (!postData.hasOwnProperty('group')) {
+                const group = postData.hasOwnProperty('group') ? postData.group : ""
+                if (group == "") {
                     timelinePostsRef.doc(postId).set(postData);
-                }
+                } 
             }
         });
 });
