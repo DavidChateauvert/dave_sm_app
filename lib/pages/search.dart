@@ -187,10 +187,13 @@ class UserResult extends StatelessWidget {
 }
 
 showProfile(BuildContext context, {required String profileId}) {
-  Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (context) => Profile(profileId: profileId),
-    ),
-  );
+  // ignore: unnecessary_null_comparison
+  if (currentUser != null && profileId != currentUser.id) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => Profile(profileId: profileId),
+      ),
+    );
+  }
 }
