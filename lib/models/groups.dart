@@ -3,7 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class Group {
   final String id;
   final String name;
-  final List<String> usersInGroup;
+  List<String> usersInGroup;
   Group({
     required this.id,
     required this.name,

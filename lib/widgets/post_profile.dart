@@ -2,6 +2,7 @@
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -194,12 +195,18 @@ class _PostProfileState extends State<PostProfile> {
           trailing: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
+              group != ""
+                  ? IconButton(
+                      onPressed: () => showGroup(context),
+                      icon: Icon(
+                        CupertinoIcons.group_solid,
+                        color: Theme.of(context).colorScheme.primaryContainer,
+                      ),
+                    )
+                  : Container(),
               IconButton(
                 onPressed: () => showPostParameters(context),
-                icon: Icon(Icons.more_horiz),
-              ),
-              const SizedBox(
-                width: 4.0,
+                icon: Icon(Icons.more_vert_outlined),
               ),
               GestureDetector(
                 onTap: () {
@@ -246,16 +253,6 @@ class _PostProfileState extends State<PostProfile> {
             textAlign: TextAlign.center,
           ),
           children: <Widget>[
-            SimpleDialogOption(
-              onPressed: () {
-                Navigator.pop(context);
-                showGroup(context);
-              },
-              child: Text(
-                AppLocalizations.of(context)!.who_can_see_post,
-                textAlign: TextAlign.center,
-              ),
-            ),
             SimpleDialogOption(
               onPressed: () {
                 Navigator.pop(context);

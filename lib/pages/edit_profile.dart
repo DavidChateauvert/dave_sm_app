@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:image/image.dart' as Im;
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:sm_app/pages/groups.dart';
 import 'package:sm_app/pages/home.dart';
 import 'package:sm_app/pages/report_delete_user.dart';
 import 'package:sm_app/widgets/profileHeader.dart';
@@ -587,6 +588,62 @@ class _EditProfileState extends State<EditProfile> {
     }));
   }
 
+  buildMyGroups() {
+    return Padding(
+      padding: EdgeInsets.only(
+        top: 32.0,
+      ),
+      child: Center(
+        child: IntrinsicWidth(
+          child: TextButton(
+            onPressed: () => showGroupsPage(),
+            child: Row(
+              children: [
+                Text(
+                  AppLocalizations.of(context)!.my_groups,
+                  style: TextStyle(
+                    fontSize: 20.0,
+                    color: Theme.of(context).colorScheme.primary,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(width: 4.0),
+                Icon(
+                  CupertinoIcons.group_solid,
+                  color: Theme.of(context).colorScheme.primary,
+                  size: 40.0,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  showGroupsPage() async {
+    await Navigator.push(
+      context,
+      PageRouteBuilder(
+        transitionDuration: Duration(milliseconds: 500),
+        pageBuilder: (context, animation, secondaryAnimation) => Groups(),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          var begin = Offset(0.0, 1.0);
+          var end = Offset.zero;
+          var curve = Curves.ease;
+
+          var tween =
+              Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+
+          return SlideTransition(
+            position: animation.drive(tween),
+            child: child,
+          );
+        },
+      ),
+    );
+  }
+
   buildNeedModify() {
     return Padding(
       padding: EdgeInsets.only(
@@ -777,6 +834,7 @@ class _EditProfileState extends State<EditProfile> {
                             buildDateOfBirthField(),
                             buildGenderField(),
                             buildBioField(),
+                            buildMyGroups(),
                             buildNeedModify(),
                             buildDeleteUser(),
                           ],

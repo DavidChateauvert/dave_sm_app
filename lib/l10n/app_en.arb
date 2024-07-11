@@ -201,7 +201,7 @@
     "sign_in_button": "Sign in here",
     "error": "Error Signing In",
     "error_user_not_found": "This user does not exist",
-    "error_wrong_password": "Wront password",
+    "error_wrong_password": "Wrong password",
     "error_password_match": "The password don't match",
     "error_user_disabled": "This user has been disabled",
     "error_invalid_email": "Email is invalid",
@@ -253,7 +253,7 @@
     },
     "error_reset_password": "There is no user corresponding to this email address",
     "reset_selected_friends": "Reset selected friends",
-    "clean_timeline": "Clean Timeline",
+    "clean_timeline": "Clear Timeline",
     "message_empty_activity_feed": "Your notifications is empty for the moment",
     "message_empty_message_feed": "Your messages feed is empty for the moment. Add some friends to fill it !",
     "send_message": "Send Message",
@@ -266,5 +266,7 @@
     "terms_and_conditions": "End-User Licence Agreement",
     "see_terms_and_conditions": "See End-User Licence Agreement",
     "need_terms_and_conditions": "You need to agree to the End-User Licence Agreement to be able to use Dave",
-    "need_modify_user": "If you want to deactivate, disable or change anything about your account, please visit :"
+    "need_modify_user": "If you want to deactivate, disable or change anything about your account, please visit :",
+    "my_groups": "My groups",
+    "sure_change_group": "Are you sure you want to change this group ?"
 }

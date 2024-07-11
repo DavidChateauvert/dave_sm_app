@@ -432,12 +432,12 @@ class _ProfileHeader extends State<ProfileHeader> {
           .collection("and")
           .doc(widget.profileId)
           .set({
-        "message": "Vous pouvez maintenant vous envoyer des messages",
+        "message": "Conversation",
         "username": user.firstName,
         "userId": widget.profileId,
         "lastUserSent": widget.profileId,
         "userProfileImg": user.photoUrl,
-        "seen": false,
+        "seen": true,
         "timestamp": DateTime.now(),
       });
       messagesRef
@@ -445,12 +445,12 @@ class _ProfileHeader extends State<ProfileHeader> {
           .collection("and")
           .doc(currentUserId)
           .set({
-        "message": "Vous pouvez maintenant vous envoyer des messages",
+        "message": "Conversation",
         "username": currentUser.firstName,
         "userId": currentUserId,
         "lastUserSent": currentUserId,
         "userProfileImg": currentUser.photoUrl,
-        "seen": false,
+        "seen": true,
         "timestamp": DateTime.now(),
       });
       FirebaseApi().sendAcceptRequestNotification(

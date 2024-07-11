@@ -21,8 +21,10 @@ class _GroupsState extends State<Groups> {
   Map<String, bool> selectedUser = {};
   List<Group> groupResult = [];
   Map<String, bool> selectedGroup = {};
+  Map<String, bool> selectedGroupForEdit = {};
   bool isGroupLoading = true;
   bool isFriendLoading = true;
+  bool isChangingAGroup = false;
   late TextEditingController controller;
 
   @override
@@ -92,6 +94,53 @@ class _GroupsState extends State<Groups> {
         this.isFriendLoading = false;
       });
     }
+  }
+
+  updateGroupInFirestore() async {
+    Group groupSelected = Group(id: "", name: "", usersInGroup: []);
+
+    this.selectedGroup.forEach((key, value) {
+      if (value) {
+        groupResult.forEach((doc) {
+          if (doc.id == key) {
+            groupSelected = doc;
+          }
+        });
+      }
+    });
+
+    // Delete group
+    await groupsRef
+        .doc(currentUser.id)
+        .collection('userGroups')
+        .doc(groupSelected.id)
+        .delete();
+
+    await groupsRef
+        .doc(currentUser.id)
+        .collection('userGroups')
+        .doc(groupSelected.id)
+        .set({"name": groupSelected.name, "saveGroup": true});
+
+    // Recreate it
+    List<String> usersInGroup = [];
+    selectedUser.forEach((key, value) async {
+      if (value) {
+        usersInGroup.add(key);
+        await groupsRef
+            .doc(currentUser.id)
+            .collection('userGroups')
+            .doc(groupSelected.id)
+            .collection("users")
+            .doc(key)
+            .set({});
+      }
+    });
+    groupResult.forEach((doc) {
+      if (doc.id == groupSelected.id) {
+        doc.usersInGroup = usersInGroup;
+      }
+    });
   }
 
   createGroup(bool createWithName) {
@@ -172,13 +221,13 @@ class _GroupsState extends State<Groups> {
                 cursorColor: Theme.of(context).colorScheme.primaryContainer,
                 controller: controller,
                 onChanged: (_) {
-                  setState(() {}); // Update the state when text changes
+                  setState(() {});
                 },
               ),
               actions: [
                 TextButton(
                   onPressed: controller.text.isEmpty
-                      ? null // Disable button if text is empty
+                      ? null
                       : () {
                           handleCreateGroup(context);
                         },
@@ -186,7 +235,7 @@ class _GroupsState extends State<Groups> {
                     AppLocalizations.of(context)!.confirm,
                     style: TextStyle(
                       color: controller.text.isEmpty
-                          ? Colors.grey // Disable button if text is empty
+                          ? Colors.grey
                           : Theme.of(context).colorScheme.primaryContainer,
                     ),
                   ),
@@ -250,9 +299,11 @@ class _GroupsState extends State<Groups> {
   toggleSelectedUser(String userId, bool isSelected) {
     setState(() {
       this.selectedUser[userId] = !isSelected;
-      selectedGroup.forEach((key, value) {
-        this.selectedGroup[key] = false;
-      });
+      if (!this.selectedGroupForEdit.values.contains(true)) {
+        selectedGroup.forEach((key, value) {
+          this.selectedGroup[key] = false;
+        });
+      }
     });
   }
 
@@ -264,7 +315,7 @@ class _GroupsState extends State<Groups> {
     });
   }
 
-  toggleSelectedGroup(String groupId, bool isSelected) {
+  toggleSelectedGroup(String groupId, bool isSelected, bool isSelectedForEdit) {
     setState(() {
       this.selectedGroup[groupId] = !isSelected;
       selectedGroup.forEach((key, value) {
@@ -273,6 +324,12 @@ class _GroupsState extends State<Groups> {
         }
       });
     });
+    if (isSelectedForEdit) {
+      setState(() {
+        this.selectedGroupForEdit[groupId] = !isSelectedForEdit;
+      });
+      showEditConfirmModal(context);
+    }
 
     if (!isSelected) {
       this.groupResult.forEach((doc) {
@@ -291,6 +348,71 @@ class _GroupsState extends State<Groups> {
         this.selectedUser[key] = true;
       });
     }
+  }
+
+  toggleEditGroup(String groupId, bool isSelected, bool isSelectedForEdit) {
+    setState(() {
+      this.selectedGroupForEdit[groupId] = !isSelectedForEdit;
+      selectedGroupForEdit.forEach((key, value) {
+        if (key != groupId) {
+          this.selectedGroupForEdit[key] = false;
+        }
+      });
+    });
+
+    if (isSelectedForEdit) {
+      showEditConfirmModal(context);
+    }
+
+    if (!isSelected) {
+      toggleSelectedGroup(groupId, isSelected, isSelectedForEdit);
+    }
+  }
+
+  Future<bool?> showEditConfirmModal(BuildContext parentContext) {
+    return showDialog<bool>(
+      context: parentContext,
+      builder: (context) {
+        return SimpleDialog(
+          title: Center(
+            child: Text(
+              AppLocalizations.of(context)!.sure_change_group,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.primaryContainer,
+              ),
+            ),
+          ),
+          children: [
+            SimpleDialogOption(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: Text(
+                AppLocalizations.of(context)!.cancel,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Colors.red,
+                ),
+              ),
+            ),
+            SimpleDialogOption(
+              onPressed: () {
+                Navigator.pop(context);
+                updateGroupInFirestore();
+              },
+              child: Text(
+                AppLocalizations.of(context)!.confirm,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onBackground,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -377,9 +499,19 @@ class _GroupsState extends State<Groups> {
                         isSelected:
                             this.selectedGroup[this.groupResult[index].id] ??
                                 false,
+                        isSelectedForEdit: this.selectedGroupForEdit[
+                                this.groupResult[index].id] ??
+                            false,
                         group: this.groupResult[index],
-                        onSelectedStateChanged: (groupId, isSelected) {
-                          toggleSelectedGroup(groupId, isSelected);
+                        onSelectedStateChanged:
+                            (groupId, isSelected, isSelectedForEdit) {
+                          toggleSelectedGroup(
+                              groupId, isSelected, isSelectedForEdit);
+                        },
+                        onSelectedEditStateChanged:
+                            (groupId, isSelected, isSelectedForEdit) {
+                          toggleEditGroup(
+                              groupId, isSelected, isSelectedForEdit);
                         },
                       );
                     },

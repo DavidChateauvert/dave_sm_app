@@ -24,6 +24,10 @@ class _SearchState extends State<Search>
   FocusNode searchFocusNode = FocusNode();
 
   handleSearch(String query) async {
+    // Quand tu seras prêt
+    // if (query == "") {
+    //   clearSearch();
+    // } else {
     String lowercasedQuery = query.toLowerCase();
     QuerySnapshot users = await usersRef
         .orderBy("displayNameLower")
@@ -32,6 +36,7 @@ class _SearchState extends State<Search>
     setState(() {
       searchResultsFuture = Future.value(users);
     });
+    // }
   }
 
   clearSearch() {
@@ -53,6 +58,7 @@ class _SearchState extends State<Search>
           prefixIconColor: Colors.white,
           suffixIconColor: Colors.white,
           filled: true,
+          fillColor: Color.fromARGB(255, 152, 63, 170),
           prefixIcon: Icon(
             Icons.account_box,
             size: 28.0,
