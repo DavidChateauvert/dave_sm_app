@@ -48,7 +48,7 @@ class _Friends extends State<Friends> {
     userSnapshot.docs.forEach((doc) {
       if (userIds.contains(doc['id'])) {
         User user = User.fromDocument(doc);
-        userResults.add(UserResult(user));
+        userResults.add(UserResult(user, false));
       }
     });
 

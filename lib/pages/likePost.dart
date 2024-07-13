@@ -66,7 +66,7 @@ class _LikePost extends State<LikePost> {
     userSnapshot.docs.forEach((doc) {
       if (likedUserIds.contains(doc['id'])) {
         User user = User.fromDocument(doc);
-        userResults.add(UserResult(user));
+        userResults.add(UserResult(user, false));
       }
     });
 

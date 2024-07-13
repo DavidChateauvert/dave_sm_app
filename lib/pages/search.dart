@@ -9,6 +9,7 @@ import 'package:sm_app/pages/home.dart';
 import 'package:sm_app/pages/profile.dart';
 import 'package:sm_app/providers/theme_provider.dart';
 import 'package:sm_app/widgets/progress.dart';
+import 'package:sm_app/widgets/userLastResult.dart';
 import '../models/user.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
@@ -21,7 +22,14 @@ class _SearchState extends State<Search>
     with AutomaticKeepAliveClientMixin<Search> {
   TextEditingController searchController = TextEditingController();
   Future<QuerySnapshot>? searchResultsFuture;
+  List<UserLastResult> searchLastResults = [];
   FocusNode searchFocusNode = FocusNode();
+
+  @override
+  void initState() {
+    super.initState();
+    handleSearchLastUsers();
+  }
 
   handleSearch(String query) async {
     // Quand tu seras prêt
@@ -37,6 +45,52 @@ class _SearchState extends State<Search>
       searchResultsFuture = Future.value(users);
     });
     // }
+  }
+
+  handleSearchLastUsers() async {
+    QuerySnapshot users = await lastSearchRef
+        .doc(currentUser.id)
+        .collection("lastSearchUsers")
+        .get();
+
+    List<String> userIds = [];
+
+    users.docs.forEach((doc) {
+      userIds.add(doc.id);
+    });
+
+    if (userIds.isEmpty) {
+      setState(() {
+        searchLastResults = [];
+      });
+      return;
+    }
+
+    QuerySnapshot userSnapshot =
+        await usersRef.where("id", whereIn: userIds).get();
+
+    List<UserLastResult> initialResults = [];
+    userSnapshot.docs.forEach((doc) {
+      User user = User.fromDocument(doc);
+      if (user.id != currentUser.id) {
+        initialResults.add(UserLastResult(user));
+      }
+    });
+    setState(() {
+      searchLastResults = initialResults;
+    });
+  }
+
+  buildLastResult() {
+    // ignore: unnecessary_null_comparison
+    if (searchLastResults == null) {
+      return Container();
+    } else if (searchLastResults.isEmpty) {
+      return Container();
+    }
+    return ListView(
+      children: searchLastResults,
+    );
   }
 
   clearSearch() {
@@ -72,6 +126,7 @@ class _SearchState extends State<Search>
         ),
         onChanged: (query) => handleSearch(query),
         onFieldSubmitted: (query) => handleSearch(query),
+        onTap: () => handleSearchLastUsers(),
       ),
     );
   }
@@ -80,33 +135,48 @@ class _SearchState extends State<Search>
     return Container(
       color: Theme.of(context).colorScheme.background,
       child: Center(
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              SvgPicture.asset(
-                Provider.of<ThemeProvider>(context).themeData.brightness ==
-                        Brightness.light
-                    ? 'assets/images/advanced_search.svg'
-                    : 'assets/images/advanced_search_white.svg',
-                height: 250.0,
+        child: Stack(
+          children: [
+            Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  SvgPicture.asset(
+                    Provider.of<ThemeProvider>(context).themeData.brightness ==
+                            Brightness.light
+                        ? 'assets/images/advanced_search.svg'
+                        : 'assets/images/advanced_search_white.svg',
+                    height: 250.0,
+                  ),
+                  SizedBox(height: 16.0), // Add spacing if needed
+                  Text(
+                    AppLocalizations.of(context)!.find_users,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.primaryContainer,
+                      fontStyle: FontStyle.normal,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 40.0,
+                    ),
+                  ),
+                ],
               ),
-              SizedBox(height: 16.0), // Add spacing if needed
-              Text(
-                AppLocalizations.of(context)!.find_users,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.primaryContainer,
-                  fontStyle: FontStyle.normal,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 40.0,
-                ),
-              ),
-            ],
-          ),
+            ),
+            buildLastResult(),
+          ],
         ),
       ),
     );
+  }
+
+  addUserToSearchResults(User user) {
+    if (user.id != currentUser.id) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        setState(() {
+          searchLastResults.add(UserLastResult(user));
+        });
+      });
+    }
   }
 
   buildSearchResults() {
@@ -121,7 +191,14 @@ class _SearchState extends State<Search>
         // ignore: avoid_function_literals_in_foreach_calls
         snapshot.data?.docs.forEach((doc) {
           User user = User.fromDocument(doc);
-          if (user.id != currentUserId) searchResults.add(UserResult(user));
+          if (user.id != currentUserId)
+            searchResults.add(
+              UserResult(
+                user,
+                true,
+                addUserToSearchResults,
+              ),
+            );
         });
         return ListView(
           children: searchResults,
@@ -147,8 +224,10 @@ class _SearchState extends State<Search>
 
 class UserResult extends StatelessWidget {
   final User user;
+  final bool inSearch;
+  final Function(User user)? onClickSearch;
 
-  UserResult(this.user);
+  UserResult(this.user, this.inSearch, [this.onClickSearch]);
 
   @override
   Widget build(BuildContext context) {
@@ -157,7 +236,12 @@ class UserResult extends StatelessWidget {
       child: Column(
         children: <Widget>[
           TextButton(
-            onPressed: () => showProfile(context, profileId: user.id),
+            onPressed: () {
+              if (onClickSearch != null) {
+                onClickSearch!(user);
+              }
+              showProfile(context, profileId: user.id);
+            },
             child: ListTile(
               leading: CircleAvatar(
                 backgroundColor: Colors.grey,
@@ -168,7 +252,9 @@ class UserResult extends StatelessWidget {
                   Text(
                     user.displayName,
                     style: TextStyle(
-                        color: Colors.white, fontWeight: FontWeight.bold),
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   SizedBox(width: 4.0),
                   user.verified
@@ -192,7 +278,12 @@ class UserResult extends StatelessWidget {
   }
 }
 
-showProfile(BuildContext context, {required String profileId}) {
+showProfile(BuildContext context, {required String profileId}) async {
+  await lastSearchRef
+      .doc(currentUser.id)
+      .collection('lastSearchUsers')
+      .doc(profileId)
+      .set({});
   // ignore: unnecessary_null_comparison
   if (currentUser != null && profileId != currentUser.id) {
     Navigator.push(

@@ -125,11 +125,13 @@ class _Profile extends State<Profile> {
                 buildProfilePost(),
               ],
             )
-          : ListView(children: <Widget>[
-              ProfileHeader(
-                profileId: widget.profileId,
-              ),
-            ]),
+          : ListView(
+              children: <Widget>[
+                ProfileHeader(
+                  profileId: widget.profileId,
+                ),
+              ],
+            ),
       drawer: currentUserId == widget.profileId
           ? SettingsPage(
               currentUserId: currentUserId,

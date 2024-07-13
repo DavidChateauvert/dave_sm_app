@@ -38,6 +38,8 @@ final groupsRef = FirebaseFirestore.instance.collection('groups');
 final transferRef = FirebaseFirestore.instance.collection('transferred');
 final blockedRef = FirebaseFirestore.instance.collection('blocked');
 final blockingRef = FirebaseFirestore.instance.collection('blocking');
+final lastSearchRef = FirebaseFirestore.instance.collection('lastSearch');
+
 final DateTime timestamp = DateTime.now();
 late DaveUser.User currentUser;
 
