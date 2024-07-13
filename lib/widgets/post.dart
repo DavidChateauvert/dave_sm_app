@@ -863,7 +863,9 @@ class _PostState extends State<Post> {
               ),
             ],
           )
-        : !deleteInstant
+        : !deleteInstant ||
+                Provider.of<PostCounterProvider>(context, listen: false)
+                    .isSeenPost(postId)
             ? Column(
                 mainAxisSize: MainAxisSize.min,
                 children: <Widget>[

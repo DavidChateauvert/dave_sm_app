@@ -18,4 +18,11 @@ class PostCounterProvider with ChangeNotifier {
       _deletedPostList.add(postId);
     }
   }
+
+  bool isSeenPost(String postId) {
+    if (_deletedPostList.contains(postId)) {
+      return true;
+    }
+    return false;
+  }
 }
