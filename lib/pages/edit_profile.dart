@@ -158,7 +158,7 @@ class _EditProfileState extends State<EditProfile> {
         Padding(
           padding: EdgeInsets.only(top: 12.0),
           child: Text(
-            AppLocalizations.of(context)!.bio,
+            AppLocalizations.of(context)!.gender,
             style: TextStyle(
               color: Colors.grey,
               fontSize: 20.0,
@@ -178,6 +178,9 @@ class _EditProfileState extends State<EditProfile> {
                 children: [
                   Text(
                     AppLocalizations.of(context)!.women_gender,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.primaryContainer,
+                    ),
                   ),
                   Radio(
                     value: genderOptions[0],
@@ -201,6 +204,9 @@ class _EditProfileState extends State<EditProfile> {
                 children: [
                   Text(
                     AppLocalizations.of(context)!.men_gender,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.primaryContainer,
+                    ),
                   ),
                   Radio(
                     value: genderOptions[1],
@@ -224,6 +230,9 @@ class _EditProfileState extends State<EditProfile> {
                 children: [
                   Text(
                     AppLocalizations.of(context)!.other,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.primaryContainer,
+                    ),
                   ),
                   Radio(
                     value: genderOptions[2],
@@ -251,6 +260,9 @@ class _EditProfileState extends State<EditProfile> {
                 children: [
                   Text(
                     AppLocalizations.of(context)!.specified_gender,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.primaryContainer,
+                    ),
                   ),
                   Radio(
                     value: genderOptions[3],
@@ -295,11 +307,12 @@ class _EditProfileState extends State<EditProfile> {
         ),
         TextField(
           controller: bioController,
+          maxLines: null,
           decoration: InputDecoration(
-              hintText: AppLocalizations.of(context)!.update_bio,
-              errorText: _bioValid
-                  ? null
-                  : AppLocalizations.of(context)!.bio_too_long),
+            hintText: AppLocalizations.of(context)!.update_bio,
+            errorText:
+                _bioValid ? null : AppLocalizations.of(context)!.bio_too_long,
+          ),
         ),
       ],
     );
@@ -330,39 +343,42 @@ class _EditProfileState extends State<EditProfile> {
                       fontSize: 16.0,
                     ),
                   ),
-            CupertinoButton(
-              child: Text(
-                newDateOfBirth == null
-                    ? AppLocalizations.of(context)!.pick_date_of_birth
-                    : AppLocalizations.of(context)!.change_date_of_birth,
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.primaryContainer,
-                  fontSize: 14.0,
-                ),
-              ),
-              onPressed: () {
-                showCupertinoModalPopup(
-                  context: context,
-                  builder: (BuildContext context) => Container(
-                    color: Theme.of(context).colorScheme.background,
-                    height: 250,
-                    child: CupertinoDatePicker(
-                      initialDateTime: newDateOfBirth == null
-                          ? DateTime.now()
-                          : newDateOfBirth,
-                      maximumDate: DateTime.now(),
-                      mode: CupertinoDatePickerMode.date,
-                      onDateTimeChanged: (DateTime newTime) {
-                        setState(
-                          () {
-                            newDateOfBirth = newTime;
-                          },
-                        );
-                      },
-                    ),
+            Flexible(
+              child: CupertinoButton(
+                child: Text(
+                  newDateOfBirth == null
+                      ? AppLocalizations.of(context)!.pick_date_of_birth
+                      : AppLocalizations.of(context)!.change_date_of_birth,
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.primaryContainer,
+                    fontSize: 14.0,
                   ),
-                );
-              },
+                  textAlign: TextAlign.center,
+                ),
+                onPressed: () {
+                  showCupertinoModalPopup(
+                    context: context,
+                    builder: (BuildContext context) => Container(
+                      color: Theme.of(context).colorScheme.background,
+                      height: 250,
+                      child: CupertinoDatePicker(
+                        initialDateTime: newDateOfBirth == null
+                            ? DateTime.now()
+                            : newDateOfBirth,
+                        maximumDate: DateTime.now(),
+                        mode: CupertinoDatePickerMode.date,
+                        onDateTimeChanged: (DateTime newTime) {
+                          setState(
+                            () {
+                              newDateOfBirth = newTime;
+                            },
+                          );
+                        },
+                      ),
+                    ),
+                  );
+                },
+              ),
             ),
           ],
         ),
@@ -603,14 +619,14 @@ class _EditProfileState extends State<EditProfile> {
                   AppLocalizations.of(context)!.my_groups,
                   style: TextStyle(
                     fontSize: 20.0,
-                    color: Theme.of(context).colorScheme.primary,
+                    color: Theme.of(context).colorScheme.primaryContainer,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
                 const SizedBox(width: 4.0),
                 Icon(
                   CupertinoIcons.group_solid,
-                  color: Theme.of(context).colorScheme.primary,
+                  color: Theme.of(context).colorScheme.primaryContainer,
                   size: 40.0,
                 ),
               ],
@@ -801,22 +817,14 @@ class _EditProfileState extends State<EditProfile> {
                               ),
                       ),
                       const SizedBox(height: 8.0),
-                      ElevatedButton(
+                      CupertinoButton(
                         onPressed: () => handleChangePicture(),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.white,
-                          foregroundColor:
-                              Theme.of(context).colorScheme.primary,
-                          textStyle: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
                         child: Text(
                           AppLocalizations.of(context)!.change_profile_picture,
                           style: TextStyle(
                             color: Theme.of(context).colorScheme.primary,
                             fontSize: 16.0,
-                            fontWeight: FontWeight.normal,
+                            fontWeight: FontWeight.w400,
                           ),
                         ),
                       ),

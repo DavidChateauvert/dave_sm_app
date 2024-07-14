@@ -141,9 +141,9 @@ class _HomeState extends State<Home> {
       }
       currentUser = DaveUser.User.fromDocument(doc);
       Provider.of<ThemeProvider>(context, listen: false)
-          .toggleThemeMode(currentUser.theme);
+          .toggleThemeMode(currentUser.theme, false);
       Provider.of<LocaleProvider>(context, listen: false)
-          .toggleLocaleToParam(currentUser.locale);
+          .toggleLocaleToParam(currentUser.locale, false);
       await FirebaseApi().initMessaging(currentUser.id);
       Provider.of<NotificationProvider>(context, listen: false)
           .resetNotificationCount();
@@ -243,7 +243,7 @@ class _HomeState extends State<Home> {
               onTap: () => {FirebaseAuth.instance.signOut()},
               child: Image.asset(
                 'assets/images/logo/logo_launch.png',
-                width: 256,
+                width: 216,
               ),
             ),
           ],

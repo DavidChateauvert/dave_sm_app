@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sm_app/pages/home.dart';
 
 class LocaleProvider with ChangeNotifier {
   Locale _locale = Locale('en');
@@ -18,6 +19,20 @@ class LocaleProvider with ChangeNotifier {
     }
   }
 
+  List<bool> defaultBoolList() {
+    if (_locale == Locale('fr')) {
+      return [
+        false,
+        true,
+      ];
+    } else {
+      return [
+        true,
+        false,
+      ];
+    }
+  }
+
   void selectIntro(int index) {
     if (index == 0) {
       locale = Locale('en');
@@ -26,12 +41,15 @@ class LocaleProvider with ChangeNotifier {
     }
   }
 
-  void toggleLocaleToParam(String theme) {
-    if (theme == "en") {
+  void toggleLocaleToParam(String localeString, bool changeInFirestore) async {
+    if (localeString == "en") {
       locale = Locale('en');
     } else {
       locale = Locale('fr');
     }
+    await usersRef.doc(currentUser.id).update({
+      "locale": localeString,
+    });
   }
 
   String getLocaleFormatString() {

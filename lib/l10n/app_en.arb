@@ -268,5 +268,9 @@
     "need_terms_and_conditions": "You need to agree to the End-User Licence Agreement to be able to use Dave",
     "need_modify_user": "If you want to deactivate, disable or change anything about your account, please visit :",
     "my_groups": "My groups",
-    "sure_change_group": "Are you sure you want to change this group ?"
+    "sure_change_group": "Are you sure you want to change this group ?",
+    "theme": "Theme",
+    "language_type": "Language",
+    "language_type_en": "English",
+    "language_type_fr": "French"
 }

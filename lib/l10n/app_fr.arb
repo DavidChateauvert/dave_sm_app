@@ -168,7 +168,7 @@
     "other": "Autre",
     "specified_gender": "Spécifier :",
     "specified_gender_controller": "Spécifier un genre",
-    "gender": "Gender",
+    "gender": "Genre",
     "profile_age_gender": "{gender} de {age} ans",
     "@profile_age_gender": {
         "placeholders": {
@@ -268,5 +268,9 @@
     "need_terms_and_conditions": "Vous avez besoin d'accepter les conditions d'utilisation pour pouvoir utiliser Dave",
     "need_modify_user": "Si vous voulez désactivé ou changer quoique que ce soit sur votre compte, veuillez visiter :",
     "my_groups": "Mes groupes",
-    "sure_change_group": "Êtes-vous sûr de vouloir modifier ce groupe ?"
+    "sure_change_group": "Êtes-vous sûr de vouloir modifier ce groupe ?",
+    "theme": "Thème",
+    "language_type": "Langue",
+    "language_type_en": "Anglais",
+    "language_type_fr": "Français"
 }

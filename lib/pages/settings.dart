@@ -37,26 +37,12 @@ class _SettingsPageState extends State<SettingsPage> {
     Navigator.pop(context);
   }
 
-  setThemeInFirestore() async {
-    String currentTheme = Provider.of<ThemeProvider>(context, listen: false)
-        .getThemeModeFormatString();
-    await usersRef.doc(widget.currentUserId).update({
-      "theme": currentTheme,
-    });
-  }
-
-  setLocaleInFirestore() async {
-    String currentLocale = Provider.of<LocaleProvider>(context, listen: false)
-        .getLocaleFormatString();
-    await usersRef.doc(widget.currentUserId).update({
-      "locale": currentLocale,
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     final List<bool> _selectedTheme =
         Provider.of<ThemeProvider>(context, listen: false).defaultBoolList();
+    final List<bool> _selectedLocale =
+        Provider.of<LocaleProvider>(context, listen: false).defaultBoolList();
     return Drawer(
       key: _scaffoldKey,
       child: isLoading
@@ -82,90 +68,134 @@ class _SettingsPageState extends State<SettingsPage> {
                       const SizedBox(
                         height: 16.0,
                       ),
-                      ToggleButtons(
-                        isSelected: _selectedTheme,
-                        onPressed: (int index) {
-                          if (index == 0) {
-                            Provider.of<ThemeProvider>(context, listen: false)
-                                .toggleThemeMode("system");
-                          } else if (index == 1) {
-                            Provider.of<ThemeProvider>(context, listen: false)
-                                .toggleThemeMode("light");
-                          } else {
-                            Provider.of<ThemeProvider>(context, listen: false)
-                                .toggleThemeMode("dark");
-                          }
-                        },
-                        renderBorder: false,
-                        children: <Widget>[
-                          Padding(
-                            padding: const EdgeInsets.symmetric(
-                              vertical: 16.0,
-                              horizontal: 32.0,
+                      Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            AppLocalizations.of(context)!.theme,
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.onBackground,
+                              fontSize: 20.0,
+                              fontWeight: FontWeight.w500,
                             ),
-                            child: Icon(CupertinoIcons.device_phone_portrait),
                           ),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(
-                              vertical: 16.0,
-                              horizontal: 32.0,
-                            ),
-                            child: Icon(CupertinoIcons.brightness_solid),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(
-                              vertical: 16.0,
-                              horizontal: 32.0,
-                            ),
-                            child: Icon(CupertinoIcons.moon_fill),
+                          const SizedBox(height: 8.0),
+                          ToggleButtons(
+                            selectedColor:
+                                Theme.of(context).colorScheme.primaryContainer,
+                            isSelected: _selectedTheme,
+                            onPressed: (int index) {
+                              String theme;
+                              if (index == 0) {
+                                theme = "system";
+                              } else if (index == 1) {
+                                theme = "light";
+                              } else {
+                                theme = "dark";
+                              }
+                              Provider.of<ThemeProvider>(context, listen: false)
+                                  .toggleThemeMode(theme, true);
+                            },
+                            renderBorder: false,
+                            children: <Widget>[
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 16.0,
+                                  horizontal: 32.0,
+                                ),
+                                child:
+                                    Icon(CupertinoIcons.device_phone_portrait),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 16.0,
+                                  horizontal: 32.0,
+                                ),
+                                child: Icon(CupertinoIcons.brightness_solid),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 16.0,
+                                  horizontal: 32.0,
+                                ),
+                                child: Icon(CupertinoIcons.moon_fill),
+                              ),
+                            ],
                           ),
                         ],
                       ),
                       const SizedBox(
-                        height: 8.0,
+                        height: 24.0,
                       ),
-                      ListTile(
-                        leading: Icon(
-                          CupertinoIcons.brightness_solid,
-                          color: Theme.of(context).colorScheme.secondary,
-                        ),
-                        title: Text(
-                          AppLocalizations.of(context)!.change_theme,
-                          style: TextStyle(
-                            color: Theme.of(context).colorScheme.secondary,
-                            fontSize: 20.0,
+                      Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            AppLocalizations.of(context)!.language_type,
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.onBackground,
+                              fontSize: 20.0,
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
-                        ),
-                        onTap: () {
-                          Provider.of<ThemeProvider>(context, listen: false)
-                              .toggleThemeMode("system");
-                          // setThemeInFirestore();
-                          ;
-                        },
+                          const SizedBox(height: 8.0),
+                          ToggleButtons(
+                            selectedColor:
+                                Theme.of(context).colorScheme.primaryContainer,
+                            isSelected: _selectedLocale,
+                            onPressed: (int index) {
+                              String locale;
+                              if (index == 0) {
+                                locale = "en";
+                              } else {
+                                locale = "fr";
+                              }
+                              Provider.of<LocaleProvider>(context,
+                                      listen: false)
+                                  .toggleLocaleToParam(locale, true);
+                            },
+                            renderBorder: false,
+                            children: <Widget>[
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 16.0,
+                                  horizontal: 32.0,
+                                ),
+                                child: Text(
+                                  AppLocalizations.of(context)!
+                                      .language_type_en,
+                                  style: TextStyle(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onBackground,
+                                    fontSize: 20.0,
+                                    fontWeight: FontWeight.w400,
+                                  ),
+                                ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 16.0,
+                                  horizontal: 32.0,
+                                ),
+                                child: Text(
+                                  AppLocalizations.of(context)!
+                                      .language_type_fr,
+                                  style: TextStyle(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onBackground,
+                                    fontSize: 20.0,
+                                    fontWeight: FontWeight.w400,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
                       const SizedBox(
-                        height: 16.0,
-                      ),
-                      ListTile(
-                        leading: Icon(
-                          CupertinoIcons.globe,
-                          color: Theme.of(context).colorScheme.onBackground,
-                        ),
-                        title: Text(
-                          AppLocalizations.of(context)!.change_language,
-                          style: TextStyle(
-                            color: Theme.of(context).colorScheme.onBackground,
-                            fontSize: 20.0,
-                          ),
-                        ),
-                        onTap: () {
-                          Provider.of<LocaleProvider>(context, listen: false)
-                              .toggleLocale();
-                          setLocaleInFirestore();
-                        },
-                      ),
-                      const SizedBox(
-                        height: 16.0,
+                        height: 24.0,
                       ),
                       ListTile(
                         leading: Icon(CupertinoIcons.bell),
