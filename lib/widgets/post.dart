@@ -251,8 +251,8 @@ class _PostState extends State<Post> {
                   padding: EdgeInsets.only(left: 4.0, right: 4.0),
                   child: Icon(Icons.more_vert_outlined),
                 ),
-                onTap: isPostOwner
-                    ? () => showPostParameters(context)
+                onTap: () => isPostOwner
+                    ? showPostParameters(context)
                     : handleSignalPost(context),
               ),
               GestureDetector(
