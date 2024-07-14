@@ -235,23 +235,26 @@ class _PostState extends State<Post> {
             mainAxisSize: MainAxisSize.min,
             children: [
               (isPostOwner && group != "")
-                  ? IconButton(
-                      onPressed: () => showGroup(context),
-                      icon: Icon(
-                        CupertinoIcons.group_solid,
-                        color: Theme.of(context).colorScheme.primaryContainer,
+                  ? GestureDetector(
+                      onTap: () => showGroup(context),
+                      child: Padding(
+                        padding: EdgeInsets.only(right: 4.0),
+                        child: Icon(
+                          CupertinoIcons.group_solid,
+                          color: Theme.of(context).colorScheme.primaryContainer,
+                        ),
                       ),
                     )
                   : Container(),
-              isPostOwner
-                  ? IconButton(
-                      onPressed: () => showPostParameters(context),
-                      icon: Icon(Icons.more_vert_outlined),
-                    )
-                  : IconButton(
-                      onPressed: () => handleSignalPost(context),
-                      icon: Icon(Icons.more_horiz_outlined),
-                    ),
+              GestureDetector(
+                child: Padding(
+                  padding: EdgeInsets.only(left: 4.0, right: 4.0),
+                  child: Icon(Icons.more_vert_outlined),
+                ),
+                onTap: isPostOwner
+                    ? () => showPostParameters(context)
+                    : handleSignalPost(context),
+              ),
               GestureDetector(
                 onTap: () {
                   setState(() {
