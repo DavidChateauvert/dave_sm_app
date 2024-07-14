@@ -12,6 +12,7 @@ import 'package:sm_app/providers/post_counter.dart';
 import 'package:sm_app/providers/reload_provider.dart';
 import 'package:sm_app/providers/route_observer_provider.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:sm_app/providers/theme.dart';
 // import 'package:sm_app/theme/theme.dart';
 import 'package:sm_app/providers/theme_provider.dart';
 
@@ -98,7 +99,9 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     return MaterialApp(
       title: 'Dave',
       debugShowCheckedModeBanner: false,
-      theme: Provider.of<ThemeProvider>(context).themeData,
+      themeMode: Provider.of<ThemeProvider>(context).themeMode,
+      theme: lightMode,
+      darkTheme: darkMode,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       locale: Provider.of<LocaleProvider>(context).locale,

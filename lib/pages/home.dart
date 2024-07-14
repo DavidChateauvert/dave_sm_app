@@ -141,7 +141,7 @@ class _HomeState extends State<Home> {
       }
       currentUser = DaveUser.User.fromDocument(doc);
       Provider.of<ThemeProvider>(context, listen: false)
-          .toggleThemeToParam(currentUser.theme);
+          .toggleThemeMode(currentUser.theme);
       Provider.of<LocaleProvider>(context, listen: false)
           .toggleLocaleToParam(currentUser.locale);
       await FirebaseApi().initMessaging(currentUser.id);

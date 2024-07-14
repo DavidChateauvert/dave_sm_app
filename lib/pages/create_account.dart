@@ -17,7 +17,6 @@ import 'package:sm_app/pages/eulaEN.dart';
 import 'package:sm_app/pages/eulaFR.dart';
 import 'package:sm_app/pages/home.dart';
 import 'package:sm_app/providers/locale_provider.dart';
-import 'package:sm_app/providers/theme_provider.dart';
 import 'package:sm_app/widgets/header.dart';
 import 'package:image/image.dart' as Im;
 import 'package:sm_app/widgets/profileHeader.dart';
@@ -80,8 +79,7 @@ class _CreateAccountState extends State<CreateAccount> {
           bio: bio,
           verified: false,
           timestamp: Timestamp.now(),
-          theme: Provider.of<ThemeProvider>(context, listen: false)
-              .getThemeDataFormatString(),
+          theme: "system",
           locale: Provider.of<LocaleProvider>(context, listen: false)
               .getLocaleFormatString(),
           postsCount: 0,

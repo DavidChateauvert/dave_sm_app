@@ -142,7 +142,7 @@ class _SearchState extends State<Search>
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
                   SvgPicture.asset(
-                    Provider.of<ThemeProvider>(context).themeData.brightness ==
+                    Provider.of<ThemeProvider>(context).themeMode ==
                             Brightness.light
                         ? 'assets/images/advanced_search.svg'
                         : 'assets/images/advanced_search_white.svg',

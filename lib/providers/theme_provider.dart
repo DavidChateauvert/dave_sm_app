@@ -1,37 +1,44 @@
 import 'package:flutter/material.dart';
-import 'package:sm_app/providers/theme.dart';
 
 class ThemeProvider with ChangeNotifier {
-  ThemeData _themeData = lightMode;
+  ThemeMode _themeMode = ThemeMode.system;
 
-  ThemeData get themeData => _themeData;
+  ThemeMode get themeMode => _themeMode;
 
-  set themeData(ThemeData themeData) {
-    _themeData = themeData;
+  set themeMode(ThemeMode themeMode) {
+    _themeMode = themeMode;
     notifyListeners();
   }
 
-  void toggleTheme() {
-    if (_themeData == lightMode) {
-      themeData = darkMode;
-    } else {
-      themeData = lightMode;
-    }
-  }
-
-  void toggleThemeToParam(String theme) {
+  void toggleThemeMode(String theme) {
     if (theme == "dark") {
-      themeData = darkMode;
+      themeMode = ThemeMode.dark;
+    } else if (theme == "light") {
+      themeMode = ThemeMode.light;
     } else {
-      themeData = lightMode;
+      themeMode = ThemeMode.system;
     }
   }
 
-  String getThemeDataFormatString() {
-    if (themeData == darkMode) {
-      return "dark";
+  List<bool> defaultBoolList() {
+    if (_themeMode == ThemeMode.dark) {
+      return [false, false, true];
+    } else if (_themeMode == ThemeMode.light) {
+      return [false, true, false];
     } else {
-      return "light";
+      return [true, false, false];
+    }
+  }
+
+  String getThemeModeFormatString() {
+    switch (themeMode) {
+      case ThemeMode.dark:
+        return "dark";
+      case ThemeMode.light:
+        return "light";
+      case ThemeMode.system:
+      default:
+        return "system";
     }
   }
 }

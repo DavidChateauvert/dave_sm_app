@@ -39,7 +39,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
   setThemeInFirestore() async {
     String currentTheme = Provider.of<ThemeProvider>(context, listen: false)
-        .getThemeDataFormatString();
+        .getThemeModeFormatString();
     await usersRef.doc(widget.currentUserId).update({
       "theme": currentTheme,
     });
@@ -55,6 +55,8 @@ class _SettingsPageState extends State<SettingsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final List<bool> _selectedTheme =
+        Provider.of<ThemeProvider>(context, listen: false).defaultBoolList();
     return Drawer(
       key: _scaffoldKey,
       child: isLoading
@@ -80,6 +82,48 @@ class _SettingsPageState extends State<SettingsPage> {
                       const SizedBox(
                         height: 16.0,
                       ),
+                      ToggleButtons(
+                        isSelected: _selectedTheme,
+                        onPressed: (int index) {
+                          if (index == 0) {
+                            Provider.of<ThemeProvider>(context, listen: false)
+                                .toggleThemeMode("system");
+                          } else if (index == 1) {
+                            Provider.of<ThemeProvider>(context, listen: false)
+                                .toggleThemeMode("light");
+                          } else {
+                            Provider.of<ThemeProvider>(context, listen: false)
+                                .toggleThemeMode("dark");
+                          }
+                        },
+                        renderBorder: false,
+                        children: <Widget>[
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 16.0,
+                              horizontal: 32.0,
+                            ),
+                            child: Icon(CupertinoIcons.device_phone_portrait),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 16.0,
+                              horizontal: 32.0,
+                            ),
+                            child: Icon(CupertinoIcons.brightness_solid),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 16.0,
+                              horizontal: 32.0,
+                            ),
+                            child: Icon(CupertinoIcons.moon_fill),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(
+                        height: 8.0,
+                      ),
                       ListTile(
                         leading: Icon(
                           CupertinoIcons.brightness_solid,
@@ -94,8 +138,8 @@ class _SettingsPageState extends State<SettingsPage> {
                         ),
                         onTap: () {
                           Provider.of<ThemeProvider>(context, listen: false)
-                              .toggleTheme();
-                          setThemeInFirestore();
+                              .toggleThemeMode("system");
+                          // setThemeInFirestore();
                           ;
                         },
                       ),
