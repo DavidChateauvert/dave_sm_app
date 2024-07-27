@@ -19,6 +19,7 @@ class Message extends StatelessWidget {
   final String mediaUrl;
   final GlobalKey messageKey = GlobalKey();
   final GlobalKey imageKey = GlobalKey();
+  final String type;
 
   Message({
     required this.username,
@@ -28,12 +29,14 @@ class Message extends StatelessWidget {
     required this.message,
     required this.timestamp,
     required this.mediaUrl,
+    required this.type,
   });
 
   factory Message.fromDocument(DocumentSnapshot doc) {
     final String mediaUrl =
         doc.data().toString().contains('mediaUrl') ? doc["mediaUrl"] : '';
-    ;
+    final String type =
+        doc.data().toString().contains('type') ? doc["type"] : '';
 
     return Message(
       username: doc['username'],
@@ -43,6 +46,7 @@ class Message extends StatelessWidget {
       timestamp: doc['timestamp'],
       avatarUrl: doc['avatarUrl'],
       mediaUrl: mediaUrl,
+      type: type,
     );
   }
 
@@ -110,6 +114,60 @@ class Message extends StatelessWidget {
                       key: imageKey,
                       id: messageId,
                       image: cachedNetworkImage(mediaUrl),
+                      isSender: isSender,
+                    ),
+                    SizedBox(height: 4.0),
+                    Text(
+                      timeago.format(timestamp.toDate(), locale: 'en_short'),
+                      style: const TextStyle(
+                        fontSize: 12.0,
+                        color: Colors.grey,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  buildBubbleVideo(BuildContext context, bool isSender) {
+    return Column(
+      children: <Widget>[
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: isSender
+                      ? CrossAxisAlignment.end
+                      : CrossAxisAlignment.start,
+                  children: <Widget>[
+                    BubbleNormalImage(
+                      color: Theme.of(context).colorScheme.background,
+                      key: imageKey,
+                      id: messageId,
+                      image: cachedNetworkImage(mediaUrl),
+                      isSender: isSender,
+                    ),
+                    BubbleSpecialThree(
+                      key: messageKey,
+                      text: message,
+                      color: isSender
+                          ? Theme.of(context).colorScheme.primary
+                          : Theme.of(context).colorScheme.secondary,
+                      tail: true,
+                      textStyle: TextStyle(
+                        color: isSender
+                            ? Colors.white
+                            : Theme.of(context).colorScheme.primary,
+                        fontSize: 20.0,
+                      ),
                       isSender: isSender,
                     ),
                     SizedBox(height: 4.0),

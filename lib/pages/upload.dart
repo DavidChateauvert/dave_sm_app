@@ -92,7 +92,7 @@ class _UploadState extends State<Upload>
   }
 
   void showGroupsPage(BuildContext context) async {
-    Group selectedGroup = await Navigator.push(
+    Group? selectedGroup = await Navigator.push(
       context,
       PageRouteBuilder(
         transitionDuration: Duration(milliseconds: 500),
@@ -112,11 +112,13 @@ class _UploadState extends State<Upload>
         },
       ),
     );
-    setState(() {
-      this.group = selectedGroup;
-      selectedUserName =
-          getDisplaysFromIds(mentionsDataInit, selectedGroup.usersInGroup);
-    });
+    if (selectedGroup != null) {
+      setState(() {
+        this.group = selectedGroup;
+        selectedUserName =
+            getDisplaysFromIds(mentionsDataInit, selectedGroup.usersInGroup);
+      });
+    }
   }
 
   List<String> getDisplaysFromIds(
@@ -136,19 +138,23 @@ class _UploadState extends State<Upload>
   handleTakePhoto() async {
     Navigator.pop(context);
     final ImagePicker _imagePicker = ImagePicker();
+    setState(() {
+      mediaIsLoading = true;
+    });
     XFile? xfile = (await _imagePicker.pickImage(
       source: ImageSource.camera,
       maxHeight: 960.0,
       maxWidth: 675.0,
     ));
     if (xfile != null) {
-      setState(() {
-        mediaIsLoading = true;
-      });
       File compressImageFile = await compressImage(File(xfile.path));
       setState(() {
         type = "photo";
         file = compressImageFile;
+        mediaIsLoading = false;
+      });
+    } else {
+      setState(() {
         mediaIsLoading = false;
       });
     }
@@ -177,7 +183,7 @@ class _UploadState extends State<Upload>
       _controller = VideoPlayerController.file(File(xfile.path));
       await _controller.initialize();
 
-      croppedPath = await cropVideo(File(xfile.path));
+      croppedPath = await cropVideo(File(xfile.path), _controller);
 
       setState(() {
         type = "video";
@@ -189,39 +195,6 @@ class _UploadState extends State<Upload>
 
   handleChooseFromGalleryFunctions() async {
     await handleChooseFromGallery();
-  }
-
-  showModalVideoTooLong(parentContext) {
-    return showDialog(
-      context: parentContext,
-      builder: (context) {
-        return SimpleDialog(
-          title: Center(
-            child: Text(
-              AppLocalizations.of(context)!.video_too_long,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.primaryContainer,
-              ),
-            ),
-          ),
-          children: [
-            SimpleDialogOption(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: Text(
-                AppLocalizations.of(context)!.go_back_upload,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.onBackground,
-                ),
-              ),
-            ),
-          ],
-        );
-      },
-    );
   }
 
   handleChooseFromGallery() async {
@@ -246,7 +219,7 @@ class _UploadState extends State<Upload>
             mediaIsLoading = false;
           });
         } else {
-          String croppedPath = await cropVideo(File(xfile.path));
+          String croppedPath = await cropVideo(File(xfile.path), _controller);
 
           setState(() {
             type = "video";
@@ -262,6 +235,10 @@ class _UploadState extends State<Upload>
           mediaIsLoading = false;
         });
       }
+    } else {
+      setState(() {
+        mediaIsLoading = false;
+      });
     }
   }
 
@@ -287,12 +264,14 @@ class _UploadState extends State<Upload>
           padding: const EdgeInsets.all(16.0),
           child: TextButton.icon(
             onPressed: () => clearImage(),
-            icon: const Icon(Icons.cancel_outlined,
-                color: Color.fromARGB(255, 89, 36, 99)),
-            label: const Text(
-              "Remove Video",
+            icon: Icon(
+              Icons.cancel_outlined,
+              color: Theme.of(context).colorScheme.primary,
+            ),
+            label: Text(
+              AppLocalizations.of(context)!.remove_video,
               style: TextStyle(
-                color: Color.fromARGB(255, 89, 36, 99),
+                color: Theme.of(context).colorScheme.primary,
                 fontSize: 20.0,
               ),
             ),
@@ -330,8 +309,8 @@ class _UploadState extends State<Upload>
             onPressed: () => clearImage(),
             icon: const Icon(Icons.cancel_outlined,
                 color: Color.fromARGB(255, 89, 36, 99)),
-            label: const Text(
-              "Remove Image",
+            label: Text(
+              AppLocalizations.of(context)!.remove_image,
               style: TextStyle(
                 color: Color.fromARGB(255, 89, 36, 99),
                 fontSize: 20.0,
@@ -341,50 +320,6 @@ class _UploadState extends State<Upload>
         ),
       ],
     );
-  }
-
-  compressImage(File file) async {
-    final tempDir = await getTemporaryDirectory();
-    final path = tempDir.path;
-    Im.Image? imageFile = Im.decodeImage(file.readAsBytesSync());
-    final compressedImageFile = File('$path/img_${file.hashCode}.jpg')
-      ..writeAsBytesSync(Im.encodeJpg(imageFile!, quality: 85));
-    return compressedImageFile;
-  }
-
-  String getOutputPath(String filePath) {
-    final fileName = filePath.split('/').last;
-    final fileNameWithoutExtension = fileName.split('.').first;
-    final fileExtension = fileName.split('.').last;
-
-    final newFileName = '$fileNameWithoutExtension-cropped.$fileExtension';
-    final directoryPath = filePath.substring(0, filePath.lastIndexOf('/'));
-
-    return '$directoryPath/$newFileName';
-  }
-
-  Future<String> cropVideo(File file) async {
-    String outputPath = getOutputPath(file.path);
-
-    final int maxHeight = 1440;
-
-    try {
-      final int originalWidth = _controller.value.size.width.round();
-      final int originalHeight = _controller.value.size.height.round();
-
-      final int cropHeight =
-          originalHeight > maxHeight ? maxHeight : originalHeight;
-      final int topPadding = (originalHeight - cropHeight) ~/ 2;
-
-      final String command =
-          '-i ${file.path} -vf crop=$originalWidth:$cropHeight:0:$topPadding -c:a copy $outputPath';
-
-      await FFmpegKit.execute(command);
-      return outputPath;
-    } catch (e) {
-      print("Cropped video failed : $e");
-      return "";
-    }
   }
 
   selectImage(parentContext) {
@@ -1017,5 +952,82 @@ class _UploadState extends State<Upload>
     super.build(context);
 
     return buildUploadForm();
+  }
+}
+
+showModalVideoTooLong(parentContext) {
+  return showDialog(
+    context: parentContext,
+    builder: (context) {
+      return SimpleDialog(
+        title: Center(
+          child: Text(
+            AppLocalizations.of(context)!.video_too_long,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.primaryContainer,
+            ),
+          ),
+        ),
+        children: [
+          SimpleDialogOption(
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            child: Text(
+              AppLocalizations.of(context)!.go_back_upload,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onBackground,
+              ),
+            ),
+          ),
+        ],
+      );
+    },
+  );
+}
+
+compressImage(File file) async {
+  final tempDir = await getTemporaryDirectory();
+  final path = tempDir.path;
+  Im.Image? imageFile = Im.decodeImage(file.readAsBytesSync());
+  final compressedImageFile = File('$path/img_${file.hashCode}.jpg')
+    ..writeAsBytesSync(Im.encodeJpg(imageFile!, quality: 85));
+  return compressedImageFile;
+}
+
+String getOutputPath(String filePath) {
+  final fileName = filePath.split('/').last;
+  final fileNameWithoutExtension = fileName.split('.').first;
+  final fileExtension = fileName.split('.').last;
+
+  final newFileName = '$fileNameWithoutExtension-cropped.$fileExtension';
+  final directoryPath = filePath.substring(0, filePath.lastIndexOf('/'));
+
+  return '$directoryPath/$newFileName';
+}
+
+Future<String> cropVideo(File file, VideoPlayerController _controller) async {
+  String outputPath = getOutputPath(file.path);
+
+  final int maxHeight = 1440;
+
+  try {
+    final int originalWidth = _controller.value.size.width.round();
+    final int originalHeight = _controller.value.size.height.round();
+
+    final int cropHeight =
+        originalHeight > maxHeight ? maxHeight : originalHeight;
+    final int topPadding = (originalHeight - cropHeight) ~/ 2;
+
+    final String command =
+        '-i ${file.path} -vf crop=$originalWidth:$cropHeight:0:$topPadding -c:a copy $outputPath';
+
+    await FFmpegKit.execute(command);
+    return outputPath;
+  } catch (e) {
+    print("Cropped video failed : $e");
+    return "";
   }
 }

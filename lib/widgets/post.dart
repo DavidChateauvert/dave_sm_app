@@ -40,6 +40,7 @@ class Post extends StatefulWidget {
   final Timestamp timestamp;
   final String type;
   final String group;
+  final String autoType;
 
   Post({
     required this.postId,
@@ -57,6 +58,7 @@ class Post extends StatefulWidget {
     required this.timestamp,
     required this.type,
     required this.group,
+    required this.autoType,
   });
 
   factory Post.fromDocument(DocumentSnapshot doc) {
@@ -64,6 +66,8 @@ class Post extends StatefulWidget {
         doc.data().toString().contains('type') ? doc['type'] : "";
     final String group =
         doc.data().toString().contains('group') ? doc['group'] : "";
+    final String autoType =
+        doc.data().toString().contains('autoType') ? doc['autoType'] : "";
     return Post(
       postId: doc['postId'],
       ownerId: doc['ownerId'],
@@ -80,6 +84,7 @@ class Post extends StatefulWidget {
       appBarSize: 112.0,
       type: type,
       group: group,
+      autoType: autoType,
     );
   }
 
@@ -89,6 +94,8 @@ class Post extends StatefulWidget {
         doc.data().toString().contains('type') ? doc["type"] : "";
     final String group =
         doc.data().toString().contains('group') ? doc['group'] : "";
+    final String autoType =
+        doc.data().toString().contains('autoType') ? doc['autoType'] : "";
     return Post(
       postId: doc['postId'],
       ownerId: doc['ownerId'],
@@ -105,6 +112,7 @@ class Post extends StatefulWidget {
       appBarSize: appBarSize,
       type: type!,
       group: group,
+      autoType: autoType,
     );
   }
 
@@ -140,6 +148,7 @@ class Post extends StatefulWidget {
         timestamp: timestamp,
         type: type,
         group: group,
+        autoType: autoType,
       );
 }
 
@@ -172,6 +181,8 @@ class _PostState extends State<Post> {
   String type;
   bool isTimeAgo = true;
   String group;
+  String autoType;
+  late User user;
 
   _PostState({
     required this.postId,
@@ -190,6 +201,7 @@ class _PostState extends State<Post> {
     required this.timestamp,
     required this.type,
     required this.group,
+    required this.autoType,
   });
 
   buildPostHeader() {
@@ -199,8 +211,7 @@ class _PostState extends State<Post> {
         if (!snapshot.hasData) {
           return circularProgress();
         }
-        User user =
-            User.fromDocument(snapshot.data as DocumentSnapshot<Object?>);
+        user = User.fromDocument(snapshot.data as DocumentSnapshot<Object?>);
         bool isPostOwner = currentUserId == ownerId;
         return ListTile(
           leading: GestureDetector(
@@ -744,9 +755,8 @@ class _PostState extends State<Post> {
   buildPostFooter() {
     return Column(
       children: <Widget>[
-        caption == ""
-            ? Text("")
-            : Row(
+        autoType == "newdProfilePicture"
+            ? Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
                   Expanded(
@@ -754,12 +764,36 @@ class _PostState extends State<Post> {
                       onDoubleTap: () => handleLikePost(),
                       child: Container(
                         margin: const EdgeInsets.all(16.0),
-                        child: buildHighlightedText(caption),
+                        child: Text(
+                          AppLocalizations.of(context)!
+                              .profile_post_caption(user.firstName),
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.onBackground,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 20.0,
+                          ),
+                        ),
                       ),
                     ),
                   ),
                 ],
-              ),
+              )
+            : caption == ""
+                ? Text("")
+                : Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Expanded(
+                        child: GestureDetector(
+                          onDoubleTap: () => handleLikePost(),
+                          child: Container(
+                            margin: const EdgeInsets.all(16.0),
+                            child: buildHighlightedText(caption),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
         mediaUrl == ""
             ? Text("")
             : Row(

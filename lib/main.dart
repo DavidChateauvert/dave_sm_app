@@ -15,6 +15,7 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:sm_app/providers/theme.dart';
 // import 'package:sm_app/theme/theme.dart';
 import 'package:sm_app/providers/theme_provider.dart';
+import 'package:sm_app/providers/video_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -39,6 +40,8 @@ void main() async {
           ChangeNotifierProvider(create: (context) => ReloadNotifier()),
           ChangeNotifierProvider(create: (context) => PostCounterProvider()),
           ChangeNotifierProvider(create: (context) => LocaleProvider()),
+          ChangeNotifierProvider(
+              create: (context) => VideoControllerProvider()),
         ],
         child: MyApp(),
       ),

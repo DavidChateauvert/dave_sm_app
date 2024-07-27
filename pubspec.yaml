@@ -89,6 +89,7 @@ flutter_native_splash:
 flutter_launcher_icons  :
   android: true
   ios: true
+  remove_alpha_ios: true
   image_path: "assets/images/logo/logo_dave.png"
 
   # The "flutter_lints" package below contains a set of recommended lints to

@@ -7,6 +7,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:image/image.dart' as Im;
 import 'package:image_picker/image_picker.dart';
+import 'package:image_size_getter/file_input.dart';
+import 'package:image_size_getter/image_size_getter.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sm_app/pages/groups.dart';
 import 'package:sm_app/pages/home.dart';
@@ -16,6 +18,7 @@ import 'package:sm_app/widgets/progress.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:status_alert/status_alert.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:uuid/uuid.dart';
 
 import '../models/user.dart';
 
@@ -36,6 +39,10 @@ class _EditProfileState extends State<EditProfile> {
   TextEditingController lastNameController = TextEditingController();
   TextEditingController bioController = TextEditingController();
   TextEditingController genderController = TextEditingController();
+  FocusNode firstNameFocusNode = FocusNode();
+  FocusNode lastNameFocusNode = FocusNode();
+  FocusNode bioFocusNode = FocusNode();
+  FocusNode genderFocusNode = FocusNode();
   bool isLoading = false;
   bool pictureIsLoading = false;
   late User user;
@@ -47,6 +54,8 @@ class _EditProfileState extends State<EditProfile> {
   String currentGenderOptions = "";
   DateTime? newDateOfBirth;
   final Uri url = Uri.parse('https://appdave.com/#/contact-us');
+  bool hasChangeProfilPicture = false;
+  Size newSize = Size(9, 12);
 
   @override
   void initState() {
@@ -115,6 +124,7 @@ class _EditProfileState extends State<EditProfile> {
         ),
         TextField(
           controller: firstNameController,
+          focusNode: firstNameFocusNode,
           decoration: InputDecoration(
               hintText: AppLocalizations.of(context)!.update_first_name,
               errorText: _firstnameValid
@@ -141,6 +151,7 @@ class _EditProfileState extends State<EditProfile> {
         ),
         TextField(
           controller: lastNameController,
+          focusNode: lastNameFocusNode,
           decoration: InputDecoration(
               hintText: AppLocalizations.of(context)!.update_last_name,
               errorText: _lastNameValid
@@ -278,6 +289,7 @@ class _EditProfileState extends State<EditProfile> {
             ),
             Expanded(
               child: TextField(
+                focusNode: genderFocusNode,
                 controller: genderController,
                 decoration: InputDecoration(
                   hintText:
@@ -307,6 +319,7 @@ class _EditProfileState extends State<EditProfile> {
         ),
         TextField(
           controller: bioController,
+          focusNode: bioFocusNode,
           maxLines: null,
           decoration: InputDecoration(
             hintText: AppLocalizations.of(context)!.update_bio,
@@ -387,6 +400,7 @@ class _EditProfileState extends State<EditProfile> {
   }
 
   updateProfileData() {
+    unfocusAllNodes();
     setState(() {
       firstNameController.text.trim().length < 1 ||
               firstNameController.text.isEmpty
@@ -418,6 +432,9 @@ class _EditProfileState extends State<EditProfile> {
             ? genderController.text
             : currentGenderOptions,
       });
+      if (hasChangeProfilPicture == true) {
+        createPostInFirestore(newPhotoUrl, newSize);
+      }
       StatusAlert.show(
         context,
         duration: Duration(seconds: 2),
@@ -464,15 +481,45 @@ class _EditProfileState extends State<EditProfile> {
     handlePictureUpload(File(xfile!.path));
   }
 
-  handlePictureUpload(file) async {
+  handlePictureUpload(File file) async {
     setState(() {
       pictureIsLoading = true;
     });
     await compressImage(file);
     String mediaUrl = await uploadImage(file);
+    final fileImage = FileImage(file);
+    newSize = ImageSizeGetter.getSize(FileInput(fileImage.file));
     setState(() {
       newPhotoUrl = mediaUrl;
       pictureIsLoading = false;
+      hasChangeProfilPicture = true;
+    });
+  }
+
+  createPostInFirestore(String mediaUrl, Size size) {
+    String postId = Uuid().v4();
+    String currentUserId = currentUser.id;
+    postsRef.doc(currentUserId).collection("userPosts").doc(postId).set({
+      "postId": postId,
+      "ownerId": currentUserId,
+      "username": currentUser.displayName,
+      "mediaUrl": mediaUrl,
+      "mediaUrlWidth": size.width,
+      "mediaUrlHeight": size.height,
+      "caption": AppLocalizations.of(context)!
+          .profile_post_caption(currentUser.firstName),
+      "timestamp": DateTime.now(),
+      "likes": {},
+      "comments": {},
+      "commentCount": 0,
+      "mentions": {},
+      "type": "photo",
+      "group": "",
+      "autoType": "newProfilePicture"
+    });
+
+    usersRef.doc(currentUser.id).update({
+      "postsCount": FieldValue.increment(1),
     });
   }
 
@@ -487,7 +534,7 @@ class _EditProfileState extends State<EditProfile> {
     });
   }
 
-  Future<String> uploadImage(imageFile) async {
+  Future<String> uploadImage(File imageFile) async {
     UploadTask uploadTask = storageRef
         .child("profilePictures/${user.id}_${user.displayName}.jpg")
         .putFile(imageFile);
@@ -766,6 +813,84 @@ class _EditProfileState extends State<EditProfile> {
     );
   }
 
+  bool checkIfNothingChanges() {
+    final conditions = [
+      firstNameController.text != user.firstName,
+      lastNameController.text != user.lastName,
+      bioController.text != user.bio,
+      newPhotoUrl != user.photoUrl,
+      currentGenderOptions != user.gender,
+      newDateOfBirth != user.dateOfBirth?.toDate(),
+    ];
+
+    for (var condition in conditions) {
+      if (condition) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  handleQuitWithoutSaving() async {
+    if (checkIfNothingChanges()) {
+      unfocusAllNodes();
+      Navigator.pop(context);
+    } else {
+      bool? sureChange = await showModalSureChanges(context);
+      if (sureChange != null) {
+        unfocusAllNodes();
+        if (sureChange == true) {
+          Navigator.pop(context);
+        } else {
+          updateProfileData();
+        }
+      }
+    }
+  }
+
+  Future<bool?> showModalSureChanges(BuildContext parentContext) {
+    return showDialog<bool>(
+      context: parentContext,
+      builder: (context) {
+        return SimpleDialog(
+          title: Text(
+            AppLocalizations.of(context)!.post_parameters,
+            textAlign: TextAlign.center,
+          ),
+          children: <Widget>[
+            SimpleDialogOption(
+              onPressed: () {
+                Navigator.pop(context, true);
+              },
+              child: Text(
+                AppLocalizations.of(context)!.quit_without_saving,
+                textAlign: TextAlign.center,
+              ),
+            ),
+            SimpleDialogOption(
+              onPressed: () {
+                Navigator.pop(context, false);
+              },
+              child: Text(
+                AppLocalizations.of(context)!.save_changes,
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.green),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  unfocusAllNodes() {
+    firstNameFocusNode.unfocus();
+    lastNameFocusNode.unfocus();
+    bioFocusNode.unfocus();
+    genderFocusNode.unfocus();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -778,7 +903,7 @@ class _EditProfileState extends State<EditProfile> {
             color: Colors.white,
             size: 32.0,
           ),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => handleQuitWithoutSaving(),
         ),
         title: Text(
           AppLocalizations.of(context)!.edit_profile,

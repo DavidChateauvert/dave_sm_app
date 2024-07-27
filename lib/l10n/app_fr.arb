@@ -220,7 +220,7 @@
     "hint_text_group_name": "Nom du groupe",
     "upload_to": "À : ",
     "default_group": "Utilisateurs choisis",
-    "post_parameters": "Paramètres de la publications",
+    "post_parameters": "Paramètres de la publication",
     "sure_delete_post": "Êtes-vous de vouloir supprimer cette publication ?",
     "who_can_see_post": "Qui peut voir cette publication",
     "group": "Groupe",
@@ -272,5 +272,18 @@
     "theme": "Thème",
     "language_type": "Langue",
     "language_type_en": "Anglais",
-    "language_type_fr": "Français"
+    "language_type_fr": "Français",
+    "profile_post_caption": "{name} a changé sa photo de profil",
+    "@wprofile_post_captione": {
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "sure_change_profil": "Êtes-vous sûr de vouloir retourner à votre profil ? Vos changements ne seront pas sauvergardés",
+    "quit_without_saving": "Quitter sans sauvergarder",
+    "save_changes": "Sauvegarder changements",
+    "remove_image": "Retirer image",
+    "remove_video": "Retirer video"
 }

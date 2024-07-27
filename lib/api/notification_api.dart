@@ -97,13 +97,14 @@ class NotificationsApi {
 
   handleBackGroundMessage(RemoteMessage message) {
     String type = message.data['type'] ?? "";
-    int typeId = typeToId(type);
     String screen = message.data['screen'] ?? "";
 
     String title = message.data['title'] ?? "";
     String body = message.data['body'] ?? "";
+    int id = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+
     NotificationsApi.showNotification(
-        id: typeId, title: title, body: body, payload: screen);
+        id: id, title: title, body: body, payload: screen);
 
     if (_context.mounted) {
       // Ios
@@ -154,8 +155,10 @@ class NotificationsApi {
 
     String title = message.data['title'] ?? "";
     String body = message.data['body'] ?? "";
+
+    int id = DateTime.now().millisecondsSinceEpoch ~/ 1000;
     NotificationsApi.showNotification(
-        id: typeId, title: title, body: body, payload: screen);
+        id: id, title: title, body: body, payload: screen);
 
     if (!checkIfUserIsAlreadyInPage(typeId, screen)) {
       // Provider.of<ReloadNotifier>(context, listen: false)

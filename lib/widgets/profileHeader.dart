@@ -155,7 +155,7 @@ class _ProfileHeader extends State<ProfileHeader> {
   }
 
   editPorfileAsync() async {
-    User newInfoUser = await Navigator.push(
+    User? newInfoUser = await Navigator.push(
       context,
       PageRouteBuilder(
         transitionDuration: Duration(milliseconds: 500),
@@ -176,9 +176,11 @@ class _ProfileHeader extends State<ProfileHeader> {
         },
       ),
     );
-    setState(() {
-      user = newInfoUser;
-    });
+    if (newInfoUser != null) {
+      setState(() {
+        user = newInfoUser;
+      });
+    }
   }
 
   editProfile() {

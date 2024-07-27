@@ -143,7 +143,7 @@ class _SearchState extends State<Search>
                 children: <Widget>[
                   SvgPicture.asset(
                     Provider.of<ThemeProvider>(context).themeMode ==
-                            Brightness.light
+                            ThemeMode.light
                         ? 'assets/images/advanced_search.svg'
                         : 'assets/images/advanced_search_white.svg',
                     height: 250.0,
@@ -173,7 +173,8 @@ class _SearchState extends State<Search>
     if (user.id != currentUser.id) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         setState(() {
-          searchLastResults.add(UserLastResult(user));
+          searchLastResults.insert(0, UserLastResult(user));
+          // searchLastResults.add(UserLastResult(user));
         });
       });
     }

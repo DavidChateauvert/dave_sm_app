@@ -11,8 +11,11 @@ import 'package:path_provider/path_provider.dart';
 import 'package:sm_app/api/firebase_api.dart';
 import 'package:sm_app/pages/home.dart';
 import 'package:sm_app/pages/search.dart';
+import 'package:sm_app/pages/upload.dart';
 import 'package:sm_app/widgets/message.dart';
+import 'package:sm_app/widgets/playVideo.dart';
 import 'package:uuid/uuid.dart';
+import 'package:video_player/video_player.dart';
 import '../models/user.dart';
 import '../widgets/progress.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
@@ -48,6 +51,9 @@ class MessageScreeState extends State<MessageScreen> {
   late final Function(String) updateMessage;
   bool isCommentNotEmpty = false;
   bool isFocused = false;
+  bool mediaIsLoading = false;
+  late VideoPlayerController _controller;
+  String type = "text";
 
   @override
   void initState() {
@@ -116,29 +122,66 @@ class MessageScreeState extends State<MessageScreen> {
       maxHeight: 960.0,
       maxWidth: 675.0,
     ));
-    setState(() {
-      file = File(xfile!.path);
-      isCommentNotEmpty = true;
-    });
+    if (xfile != null) {
+      setState(() {
+        type = "photo";
+        file = File(xfile.path);
+        isCommentNotEmpty = true;
+      });
+    }
   }
 
   handleChooseFromGalleryFunctions() async {
     await handleChooseFromGallery();
-    await compressImage();
   }
 
   handleChooseFromGallery() async {
     Navigator.pop(context);
     ImagePicker _imagePicker = ImagePicker();
-    XFile? xfile = (await _imagePicker.pickImage(
-      source: ImageSource.gallery,
+    setState(() {
+      mediaIsLoading = true;
+    });
+    XFile? xfile = (await _imagePicker.pickMedia(
       maxHeight: 675.0,
       maxWidth: 960,
     ));
-    setState(() {
-      file = File(xfile!.path);
-      isCommentNotEmpty = true;
-    });
+    if (xfile != null) {
+      String extension = xfile.path.split('.').last.toLowerCase();
+      if (extension == 'mp4' || extension == 'mov' || extension == 'MOV') {
+        _controller = VideoPlayerController.file(File(xfile.path));
+        await _controller.initialize();
+
+        if (_controller.value.duration.inSeconds > 10) {
+          showModalVideoTooLong(context);
+          setState(() {
+            mediaIsLoading = false;
+          });
+        } else {
+          String croppedPath = await cropVideo(File(xfile.path), _controller);
+
+          setState(() {
+            type = "video";
+            file = File(croppedPath);
+            mediaIsLoading = false;
+          });
+        }
+      } else {
+        setState(() {
+          type = "photo";
+          file = File(xfile.path);
+          isCommentNotEmpty = true;
+          mediaIsLoading = false;
+        });
+        await compressImage();
+      }
+      setState(() {
+        isCommentNotEmpty = true;
+      });
+    } else {
+      setState(() {
+        mediaIsLoading = false;
+      });
+    }
   }
 
   compressImage() async {
@@ -152,6 +195,40 @@ class MessageScreeState extends State<MessageScreen> {
       isCommentNotEmpty = true;
     });
     messageFocusNode.unfocus();
+  }
+
+  handleTakeVideoFunctions() async {
+    await handleTakeVideo();
+  }
+
+  handleTakeVideo() async {
+    Navigator.pop(context);
+    XFile? xfile;
+    String croppedPath = "";
+    final ImagePicker _imagePicker = ImagePicker();
+    xfile = await _imagePicker.pickVideo(
+      source: ImageSource.camera,
+      maxDuration: Duration(
+        seconds: 10,
+      ),
+    );
+
+    if (xfile != null) {
+      setState(() {
+        mediaIsLoading = true;
+      });
+      _controller = VideoPlayerController.file(File(xfile.path));
+      await _controller.initialize();
+
+      croppedPath = await cropVideo(File(xfile.path), _controller);
+
+      setState(() {
+        type = "video";
+        file = File(croppedPath);
+        mediaIsLoading = false;
+        isCommentNotEmpty = true;
+      });
+    }
   }
 
   String determineNotificationMessage(String messageTrim, File? file) {
@@ -204,6 +281,7 @@ class MessageScreeState extends State<MessageScreen> {
         "userId": currentUser.id,
         "otherUserId": widget.otherUserId,
         "mediaUrl": mediaUrl,
+        "type": type,
       });
 
       messagesRef
@@ -219,6 +297,7 @@ class MessageScreeState extends State<MessageScreen> {
         "userId": currentUser.id,
         "otherUserId": widget.otherUserId,
         "mediaUrl": mediaUrl,
+        "type": type,
       });
 
       await addNotificationMessageFeed();
@@ -235,88 +314,155 @@ class MessageScreeState extends State<MessageScreen> {
   }
 
   selectImage(parentContext) {
+    const width = 150.0;
+    const height = 100.0;
     return showDialog(
       context: parentContext,
       builder: (context) {
         return SimpleDialog(
-          title: Align(
-            alignment: Alignment.center,
+          title: Center(
             child: Text(
-              AppLocalizations.of(context)!.send_image,
+              AppLocalizations.of(context)!.add_media_to_post,
               style: TextStyle(
                 color: Theme.of(context).colorScheme.onBackground,
               ),
             ),
           ),
           children: <Widget>[
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: <Widget>[
-                Flexible(
-                  child: TextButton(
-                    onPressed: () => handleTakePhotoFunctions(),
-                    child: Container(
-                      height: 100.0,
-                      child: Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Icon(
-                              CupertinoIcons.photo_camera,
-                              color: Theme.of(context).colorScheme.onBackground,
-                              size: 28.0,
+            Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: <Widget>[
+                    Flexible(
+                      child: TextButton(
+                        onPressed: () => handleTakePhotoFunctions(),
+                        child: Container(
+                          width: width,
+                          height: height,
+                          child: Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  CupertinoIcons.photo_camera,
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onBackground,
+                                  size: 28.0,
+                                ),
+                                const SizedBox(
+                                  height: 8,
+                                ),
+                                Text(
+                                  AppLocalizations.of(context)!
+                                      .photo_with_camera,
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onBackground,
+                                  ),
+                                ),
+                              ],
                             ),
-                            const SizedBox(
-                              height: 8,
-                            ),
-                            Text(
-                              AppLocalizations.of(context)!.photo_with_camera,
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                color:
-                                    Theme.of(context).colorScheme.onBackground,
-                              ),
-                            ),
-                          ],
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                ),
-                Container(
-                  height: 100.0,
-                  width: 2.0,
-                  color: Theme.of(context).colorScheme.onBackground,
-                ),
-                Flexible(
-                  child: TextButton(
-                    onPressed: () => handleChooseFromGalleryFunctions(),
-                    child: Container(
+                    Container(
                       height: 100.0,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Icon(
-                            CupertinoIcons.photo_on_rectangle,
-                            color: Theme.of(context).colorScheme.onBackground,
-                            size: 28.0,
-                          ),
-                          const SizedBox(
-                            height: 8,
-                          ),
-                          Text(
-                            AppLocalizations.of(context)!.image_from_gallery,
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              color: Theme.of(context).colorScheme.onBackground,
+                      width: 2.0,
+                      color: Theme.of(context).colorScheme.onBackground,
+                    ),
+                    Flexible(
+                      child: TextButton(
+                        onPressed: () => handleTakeVideoFunctions(),
+                        child: Container(
+                          width: width,
+                          height: height,
+                          child: Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.videocam_outlined,
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onBackground,
+                                  size: 28.0,
+                                ),
+                                const SizedBox(
+                                  height: 8,
+                                ),
+                                Text(
+                                  AppLocalizations.of(context)!
+                                      .video_with_camera,
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onBackground,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                        ],
+                        ),
                       ),
                     ),
-                  ),
+                  ],
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      height: 2.0,
+                      width: 275.0,
+                      color: Theme.of(context).colorScheme.onBackground,
+                    ),
+                  ],
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    Flexible(
+                      child: TextButton(
+                        onPressed: () => handleChooseFromGalleryFunctions(),
+                        child: Container(
+                          width: 2 * width,
+                          height: height,
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Icon(
+                                CupertinoIcons.photo_on_rectangle,
+                                color:
+                                    Theme.of(context).colorScheme.onBackground,
+                                size: 28.0,
+                              ),
+                              const SizedBox(
+                                height: 8,
+                              ),
+                              Text(
+                                AppLocalizations.of(context)!
+                                    .photo_or_video_with_camera,
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onBackground,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -445,17 +591,70 @@ class MessageScreeState extends State<MessageScreen> {
                 Divider(),
                 Column(
                   children: [
-                    // Section for displaying selected images
-                    file != null
-                        ? Container(
-                            height: 100,
-                            decoration: BoxDecoration(
-                              image: DecorationImage(
-                                image: FileImage(file!),
-                              ),
-                            ),
-                          )
-                        : Container(),
+                    mediaIsLoading == true
+                        ? circularProgress()
+                        : file != null
+                            ? type == "video"
+                                ? Column(
+                                    children: [
+                                      Padding(
+                                        padding: EdgeInsets.symmetric(
+                                          vertical: 8.0,
+                                        ),
+                                        child: Column(
+                                          children: [
+                                            PlayVideo(
+                                              videoUrl: "",
+                                              type: "uploadMessage",
+                                              file: file,
+                                              height: _controller
+                                                  .value.size.height
+                                                  .round(),
+                                              width: _controller
+                                                  .value.size.width
+                                                  .round(),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      GestureDetector(
+                                        child: Icon(
+                                          Icons.cancel_outlined,
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .primary,
+                                        ),
+                                        onTap: () => clearImage(),
+                                      ),
+                                    ],
+                                  )
+                                : Column(
+                                    children: [
+                                      Padding(
+                                        padding: EdgeInsets.symmetric(
+                                          vertical: 8.0,
+                                        ),
+                                        child: Container(
+                                          height: 100,
+                                          decoration: BoxDecoration(
+                                            image: DecorationImage(
+                                              image: FileImage(file!),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      GestureDetector(
+                                        child: Icon(
+                                          Icons.cancel_outlined,
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .primary,
+                                        ),
+                                        onTap: () => clearImage(),
+                                      ),
+                                    ],
+                                  )
+                            : Container(),
                     // Text input for the message
                     ListTile(
                       title: TextFormField(

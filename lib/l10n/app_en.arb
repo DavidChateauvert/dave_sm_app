@@ -272,5 +272,18 @@
     "theme": "Theme",
     "language_type": "Language",
     "language_type_en": "English",
-    "language_type_fr": "French"
+    "language_type_fr": "French",
+    "profile_post_caption": "{name} has changed it's profile picture",
+    "@wprofile_post_captione": {
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "sure_change_profil": "Are you sure you want go back to your profile ? Your changes will not be saved",
+    "quit_without_saving": "Go back without saving",
+    "save_changes": "Save changes",
+    "remove_image": "Remove Image",
+    "remove_video": "Remove Video"
 }

@@ -2,6 +2,8 @@ import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:sm_app/providers/video_provider.dart';
 import 'package:sm_app/widgets/progress.dart';
 import 'package:video_player/video_player.dart';
 
@@ -32,7 +34,8 @@ class _PlayVideoState extends State<PlayVideo> {
   @override
   void initState() {
     super.initState();
-    if (widget.type == "upload" && widget.file != null) {
+    if ((widget.type == "upload" || widget.type == "uploadMessage") &&
+        widget.file != null) {
       _controller = VideoPlayerController.file(widget.file!);
     } else {
       _controller = VideoPlayerController.networkUrl(
@@ -69,7 +72,9 @@ class _PlayVideoState extends State<PlayVideo> {
     return ClipRRect(
       borderRadius: BorderRadius.circular(8.0),
       child: Container(
-        width: MediaQuery.of(context).size.width,
+        width: widget.type == "uploadMessage"
+            ? MediaQuery.of(context).size.width * 0.40
+            : MediaQuery.of(context).size.width,
         child: FutureBuilder(
           future: _initializeVideoPlayerFuture,
           builder: (context, snapshot) {
@@ -98,6 +103,10 @@ class _PlayVideoState extends State<PlayVideo> {
                   Positioned.fill(
                     child: TextButton(
                       onPressed: () {
+                        final notifier = Provider.of<VideoControllerProvider>(
+                            context,
+                            listen: false);
+                        notifier.setController(_controller);
                         setState(() {
                           if (_controller.value.isPlaying) {
                             _controller.pause();
@@ -111,7 +120,7 @@ class _PlayVideoState extends State<PlayVideo> {
                             ? null
                             : CupertinoIcons.play_fill,
                         color: Theme.of(context).colorScheme.secondary,
-                        size: 70.0,
+                        size: 64.0,
                       ),
                     ),
                   ),

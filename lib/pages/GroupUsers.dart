@@ -3,7 +3,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:sm_app/pages/home.dart';
 import 'package:sm_app/pages/search.dart';
-import 'package:sm_app/widgets/progress.dart';
 import '../models/user.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
@@ -19,16 +18,6 @@ class GroupUsers extends StatefulWidget {
 class _GroupUsers extends State<GroupUsers> {
   String? groupName;
   List<UserResult> userResult = [];
-
-  buildUsersList() {
-    // ignore: unnecessary_null_comparison
-    if (userResult == null) {
-      return circularProgress();
-    }
-    return ListView(
-      children: userResult,
-    );
-  }
 
   getUsers() async {
     QuerySnapshot usersSnapshot;
@@ -104,7 +93,7 @@ class _GroupUsers extends State<GroupUsers> {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          groupName != null
+          groupName != null && groupName != ""
               ? Container(
                   color: Theme.of(context).colorScheme.primary,
                   child: Padding(
