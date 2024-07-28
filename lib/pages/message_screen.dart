@@ -7,6 +7,8 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:image_size_getter/file_input.dart';
+import 'package:image_size_getter/image_size_getter.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sm_app/api/firebase_api.dart';
 import 'package:sm_app/pages/home.dart';
@@ -54,6 +56,7 @@ class MessageScreeState extends State<MessageScreen> {
   bool mediaIsLoading = false;
   late VideoPlayerController _controller;
   String type = "text";
+  Size size = Size(9, 12);
 
   @override
   void initState() {
@@ -123,9 +126,11 @@ class MessageScreeState extends State<MessageScreen> {
       maxWidth: 675.0,
     ));
     if (xfile != null) {
+      File newFile = File(xfile.path);
       setState(() {
         type = "photo";
-        file = File(xfile.path);
+        file = newFile;
+        size = ImageSizeGetter.getSize(FileInput(newFile));
         isCommentNotEmpty = true;
       });
     }
@@ -166,9 +171,11 @@ class MessageScreeState extends State<MessageScreen> {
           });
         }
       } else {
+        File newFile = File(xfile.path);
         setState(() {
           type = "photo";
-          file = File(xfile.path);
+          file = newFile;
+          size = ImageSizeGetter.getSize(FileInput(newFile));
           isCommentNotEmpty = true;
           mediaIsLoading = false;
         });
@@ -268,6 +275,17 @@ class MessageScreeState extends State<MessageScreen> {
           determineNotificationMessage(messageTrim, file);
       updateMessage(notificationMessage);
 
+      if (type == "video") {
+        int heightVideo = _controller.value.size.height.round() > 1440
+            ? 1440
+            : _controller.value.size.height.round();
+
+        size = Size(
+          _controller.value.size.width.round(),
+          heightVideo,
+        );
+      }
+
       messagesRef
           .doc(currentUserId)
           .collection("and")
@@ -282,6 +300,8 @@ class MessageScreeState extends State<MessageScreen> {
         "otherUserId": widget.otherUserId,
         "mediaUrl": mediaUrl,
         "type": type,
+        "mediaUrlWidth": size.width,
+        "mediaUrlHeight": size.height,
       });
 
       messagesRef

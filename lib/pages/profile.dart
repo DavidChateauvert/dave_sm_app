@@ -4,7 +4,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:sm_app/pages/home.dart';
-import 'package:sm_app/pages/photo.dart';
 import 'package:sm_app/pages/settings.dart';
 import 'package:sm_app/widgets/header.dart';
 import 'package:sm_app/widgets/post.dart';
@@ -139,47 +138,4 @@ class _Profile extends State<Profile> {
           : null,
     );
   }
-}
-
-showPhoto(
-    BuildContext context, String photoUrl, double aspectRatio, String type) {
-  Navigator.push(
-    context,
-    PageRouteBuilder(
-      pageBuilder: (_, __, ___) => Photo(
-        photoUrl: photoUrl,
-        aspectRatio: aspectRatio,
-        type: type,
-      ),
-      transitionsBuilder: (_, animation, __, child) {
-        return FadeTransition(
-          opacity: animation,
-          child: child,
-        );
-      },
-    ),
-  );
-}
-
-Route _createRoute(String photoUrl, double aspectRatio, String type) {
-  return PageRouteBuilder(
-    pageBuilder: (context, animation, secondaryAnimation) => Photo(
-      photoUrl: photoUrl,
-      aspectRatio: aspectRatio,
-      type: type,
-    ),
-    transitionsBuilder: (context, animation, secondaryAnimation, child) {
-      const begin = 0.0;
-      const end = 1.0;
-
-      var tween = Tween(begin: begin, end: end);
-
-      var fadeAnimation = animation.drive(tween);
-
-      return FadeTransition(
-        opacity: fadeAnimation,
-        child: child,
-      );
-    },
-  );
 }

@@ -688,10 +688,15 @@ class _ProfileHeader extends State<ProfileHeader> {
                     onTap: user.photoUrl.isEmpty
                         ? null
                         : () => Navigator.of(context).push(
-                              _createRoute(
+                              createRoute(
+                                context,
+                                user.photoUrl,
                                 user.photoUrl,
                                 1,
                                 "profile",
+                                MediaQuery.of(context).size.height * 0.5 -
+                                    MediaQuery.of(context).size.width * 0.5 +
+                                    40,
                               ),
                             ),
 
@@ -820,34 +825,15 @@ class _ProfileHeader extends State<ProfileHeader> {
   }
 }
 
-showPhoto(
-    BuildContext context, String photoUrl, double aspectRatio, String type) {
-  Navigator.push(
-    context,
-    PageRouteBuilder(
-      // transitionDuration: Duration(
-      //     milliseconds: 200), // Adjust the transition duration as desired
-      pageBuilder: (_, __, ___) => Photo(
-        photoUrl: photoUrl,
-        aspectRatio: aspectRatio,
-        type: type,
-      ),
-      transitionsBuilder: (_, animation, __, child) {
-        return FadeTransition(
-          opacity: animation,
-          child: child,
-        );
-      },
-    ),
-  );
-}
-
-Route _createRoute(String photoUrl, double aspectRatio, String type) {
+Route createRoute(BuildContext context, String tag, String photoUrl,
+    double aspectRatio, String type, double desiredHeight) {
   return PageRouteBuilder(
     pageBuilder: (context, animation, secondaryAnimation) => Photo(
+      tag: tag,
       photoUrl: photoUrl,
       aspectRatio: aspectRatio,
       type: type,
+      desiredTop: desiredHeight,
     ),
     transitionsBuilder: (context, animation, secondaryAnimation, child) {
       const begin = 0.0;
