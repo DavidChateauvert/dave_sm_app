@@ -195,7 +195,7 @@ class FirebaseApi {
         await FirebaseApi().getLocale(context, otherUserId) ?? Locale('en');
     String textNotification;
     if (userLocale == Locale('en')) {
-      textNotification = "$senderName has liked your post";
+      textNotification = "$senderName liked your post";
     } else {
       textNotification = "$senderName a aimé votre publication";
     }
@@ -209,6 +209,34 @@ class FirebaseApi {
         'body': textNotification,
         'screen': "${postId}",
         'type': "like",
+      });
+    } catch (e) {
+      print('Error sending message: $e');
+    }
+  }
+
+  sendMentionLikeNotification(BuildContext context, String otherUserId,
+      String senderName, String postId) async {
+    String userTokens = await FirebaseApi().getToken(otherUserId) ?? "";
+    Locale userLocale =
+        await FirebaseApi().getLocale(context, otherUserId) ?? Locale('en');
+    String textNotification;
+    if (userLocale == Locale('en')) {
+      textNotification = "$senderName liked a post where you are mentioned";
+    } else {
+      textNotification =
+          "$senderName a aimé une publication où vous êtes mentionné(e)";
+    }
+
+    try {
+      final HttpsCallable callable =
+          functions.httpsCallable('sendNotification');
+      await callable.call({
+        'tokens': userTokens,
+        'title': "Dave",
+        'body': textNotification,
+        'screen': "${postId}",
+        'type': "mentionLike",
       });
     } catch (e) {
       print('Error sending message: $e');

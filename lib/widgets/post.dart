@@ -502,6 +502,29 @@ class _PostState extends State<Post> {
       });
       await FirebaseApi().sendLikeNotification(
           context, ownerId, currentUser.displayName, postId);
+      if (mentions != {}) {
+        mentions.keys.forEach((userMentionId) async {
+          if (currentUserId != userMentionId) {
+            await activityFeedRef
+                .doc(userMentionId)
+                .collection("feedItems")
+                .doc(postId + "ment")
+                .set({
+              "type": "mentionLike",
+              "username": currentUser.displayName,
+              "userId": currentUser.id,
+              "userProfileImg": currentUser.photoUrl,
+              "postId": postId,
+              "seen": false,
+              "commentData": "",
+              // "mediaUrl": mediaUrl,
+              "timestamp": DateTime.now(),
+            });
+            await FirebaseApi().sendMentionLikeNotification(
+                context, userMentionId, currentUser.displayName, postId);
+          }
+        });
+      }
     }
   }
 
@@ -515,6 +538,20 @@ class _PostState extends State<Post> {
           .then((doc) => {
                 if (doc.exists) {doc.reference.delete()}
               });
+    }
+    if (mentions != {}) {
+      mentions.keys.forEach((userMentionId) async {
+        if (currentUserId != userMentionId) {
+          activityFeedRef
+              .doc(userMentionId)
+              .collection("feedItems")
+              .doc(postId + "ment")
+              .get()
+              .then((doc) => {
+                    if (doc.exists) {doc.reference.delete()}
+                  });
+        }
+      });
     }
   }
 

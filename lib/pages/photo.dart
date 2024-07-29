@@ -28,7 +28,7 @@ class _PhotoState extends State<Photo> {
   double _initialLeft = 0;
   double _scale = 1.0;
   double _initialScale = 1.0;
-  final double _dragThreshold = 200;
+  final double _dragThreshold = 150;
   bool isZooming = false;
 
   @override
@@ -45,9 +45,6 @@ class _PhotoState extends State<Photo> {
 
   @override
   Widget build(BuildContext context) {
-    setState(() {
-      isZooming = _scale != _initialScale;
-    });
     return Scaffold(
       body: Stack(
         children: [
@@ -56,37 +53,44 @@ class _PhotoState extends State<Photo> {
             left: _left,
             child: GestureDetector(
               onDoubleTap: () {
-                setState(() {});
+                setState(() {
+                  _top = widget.desiredTop;
+                  _initialTop = widget.desiredTop;
+                  _left = 0;
+                  _initialLeft = 0;
+                  _scale = 1.0;
+                  _initialScale = 1.0;
+                });
               },
               onScaleStart: (details) {
-                if (details.pointerCount == 1) {
+                setState(() {
                   _initialTop = _top;
                   _initialLeft = _left;
-                } else {
                   _initialScale = _scale;
-                }
+                });
               },
               onScaleUpdate: (details) {
-                if (details.pointerCount == 1) {
-                  setState(() {
+                setState(() {
+                  if (details.pointerCount == 1) {
                     _top += details.focalPointDelta.dy;
                     _left += details.focalPointDelta.dx;
-                  });
-                } else {
-                  setState(() {
+                  } else {
                     _scale = max(1.0, _initialScale * details.scale);
-                    if (details.scale < 1.0) {
-                      setState(() {
-                        _scale = 1.0;
-                        _top = widget.desiredTop;
-                        _initialTop = widget.desiredTop;
-                      });
+                    _top += details.focalPointDelta.dy;
+                    _left += details.focalPointDelta.dx;
+                    if (_scale <= 1.02) {
+                      _top = widget.desiredTop;
+                      _initialTop = widget.desiredTop;
+                      _initialLeft = 0;
+                      _left = 0;
+                      _scale = 1.0;
+                      _initialScale = 1.0;
                     }
-                  });
-                }
+                  }
+                });
               },
               onScaleEnd: (details) {
-                if (!isZooming) {
+                if (_scale < 1.05) {
                   double distanceMoved = sqrt(
                     pow(_top - _initialTop, 2) + pow(_left - _initialLeft, 2),
                   );

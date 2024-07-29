@@ -48,6 +48,7 @@ class _PlayVideoState extends State<PlayVideo> {
 
     _controller.setVolume(1);
 
+    if (widget.type == "message") _controller.play();
     // Listen to the video controller for changes
     _controller.addListener(() {
       setState(() {});
@@ -75,7 +76,6 @@ class _PlayVideoState extends State<PlayVideo> {
         width: widget.type == "uploadMessage"
             ? MediaQuery.of(context).size.width * 0.40
             : MediaQuery.of(context).size.width,
-        height: 1000,
         child: FutureBuilder(
           future: _initializeVideoPlayerFuture,
           builder: (context, snapshot) {
@@ -101,32 +101,30 @@ class _PlayVideoState extends State<PlayVideo> {
                       ),
                     ),
                   ),
-                  widget.type == "messageFullVideo"
-                      ? Positioned.fill(
-                          child: TextButton(
-                            onPressed: () {
-                              final notifier =
-                                  Provider.of<VideoControllerProvider>(context,
-                                      listen: false);
-                              notifier.setController(_controller);
-                              setState(() {
-                                if (_controller.value.isPlaying) {
-                                  _controller.pause();
-                                } else {
-                                  _controller.play();
-                                }
-                              });
-                            },
-                            child: Icon(
-                              _controller.value.isPlaying
-                                  ? null
-                                  : CupertinoIcons.play_fill,
-                              color: Theme.of(context).colorScheme.secondary,
-                              size: 64.0,
-                            ),
-                          ),
-                        )
-                      : Container(),
+                  Positioned.fill(
+                    child: TextButton(
+                      onPressed: () {
+                        final notifier = Provider.of<VideoControllerProvider>(
+                            context,
+                            listen: false);
+                        notifier.setController(_controller);
+                        setState(() {
+                          if (_controller.value.isPlaying) {
+                            _controller.pause();
+                          } else {
+                            _controller.play();
+                          }
+                        });
+                      },
+                      child: Icon(
+                        _controller.value.isPlaying
+                            ? null
+                            : CupertinoIcons.play_fill,
+                        color: Theme.of(context).colorScheme.secondary,
+                        size: 64.0,
+                      ),
+                    ),
+                  ),
                   Positioned(
                     top: 0,
                     right: 0,
@@ -155,36 +153,6 @@ class _PlayVideoState extends State<PlayVideo> {
                       },
                     ),
                   ),
-                  widget.type == "message"
-                      ? Positioned(
-                          top: 0,
-                          left: 0,
-                          child: IconButton(
-                            splashColor: Colors.transparent,
-                            highlightColor: Colors.transparent,
-                            icon: Icon(
-                              isPlayingVolume
-                                  ? Icons.volume_up_outlined
-                                  : Icons.volume_off_outlined,
-                              color: Theme.of(context).colorScheme.secondary,
-                              size: 30.0,
-                            ),
-                            onPressed: () {
-                              if (isPlayingVolume) {
-                                setState(() {
-                                  isPlayingVolume = false;
-                                  _controller.setVolume(0.0);
-                                });
-                              } else {
-                                setState(() {
-                                  isPlayingVolume = true;
-                                  _controller.setVolume(1.0);
-                                });
-                              }
-                            },
-                          ),
-                        )
-                      : Container()
                 ],
               );
             } else {

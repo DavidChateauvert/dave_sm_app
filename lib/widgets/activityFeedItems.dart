@@ -118,22 +118,18 @@ class _ActivityFeedItem extends State<ActivityFeedItem> {
     } else if (type == "commentLike") {
       activityItemText =
           AppLocalizations.of(context)!.activity_item_text_commentLike;
+    } else if (type == "mentionLike") {
+      activityItemText =
+          AppLocalizations.of(context)!.activity_item_text_mentionLike;
     } else {
       activityItemText =
           AppLocalizations.of(context)!.activity_item_text_error(type);
     }
   }
 
-  // seenNotification() {
-  //   activityFeedRef
-  //     .doc(currentUser.id)
-  //     .collection("feedItems")
-  //     .doc()
-  //     .update({"seen": true});
-  // }
-
   showNotification(context, type) {
-    if (["like", "comment", "mention", "commentLike"].contains(type)) {
+    if (["like", "comment", "mention", "commentLike", "mentionLike"]
+        .contains(type)) {
       showPost(context, type);
     } else if (type == "follow") {
       showProfile(context, profileId: userId);
@@ -223,6 +219,7 @@ class _ActivityFeedItem extends State<ActivityFeedItem> {
                   onPressed: () => showNotification(context, type),
                   child: ListTile(
                     title: RichText(
+                      maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       text: TextSpan(
                         style: TextStyle(

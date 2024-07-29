@@ -82,6 +82,7 @@
     },
     "activity_item_text_mention": "has tagged you in a post",
     "activity_item_text_commentLike": "liked your comment",
+    "activity_item_text_mentionLike": "liked a post where you are mentioned",
     "activity_item_text_error": "Error: Unkown type {type}",
     "@activity_item_text_error": {
         "placeholders": {

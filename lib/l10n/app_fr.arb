@@ -82,6 +82,7 @@
     },
     "activity_item_text_mention": "vous a identifié dans une publication",
     "activity_item_text_commentLike": "a aimé votre commentaire",
+    "activity_item_text_mentionLike": "a aimé une publication où vous êtes mentionné(e)",
     "activity_item_text_error": "Erreur: Type Inconnu {type}",
     "@activity_item_text_error": {
         "placeholders": {

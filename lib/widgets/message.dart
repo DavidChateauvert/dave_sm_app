@@ -1,12 +1,14 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:sm_app/pages/home.dart';
+import 'package:sm_app/pages/playVideoFullPage.dart';
 
 import 'package:sm_app/widgets/custom_image.dart';
 
 import 'package:chat_bubbles/chat_bubbles.dart';
 import 'package:sm_app/widgets/playVideo.dart';
 import 'package:sm_app/widgets/profileHeader.dart';
+import 'package:sm_app/widgets/videoThumbnail.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import 'package:uuid/uuid.dart';
 
@@ -132,33 +134,46 @@ class _MessageState extends State<Message> {
                       ? CrossAxisAlignment.end
                       : CrossAxisAlignment.start,
                   children: <Widget>[
-                    BubbleNormalImage(
-                      color: Theme.of(context).colorScheme.background,
-                      key: imageKey,
-                      id: widget.messageId,
-                      image: widget.type == "video"
-                          ? PlayVideo(
-                              videoUrl: widget.mediaUrl,
-                              type: typeVideo,
-                              file: null,
-                              height: widget.mediaUrlHeight,
-                              width: widget.mediaUrlWidth,
-                            )
-                          : cachedNetworkImage(widget.mediaUrl),
-                      isSender: isSender,
-                      onTap: () => Navigator.of(context).push(
-                        createRoute(
-                          context,
-                          widget.messageId,
-                          widget.mediaUrl,
-                          1,
-                          "message",
-                          (MediaQuery.of(context).size.height -
-                                  widget.mediaUrlHeight) *
-                              0.5,
-                        ),
-                      ),
-                    ),
+                    widget.type == "video"
+                        ? BubbleNormalImage(
+                            color: Theme.of(context).colorScheme.background,
+                            key: imageKey,
+                            id: widget.messageId,
+                            image: VideoThumbnailWidget(
+                              videoPath: widget.mediaUrl,
+                            ),
+                            isSender: isSender,
+                            onTap: () => Navigator.of(context).push(
+                              createRouteVideo(
+                                context,
+                                widget.messageId,
+                                widget.mediaUrl,
+                                1,
+                                "message",
+                                widget.mediaUrlHeight,
+                                widget.mediaUrlWidth,
+                              ),
+                            ),
+                          )
+                        : BubbleNormalImage(
+                            color: Theme.of(context).colorScheme.background,
+                            key: imageKey,
+                            id: widget.messageId,
+                            image: cachedNetworkImage(widget.mediaUrl),
+                            isSender: isSender,
+                            onTap: () => Navigator.of(context).push(
+                              createRoute(
+                                context,
+                                widget.messageId,
+                                widget.mediaUrl,
+                                1,
+                                "message",
+                                (MediaQuery.of(context).size.height -
+                                        widget.mediaUrlHeight) *
+                                    0.5,
+                              ),
+                            ),
+                          ),
                     SizedBox(height: 4.0),
                     Text(
                       timeago.format(widget.timestamp.toDate(),
@@ -259,4 +274,28 @@ class _MessageState extends State<Message> {
             ? buildBubbleOnlyImage(context, isSender)
             : buildBubbleOnlyText(context, isSender);
   }
+}
+
+Route createRouteVideo(BuildContext context, String tag, String mediaUrl,
+    double aspectRatio, String type, int mediaHeight, int mediaWith) {
+  return PageRouteBuilder(
+    pageBuilder: (context, animation, secondaryAnimation) => PlayVideoFullPage(
+      mediaUrl: mediaUrl,
+      height: mediaHeight,
+      width: mediaWith,
+    ),
+    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+      const begin = 0.0;
+      const end = 1.0;
+
+      var tween = Tween(begin: begin, end: end);
+
+      var fadeAnimation = animation.drive(tween);
+
+      return FadeTransition(
+        opacity: fadeAnimation,
+        child: child,
+      );
+    },
+  );
 }
