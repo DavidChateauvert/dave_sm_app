@@ -86,7 +86,7 @@ class AuthentificationService {
       context: context,
       builder: (context) {
         return Center(
-          child: circularProgress(),
+          child: circularProgress(context),
         );
       },
     );

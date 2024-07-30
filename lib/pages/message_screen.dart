@@ -91,7 +91,7 @@ class MessageScreeState extends State<MessageScreen> {
           .snapshots(),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
-          return circularProgress();
+          return circularProgress(context);
         }
         List<Message> messages = [];
         snapshot.data?.docs.forEach((doc) {
@@ -574,7 +574,7 @@ class MessageScreeState extends State<MessageScreen> {
         future: usersRef.doc(widget.otherUserId).get(),
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
-            return circularProgress();
+            return circularProgress(context);
           }
           otherUser =
               User.fromDocument(snapshot.data as DocumentSnapshot<Object?>);
@@ -607,12 +607,12 @@ class MessageScreeState extends State<MessageScreen> {
             body: Column(
               children: <Widget>[
                 Expanded(child: buildMessages()),
-                isUploading ? linearProgress() : Container(),
+                isUploading ? linearProgress(context) : Container(),
                 Divider(),
                 Column(
                   children: [
                     mediaIsLoading == true
-                        ? circularProgress()
+                        ? circularProgress(context)
                         : file != null
                             ? type == "video"
                                 ? Column(

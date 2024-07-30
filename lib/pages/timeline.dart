@@ -3,10 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sm_app/pages/home.dart';
 import 'package:sm_app/providers/post_counter.dart';
+import 'package:sm_app/widgets/checkInternetConnection.dart';
 import 'package:sm_app/widgets/cleanTimeline.dart';
 import 'package:sm_app/widgets/header.dart';
 import 'package:sm_app/widgets/post.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import '../models/user.dart';
 
@@ -28,12 +31,27 @@ class TimelineState extends State<Timeline> {
   Key _listKey = UniqueKey();
   bool timelineIsEmpty = false;
   ScrollController _scrollController = ScrollController();
+  bool hasInternetConnection = true;
 
   @override
   void initState() {
     super.initState();
+    checkInternet();
     getTimeline();
     getFollowing();
+  }
+
+  toCallOnRetry() {
+    checkInternet();
+    getTimeline();
+    getFollowing();
+  }
+
+  Future<void> checkInternet() async {
+    bool connected = await checkInternetConnection();
+    setState(() {
+      hasInternetConnection = connected;
+    });
   }
 
   getToTop() {
@@ -45,25 +63,43 @@ class TimelineState extends State<Timeline> {
   }
 
   getTimeline() async {
-    QuerySnapshot snapshot = await timelineRef
-        .doc(widget.currentUser.id)
-        .collection('timelinePosts')
-        .orderBy('timestamp')
-        .get();
-
-    List<Post> posts = snapshot.docs
-        .map((doc) => Post.fromDocumentForTimeline(
-            doc, MediaQuery.of(context).padding.top + kToolbarHeight))
-        .toList();
-    setState(() {
-      Provider.of<PostCounterProvider>(context, listen: false).postCounter =
-          posts.length;
-      this.posts = posts;
-      if (posts.isEmpty) {
-        this.timelineIsEmpty = true;
+    try {
+      var connectivityResult = await (Connectivity().checkConnectivity());
+      if (connectivityResult == ConnectivityResult.none) {
+        throw Exception(AppLocalizations.of(context)!.error_no_connection);
       }
-      _listKey = UniqueKey();
-    });
+
+      // Fetch timeline posts from Firestore
+      QuerySnapshot snapshot = await timelineRef
+          .doc(widget.currentUser.id)
+          .collection('timelinePosts')
+          .orderBy('timestamp')
+          .get();
+
+      List<Post> posts = snapshot.docs
+          .map((doc) => Post.fromDocumentForTimeline(
+              doc, MediaQuery.of(context).padding.top + kToolbarHeight))
+          .toList();
+      setState(() {
+        Provider.of<PostCounterProvider>(context, listen: false).postCounter =
+            posts.length;
+        this.posts = posts;
+        if (posts.isEmpty) {
+          this.timelineIsEmpty = true;
+        }
+        _listKey = UniqueKey();
+      });
+    } catch (e) {
+      if (hasInternetConnection) {
+        String errorMessage = e.toString().replaceFirst('Exception: ', '');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content:
+                Text(AppLocalizations.of(context)!.error_message(errorMessage)),
+          ),
+        );
+      }
+    }
   }
 
   getFollowing() async {
@@ -247,7 +283,9 @@ class TimelineState extends State<Timeline> {
   Widget build(context) {
     return Scaffold(
       appBar: header(context), //, showPostCounter: true
-      body: buildTimeline(context),
+      body: hasInternetConnection
+          ? buildTimeline(context)
+          : showNoConnection(context, toCallOnRetry),
     );
   }
 }

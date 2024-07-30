@@ -7,7 +7,7 @@ Widget cachedNetworkImage(String mediaUrl) {
     imageUrl: mediaUrl,
     fit: BoxFit.cover,
     placeholder: (context, url) => Padding(
-      child: circularProgress(),
+      child: circularProgress(context),
       padding: EdgeInsets.all(20.0),
     ),
     errorWidget: (context, url, error) => Icon(Icons.error),

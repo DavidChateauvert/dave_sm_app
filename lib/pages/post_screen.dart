@@ -97,7 +97,7 @@ class _ProfileScreen extends State<PostScreen> {
             height: 0.0,
           ),
           isLoading
-              ? circularProgress()
+              ? circularProgress(context)
               : post == null
                   ? buildPostAlreadySeen()
                   : post,

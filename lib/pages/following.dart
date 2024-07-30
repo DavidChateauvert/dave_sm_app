@@ -22,9 +22,9 @@ class _Following extends State<Following> {
   buildFollowing() {
     // ignore: unnecessary_null_comparison
     if (userResult == null) {
-      return circularProgress();
+      return circularProgress(context);
     } else if (userResult.isEmpty) {
-      return circularProgress();
+      return circularProgress(context);
     }
     return ListView(
       children: userResult,

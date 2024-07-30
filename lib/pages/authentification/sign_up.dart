@@ -38,7 +38,7 @@ class _SignUpState extends State<SignUp> {
       context: context,
       builder: (context) {
         return Center(
-          child: circularProgress(),
+          child: circularProgress(context),
         );
       },
     );

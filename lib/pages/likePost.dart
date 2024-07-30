@@ -23,7 +23,7 @@ class _LikePost extends State<LikePost> {
   buildFollowing() {
     // ignore: unnecessary_null_comparison
     if (userResult == null) {
-      return circularProgress();
+      return circularProgress(context);
     }
     return ListView(
       children: userResult,

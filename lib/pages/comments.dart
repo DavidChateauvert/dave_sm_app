@@ -74,7 +74,7 @@ class CommentsState extends State<Comments> {
           .snapshots(),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
-          return circularProgress();
+          return circularProgress(context);
         }
         List<Comment> comments = [];
         snapshot.data?.docs.forEach((doc) {

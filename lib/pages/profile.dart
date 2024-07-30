@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:sm_app/pages/home.dart';
 import 'package:sm_app/pages/settings.dart';
+import 'package:sm_app/widgets/checkInternetConnection.dart';
 import 'package:sm_app/widgets/header.dart';
 import 'package:sm_app/widgets/post.dart';
 import 'package:sm_app/widgets/profileHeader.dart';
@@ -35,11 +36,24 @@ class _Profile extends State<Profile> {
   List<PostProfile> posts = [];
   List<Post> post = [];
   late User user;
+  bool hasInternetConnection = true;
 
   @override
   void initState() {
     super.initState();
     getProfilePosts();
+  }
+
+  toCallOnRetry() {
+    checkInternet();
+    getProfilePosts();
+  }
+
+  Future<void> checkInternet() async {
+    bool connected = await checkInternetConnection();
+    setState(() {
+      hasInternetConnection = connected;
+    });
   }
 
   getProfilePosts() async {
@@ -70,7 +84,7 @@ class _Profile extends State<Profile> {
 
   buildProfilePost() {
     if (isLoading) {
-      return Text(""); //circularProgress();
+      return Text(""); //circularProgress(context);
     } else if (posts.isEmpty && currentUserId == widget.profileId) {
       return Container(
         child: Column(
@@ -121,16 +135,26 @@ class _Profile extends State<Profile> {
                 Divider(
                   height: 0.0,
                 ),
-                buildProfilePost(),
+                hasInternetConnection
+                    ? buildProfilePost()
+                    : showNoConnection(
+                        context,
+                        toCallOnRetry,
+                      ),
               ],
             )
-          : ListView(
-              children: <Widget>[
-                ProfileHeader(
-                  profileId: widget.profileId,
+          : hasInternetConnection
+              ? ListView(
+                  children: <Widget>[
+                    ProfileHeader(
+                      profileId: widget.profileId,
+                    ),
+                  ],
+                )
+              : showNoConnection(
+                  context,
+                  toCallOnRetry,
                 ),
-              ],
-            ),
       drawer: currentUserId == widget.profileId
           ? SettingsPage(
               currentUserId: currentUserId,

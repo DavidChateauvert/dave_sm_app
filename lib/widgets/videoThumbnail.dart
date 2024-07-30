@@ -37,7 +37,7 @@ class _VideoThumbnailWidgetState extends State<VideoThumbnailWidget> {
   @override
   Widget build(BuildContext context) {
     return _thumbnailPath == null
-        ? circularProgress()
+        ? circularProgress(context)
         : Stack(
             alignment: Alignment.center,
             children: [

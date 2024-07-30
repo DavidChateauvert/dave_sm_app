@@ -830,7 +830,7 @@ class _UploadState extends State<Upload>
           ),
           body: ListView(
             children: <Widget>[
-              isUploading ? linearProgress() : Text(""),
+              isUploading ? linearProgress(context) : Text(""),
               group != null
                   ? Container()
                   : Padding(
@@ -930,7 +930,7 @@ class _UploadState extends State<Upload>
                   ? Container(
                       height: 325,
                       child: Center(
-                        child: circularProgress(),
+                        child: circularProgress(context),
                       ),
                     )
                   : (file != null && type == "photo")

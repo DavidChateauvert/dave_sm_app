@@ -50,7 +50,7 @@ class _OnboardingScreen2State extends State<OnboardingScreen2> {
                 child: VideoPlayer(_controller),
               );
             } else {
-              return circularProgress();
+              return circularProgress(context);
             }
           },
         ),

@@ -64,7 +64,7 @@ class _OnboardingScreen3State extends State<OnboardingScreen3> {
                 ],
               );
             } else {
-              return circularProgress();
+              return circularProgress(context);
             }
           },
         ),

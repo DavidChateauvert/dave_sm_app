@@ -286,5 +286,15 @@
     "quit_without_saving": "Quitter sans sauvergarder",
     "save_changes": "Sauvegarder changements",
     "remove_image": "Retirer image",
-    "remove_video": "Retirer video"
+    "remove_video": "Retirer video",
+    "error_message": "Erreur : {error_message_specified}",
+    "@error_message": {
+        "placeholders": {
+            "error_message_specified": {
+                "type": "String"
+            }
+        }
+    },
+    "error_no_connection": "Pas de connexion internet",
+    "retry": "Réessayer"
 }

@@ -209,7 +209,7 @@ class _PostState extends State<Post> {
       future: usersRef.doc(ownerId).get(),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
-          return circularProgress();
+          return circularProgress(context);
         }
         user = User.fromDocument(snapshot.data as DocumentSnapshot<Object?>);
         bool isPostOwner = currentUserId == ownerId;

@@ -1,19 +1,23 @@
 import 'package:flutter/material.dart';
 
-Container circularProgress() {
+Container circularProgress(context) {
   return Container(
       alignment: Alignment.center,
       padding: const EdgeInsets.only(top: 10.0),
-      child: const CircularProgressIndicator(
+      child: CircularProgressIndicator(
         strokeWidth: 2,
-        valueColor: AlwaysStoppedAnimation(Color.fromARGB(255, 89, 36, 99)),
+        valueColor: AlwaysStoppedAnimation(
+          Theme.of(context).colorScheme.primaryContainer,
+        ),
       ));
 }
 
-Container linearProgress() {
+Container linearProgress(context) {
   return Container(
     padding: EdgeInsets.only(bottom: 10.0),
-    child: const LinearProgressIndicator(
-        valueColor: AlwaysStoppedAnimation(Color.fromARGB(255, 89, 36, 99))),
+    child: LinearProgressIndicator(
+      valueColor: AlwaysStoppedAnimation(
+          Theme.of(context).colorScheme.primaryContainer),
+    ),
   );
 }

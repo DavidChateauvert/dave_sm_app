@@ -919,7 +919,7 @@ class _EditProfileState extends State<EditProfile> {
         ],
       ),
       body: isLoading
-          ? circularProgress()
+          ? circularProgress(context)
           : ListView(
               children: <Widget>[
                 Container(
@@ -929,7 +929,7 @@ class _EditProfileState extends State<EditProfile> {
                       Container(
                         height: 80,
                         child: pictureIsLoading
-                            ? circularProgress()
+                            ? circularProgress(context)
                             : CircleAvatar(
                                 radius: 40.0,
                                 backgroundColor: Colors.grey,

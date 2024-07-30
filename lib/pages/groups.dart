@@ -576,7 +576,7 @@ class _GroupsState extends State<Groups> {
                 ],
               ),
             )
-          : circularProgress(),
+          : circularProgress(context),
     );
   }
 }

@@ -388,7 +388,7 @@ class _CreateAccountState extends State<CreateAccount> {
         Container(
           height: 80,
           child: pictureIsLoading
-              ? circularProgress()
+              ? circularProgress(context)
               : photoUrl == ""
                   ? Icon(
                       CupertinoIcons.person_circle,

@@ -158,7 +158,7 @@ class _PlayVideoState extends State<PlayVideo> {
             } else {
               return AspectRatio(
                 aspectRatio: handleRatio(),
-                child: circularProgress(),
+                child: circularProgress(context),
               );
             }
           },

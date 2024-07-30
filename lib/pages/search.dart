@@ -2,6 +2,7 @@
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
@@ -24,6 +25,7 @@ class _SearchState extends State<Search>
   Future<QuerySnapshot>? searchResultsFuture;
   List<UserLastResult> searchLastResults = [];
   FocusNode searchFocusNode = FocusNode();
+  bool alreadyShownErrorMessage = false;
 
   @override
   void initState() {
@@ -32,19 +34,27 @@ class _SearchState extends State<Search>
   }
 
   handleSearch(String query) async {
-    // Quand tu seras prêt
-    // if (query == "") {
-    //   clearSearch();
-    // } else {
-    String lowercasedQuery = query.toLowerCase();
-    QuerySnapshot users = await usersRef
-        .orderBy("displayNameLower")
-        .startAt([lowercasedQuery]).endAt([lowercasedQuery + '\uf8ff']).get();
+    try {
+      var connectivityResult = await (Connectivity().checkConnectivity());
+      if (connectivityResult == ConnectivityResult.none) {
+        throw Exception(AppLocalizations.of(context)!.error_no_connection);
+      }
+      String lowercasedQuery = query.toLowerCase();
+      QuerySnapshot users = await usersRef
+          .orderBy("displayNameLower")
+          .startAt([lowercasedQuery]).endAt([lowercasedQuery + '\uf8ff']).get();
 
-    setState(() {
-      searchResultsFuture = Future.value(users);
-    });
-    // }
+      setState(() {
+        searchResultsFuture = Future.value(users);
+      });
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content:
+              Text(AppLocalizations.of(context)!.error_message(e.toString())),
+        ),
+      );
+    }
   }
 
   handleSearchLastUsers() async {
@@ -185,7 +195,7 @@ class _SearchState extends State<Search>
       future: searchResultsFuture,
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
-          return circularProgress();
+          return circularProgress(context);
         }
         List<UserResult> searchResults = [];
         var currentUserId = currentUser.id;

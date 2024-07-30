@@ -77,7 +77,7 @@ class _SearchMessageState extends State<SearchMessage>
       future: searchResultsFuture,
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
-          return circularProgress();
+          return circularProgress(context);
         }
         List<UserResult> searchResults = [];
         // ignore: avoid_function_literals_in_foreach_calls
@@ -99,7 +99,7 @@ class _SearchMessageState extends State<SearchMessage>
       future: searchResultsFuture,
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
-          return circularProgress();
+          return circularProgress(context);
         }
         List<UserResult> searchResults = [];
         // ignore: avoid_function_literals_in_foreach_calls

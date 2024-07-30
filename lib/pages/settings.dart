@@ -46,7 +46,7 @@ class _SettingsPageState extends State<SettingsPage> {
     return Drawer(
       key: _scaffoldKey,
       child: isLoading
-          ? circularProgress()
+          ? circularProgress(context)
           : ListView(
               padding: EdgeInsets.zero,
               children: <Widget>[

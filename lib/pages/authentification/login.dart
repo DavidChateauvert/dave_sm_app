@@ -60,7 +60,7 @@ class _LoginState extends State<Login> {
       context: context,
       builder: (context) {
         return Center(
-          child: circularProgress(),
+          child: circularProgress(context),
         );
       },
     );

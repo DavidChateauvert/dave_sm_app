@@ -43,7 +43,7 @@ class _MessageFeed extends State<MessageFeed> {
           future: getMessageFeed(),
           builder: (context, snapshot) {
             if (!snapshot.hasData) {
-              return circularProgress();
+              return circularProgress(context);
             }
             return ListView(
               children: snapshot.data as List<Widget>,

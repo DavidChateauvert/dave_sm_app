@@ -21,7 +21,7 @@ class _ResetPasswordState extends State<ResetPassword> {
       context: context,
       builder: (context) {
         return Center(
-          child: circularProgress(),
+          child: circularProgress(context),
         );
       },
     );

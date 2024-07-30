@@ -400,18 +400,22 @@ class _ProfileHeader extends State<ProfileHeader> {
       }
       isFollowing = true;
     });
-    // Add to followers
-    followersRef
-        .doc(widget.profileId)
-        .collection('userFollowers')
-        .doc(currentUserId)
-        .set({});
-    // Add to following
-    followingRef
-        .doc(currentUserId)
-        .collection('userFollowing')
-        .doc(widget.profileId)
-        .set({});
+    try {
+      // Add to followers
+      followersRef
+          .doc(widget.profileId)
+          .collection('userFollowers')
+          .doc(currentUserId)
+          .set({});
+      // Add to following
+      followingRef
+          .doc(currentUserId)
+          .collection('userFollowing')
+          .doc(widget.profileId)
+          .set({});
+    } catch (e) {
+      print(e);
+    }
     // Add to friends if user is also following
     DocumentSnapshot doc = await followingRef
         .doc(widget.profileId)
@@ -455,6 +459,7 @@ class _ProfileHeader extends State<ProfileHeader> {
         "seen": true,
         "timestamp": DateTime.now(),
       });
+
       FirebaseApi().sendAcceptRequestNotification(
           context, widget.profileId, currentUser.displayName);
     } else {
@@ -671,7 +676,7 @@ class _ProfileHeader extends State<ProfileHeader> {
       future: usersRef.doc(widget.profileId).get(),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
-          return linearProgress();
+          return linearProgress(context);
         }
         user = User.fromDocument(snapshot.data as DocumentSnapshot<Object?>);
         return Padding(

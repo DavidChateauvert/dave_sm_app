@@ -275,7 +275,7 @@
     "language_type_en": "English",
     "language_type_fr": "French",
     "profile_post_caption": "{name} has changed it's profile picture",
-    "@wprofile_post_captione": {
+    "@profile_post_captione": {
         "placeholders": {
             "name": {
                 "type": "String"
@@ -286,5 +286,15 @@
     "quit_without_saving": "Go back without saving",
     "save_changes": "Save changes",
     "remove_image": "Remove Image",
-    "remove_video": "Remove Video"
+    "remove_video": "Remove Video",
+    "error_message": "Error : {error_message_specified}",
+    "@error_message": {
+        "placeholders": {
+            "error_message_specified": {
+                "type": "String"
+            }
+        }
+    },
+    "error_no_connection": "No internet connection",
+    "retry": "Retry"
 }
