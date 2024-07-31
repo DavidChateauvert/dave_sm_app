@@ -2,7 +2,6 @@
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
@@ -37,8 +36,7 @@ class _SearchState extends State<Search>
 
   handleSearch(String query) async {
     try {
-      var connectivityResult = await (Connectivity().checkConnectivity());
-      if (connectivityResult == ConnectivityResult.none) {
+      if (!await checkInternetConnection()) {
         throw Exception(AppLocalizations.of(context)!.error_no_connection);
       }
       String lowercasedQuery = query.toLowerCase();

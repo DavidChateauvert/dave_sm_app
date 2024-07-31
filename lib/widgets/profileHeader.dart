@@ -10,6 +10,8 @@ import 'package:sm_app/pages/home.dart';
 import 'package:sm_app/pages/message_screen.dart';
 import 'package:sm_app/pages/photo.dart';
 import 'package:sm_app/providers/locale_provider.dart';
+import 'package:sm_app/widgets/checkInternetConnection.dart';
+import 'package:sm_app/widgets/errorMessage.dart';
 import 'package:sm_app/widgets/progress.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:status_alert/status_alert.dart';
@@ -345,62 +347,75 @@ class _ProfileHeader extends State<ProfileHeader> {
     }
   }
 
-  handleUnfollowUser() {
-    setState(() {
-      isFollowing = false;
-      isFriend = false;
-    });
-    // Remove follower
-    followersRef
-        .doc(widget.profileId)
-        .collection('userFollowers')
-        .doc(currentUserId)
-        .delete();
-    // Remove following
-    followingRef
-        .doc(currentUserId)
-        .collection('userFollowing')
-        .doc(widget.profileId)
-        .delete();
-    // Delete friends if they were friends
-    friendsRef
-        .doc(currentUserId)
-        .collection('userFriends')
-        .doc(widget.profileId)
-        .delete();
-    friendsRef
-        .doc(widget.profileId)
-        .collection('userFriends')
-        .doc(currentUserId)
-        .delete();
-    // Delete ActivityFeed
-    activityFeedRef
-        .doc(widget.profileId)
-        .collection('feedItems')
-        .doc(currentUserId)
-        .delete();
-    // Delete message Feed
-    messagesRef
-        .doc(currentUserId)
-        .collection("and")
-        .doc(widget.profileId)
-        .delete();
-    // Delete message Feed
-    messagesRef
-        .doc(widget.profileId)
-        .collection("and")
-        .doc(currentUserId)
-        .delete();
+  handleUnfollowUser(bool forBlocking) async {
+    try {
+      if (!await checkInternetConnection()) {
+        throw Exception(AppLocalizations.of(context)!.error_no_connection);
+      }
+      setState(() {
+        isFollowing = false;
+        isFriend = false;
+      });
+      // Remove follower
+      followersRef
+          .doc(widget.profileId)
+          .collection('userFollowers')
+          .doc(currentUserId)
+          .delete();
+      // Remove following
+      followingRef
+          .doc(currentUserId)
+          .collection('userFollowing')
+          .doc(widget.profileId)
+          .delete();
+      // Delete friends if they were friends
+      friendsRef
+          .doc(currentUserId)
+          .collection('userFriends')
+          .doc(widget.profileId)
+          .delete();
+      friendsRef
+          .doc(widget.profileId)
+          .collection('userFriends')
+          .doc(currentUserId)
+          .delete();
+      // Delete ActivityFeed
+      activityFeedRef
+          .doc(widget.profileId)
+          .collection('feedItems')
+          .doc(currentUserId)
+          .delete();
+      // Delete message Feed
+      messagesRef
+          .doc(currentUserId)
+          .collection("and")
+          .doc(widget.profileId)
+          .delete();
+      // Delete message Feed
+      messagesRef
+          .doc(widget.profileId)
+          .collection("and")
+          .doc(currentUserId)
+          .delete();
+    } catch (e) {
+      if (forBlocking != true) {
+        showErrorMessage(context, e);
+      }
+    }
   }
 
   handleFollowUser() async {
-    setState(() {
-      if (isFollowers) {
-        isFriend = true;
-      }
-      isFollowing = true;
-    });
     try {
+      if (!await checkInternetConnection()) {
+        throw Exception(AppLocalizations.of(context)!.error_no_connection);
+      }
+      setState(() {
+        if (isFollowers) {
+          isFriend = true;
+        }
+        isFollowing = true;
+      });
+
       // Add to followers
       followersRef
           .doc(widget.profileId)
@@ -413,73 +428,73 @@ class _ProfileHeader extends State<ProfileHeader> {
           .collection('userFollowing')
           .doc(widget.profileId)
           .set({});
-    } catch (e) {
-      print(e);
-    }
-    // Add to friends if user is also following
-    DocumentSnapshot doc = await followingRef
-        .doc(widget.profileId)
-        .collection('userFollowing')
-        .doc(currentUserId)
-        .get();
-    if (doc.exists) {
-      friendsRef
-          .doc(currentUserId)
-          .collection('userFriends')
+      // Add to friends if user is also following
+      DocumentSnapshot doc = await followingRef
           .doc(widget.profileId)
-          .set({});
-      friendsRef
-          .doc(widget.profileId)
-          .collection('userFriends')
+          .collection('userFollowing')
           .doc(currentUserId)
-          .set({});
-      messagesRef
-          .doc(currentUserId)
-          .collection("and")
-          .doc(widget.profileId)
-          .set({
-        "message": "Conversation",
-        "username": user.firstName,
-        "userId": widget.profileId,
-        "lastUserSent": widget.profileId,
-        "userProfileImg": user.photoUrl,
-        "seen": true,
-        "timestamp": DateTime.now(),
-      });
-      messagesRef
-          .doc(widget.profileId)
-          .collection("and")
-          .doc(currentUserId)
-          .set({
-        "message": "Conversation",
-        "username": currentUser.firstName,
-        "userId": currentUserId,
-        "lastUserSent": currentUserId,
-        "userProfileImg": currentUser.photoUrl,
-        "seen": true,
-        "timestamp": DateTime.now(),
-      });
+          .get();
+      if (doc.exists) {
+        friendsRef
+            .doc(currentUserId)
+            .collection('userFriends')
+            .doc(widget.profileId)
+            .set({});
+        friendsRef
+            .doc(widget.profileId)
+            .collection('userFriends')
+            .doc(currentUserId)
+            .set({});
+        messagesRef
+            .doc(currentUserId)
+            .collection("and")
+            .doc(widget.profileId)
+            .set({
+          "message": "Conversation",
+          "username": user.firstName,
+          "userId": widget.profileId,
+          "lastUserSent": widget.profileId,
+          "userProfileImg": user.photoUrl,
+          "seen": true,
+          "timestamp": DateTime.now(),
+        });
+        messagesRef
+            .doc(widget.profileId)
+            .collection("and")
+            .doc(currentUserId)
+            .set({
+          "message": "Conversation",
+          "username": currentUser.firstName,
+          "userId": currentUserId,
+          "lastUserSent": currentUserId,
+          "userProfileImg": currentUser.photoUrl,
+          "seen": true,
+          "timestamp": DateTime.now(),
+        });
 
-      FirebaseApi().sendAcceptRequestNotification(
-          context, widget.profileId, currentUser.displayName);
-    } else {
-      FirebaseApi().sendFriendRequestNotification(
-          context, widget.profileId, currentUser.displayName);
+        FirebaseApi().sendAcceptRequestNotification(
+            context, widget.profileId, currentUser.displayName);
+      } else {
+        FirebaseApi().sendFriendRequestNotification(
+            context, widget.profileId, currentUser.displayName);
+      }
+      // ActivityFeed
+      activityFeedRef
+          .doc(widget.profileId)
+          .collection('feedItems')
+          .doc(currentUserId)
+          .set({
+        "type": "follow",
+        "postId": widget.profileId,
+        "username": currentUser.displayName,
+        "userId": currentUserId,
+        "userProfileImg": currentUser.photoUrl,
+        "seen": false,
+        "timestamp": timestamp,
+      });
+    } catch (e) {
+      showErrorMessage(context, e);
     }
-    // ActivityFeed
-    activityFeedRef
-        .doc(widget.profileId)
-        .collection('feedItems')
-        .doc(currentUserId)
-        .set({
-      "type": "follow",
-      "postId": widget.profileId,
-      "username": currentUser.displayName,
-      "userId": currentUserId,
-      "userProfileImg": currentUser.photoUrl,
-      "seen": false,
-      "timestamp": timestamp,
-    });
   }
 
   String buildGender(String genderFromFirestore) {
@@ -551,36 +566,50 @@ class _ProfileHeader extends State<ProfileHeader> {
   // }
 
   blockUser() async {
-    setState(() {
-      isBlocking = true;
-    });
-    await blockingRef
-        .doc(currentUserId)
-        .collection('userBlocking')
-        .doc(widget.profileId)
-        .set({});
-    await blockedRef
-        .doc(widget.profileId)
-        .collection('userBlocking')
-        .doc(currentUserId)
-        .set({});
-    handleUnfollowUser();
+    try {
+      if (!await checkInternetConnection()) {
+        throw Exception(AppLocalizations.of(context)!.error_no_connection);
+      }
+      setState(() {
+        isBlocking = true;
+      });
+      await blockingRef
+          .doc(currentUserId)
+          .collection('userBlocking')
+          .doc(widget.profileId)
+          .set({});
+      await blockedRef
+          .doc(widget.profileId)
+          .collection('userBlocking')
+          .doc(currentUserId)
+          .set({});
+      handleUnfollowUser(true);
+    } catch (e) {
+      showErrorMessage(context, e);
+    }
   }
 
   unblockUser() async {
-    setState(() {
-      isBlocking = false;
-    });
-    await blockingRef
-        .doc(currentUserId)
-        .collection('userBlocking')
-        .doc(widget.profileId)
-        .delete();
-    await blockedRef
-        .doc(widget.profileId)
-        .collection('userBlocking')
-        .doc(currentUserId)
-        .delete();
+    try {
+      if (!await checkInternetConnection()) {
+        throw Exception(AppLocalizations.of(context)!.error_no_connection);
+      }
+      setState(() {
+        isBlocking = false;
+      });
+      await blockingRef
+          .doc(currentUserId)
+          .collection('userBlocking')
+          .doc(widget.profileId)
+          .delete();
+      await blockedRef
+          .doc(widget.profileId)
+          .collection('userBlocking')
+          .doc(currentUserId)
+          .delete();
+    } catch (e) {
+      showErrorMessage(context, e);
+    }
   }
 
   showBlockUserModal(parentContext) {

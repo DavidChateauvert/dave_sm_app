@@ -13,6 +13,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:sm_app/pages/groups.dart';
 import 'package:sm_app/pages/home.dart';
 import 'package:sm_app/pages/report_delete_user.dart';
+import 'package:sm_app/widgets/checkInternetConnection.dart';
 import 'package:sm_app/widgets/errorMessage.dart';
 import 'package:sm_app/widgets/profileHeader.dart';
 import 'package:sm_app/widgets/progress.dart';
@@ -400,7 +401,7 @@ class _EditProfileState extends State<EditProfile> {
     );
   }
 
-  updateProfileData() {
+  updateProfileData() async {
     unfocusAllNodes();
     setState(() {
       firstNameController.text.trim().length < 1 ||
@@ -421,6 +422,9 @@ class _EditProfileState extends State<EditProfile> {
 
     if (_firstnameValid && _lastNameValid && _bioValid) {
       try {
+        if (!await checkInternetConnection()) {
+          throw Exception(AppLocalizations.of(context)!.error_no_connection);
+        }
         usersRef.doc(widget.currentUserId).update({
           "firstName": firstNameController.text,
           "lastName": lastNameController.text,

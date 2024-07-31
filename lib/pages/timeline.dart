@@ -8,7 +8,6 @@ import 'package:sm_app/widgets/cleanTimeline.dart';
 import 'package:sm_app/widgets/header.dart';
 import 'package:sm_app/widgets/post.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import '../models/user.dart';
@@ -64,8 +63,7 @@ class TimelineState extends State<Timeline> {
 
   getTimeline() async {
     try {
-      var connectivityResult = await (Connectivity().checkConnectivity());
-      if (connectivityResult == ConnectivityResult.none) {
+      if (!await checkInternetConnection()) {
         throw Exception(AppLocalizations.of(context)!.error_no_connection);
       }
 
