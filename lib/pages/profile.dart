@@ -41,6 +41,7 @@ class _Profile extends State<Profile> {
   @override
   void initState() {
     super.initState();
+    checkInternet();
     getProfilePosts();
   }
 
@@ -137,9 +138,14 @@ class _Profile extends State<Profile> {
                 ),
                 hasInternetConnection
                     ? buildProfilePost()
-                    : showNoConnection(
-                        context,
-                        toCallOnRetry,
+                    : Padding(
+                        padding: EdgeInsets.symmetric(
+                          vertical: 64.0,
+                        ),
+                        child: showNoConnection(
+                          context,
+                          toCallOnRetry,
+                        ),
                       ),
               ],
             )
@@ -151,9 +157,12 @@ class _Profile extends State<Profile> {
                     ),
                   ],
                 )
-              : showNoConnection(
-                  context,
-                  toCallOnRetry,
+              : Padding(
+                  padding: EdgeInsets.only(bottom: 64.0),
+                  child: showNoConnection(
+                    context,
+                    toCallOnRetry,
+                  ),
                 ),
       drawer: currentUserId == widget.profileId
           ? SettingsPage(

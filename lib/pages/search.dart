@@ -9,6 +9,8 @@ import 'package:provider/provider.dart';
 import 'package:sm_app/pages/home.dart';
 import 'package:sm_app/pages/profile.dart';
 import 'package:sm_app/providers/theme_provider.dart';
+import 'package:sm_app/widgets/checkInternetConnection.dart';
+import 'package:sm_app/widgets/errorMessage.dart';
 import 'package:sm_app/widgets/progress.dart';
 import 'package:sm_app/widgets/userLastResult.dart';
 import '../models/user.dart';
@@ -290,11 +292,18 @@ class UserResult extends StatelessWidget {
 }
 
 showProfile(BuildContext context, {required String profileId}) async {
-  await lastSearchRef
-      .doc(currentUser.id)
-      .collection('lastSearchUsers')
-      .doc(profileId)
-      .set({});
+  if (await checkInternetConnection()) {
+    try {
+      await lastSearchRef
+          .doc(currentUser.id)
+          .collection('lastSearchUsers')
+          .doc(profileId)
+          .set({});
+    } catch (e) {
+      showErrorMessage(context, e);
+    }
+  }
+
   // ignore: unnecessary_null_comparison
   if (currentUser != null && profileId != currentUser.id) {
     Navigator.push(

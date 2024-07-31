@@ -12,7 +12,9 @@ import 'package:sm_app/pages/friends.dart';
 import 'package:sm_app/pages/home.dart';
 import 'package:sm_app/pages/likePost.dart';
 import 'package:sm_app/pages/search.dart';
+import 'package:sm_app/widgets/checkInternetConnection.dart';
 import 'package:sm_app/widgets/custom_image.dart';
+import 'package:sm_app/widgets/errorMessage.dart';
 import 'package:sm_app/widgets/progress.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import 'package:zoom_pinch_overlay/zoom_pinch_overlay.dart';
@@ -299,11 +301,18 @@ class _PostProfileState extends State<PostProfile> {
     }
 
     if (isNotAdmin) {
-      setState(() {
-        seen = true;
-        deleteInstant = true;
-      });
-      deletePost();
+      try {
+        if (!await checkInternetConnection()) {
+          throw Exception(AppLocalizations.of(context)!.error_no_connection);
+        }
+        setState(() {
+          seen = true;
+          deleteInstant = true;
+        });
+        deletePost();
+      } catch (e) {
+        showErrorMessage(context, e);
+      }
     }
   }
 
@@ -341,34 +350,41 @@ class _PostProfileState extends State<PostProfile> {
     });
   }
 
-  handleLikePost() {
+  handleLikePost() async {
     bool _isLiked = likes[currentUserId] == true;
 
-    if (_isLiked) {
-      postsRef
-          .doc(ownerId)
-          .collection('userPosts')
-          .doc(postId)
-          .update({'likes.$currentUserId': false});
-      removeLikeFromActivityFeed();
-      setState(() {
-        likeCount -= 1;
-        isLiked = false;
-        likes[currentUserId] = false;
-      });
-    } else if (!_isLiked) {
-      postsRef
-          .doc(ownerId)
-          .collection('userPosts')
-          .doc(postId)
-          .update({'likes.$currentUserId': true});
-      addLikeToActivityFeed();
+    try {
+      if (!await checkInternetConnection()) {
+        throw Exception(AppLocalizations.of(context)!.error_no_connection);
+      }
+      if (_isLiked) {
+        postsRef
+            .doc(ownerId)
+            .collection('userPosts')
+            .doc(postId)
+            .update({'likes.$currentUserId': false});
+        removeLikeFromActivityFeed();
+        setState(() {
+          likeCount -= 1;
+          isLiked = false;
+          likes[currentUserId] = false;
+        });
+      } else if (!_isLiked) {
+        postsRef
+            .doc(ownerId)
+            .collection('userPosts')
+            .doc(postId)
+            .update({'likes.$currentUserId': true});
+        addLikeToActivityFeed();
 
-      setState(() {
-        likeCount += 1;
-        isLiked = true;
-        likes[currentUserId] = true;
-      });
+        setState(() {
+          likeCount += 1;
+          isLiked = true;
+          likes[currentUserId] = true;
+        });
+      }
+    } catch (e) {
+      showErrorMessage(context, e);
     }
   }
 

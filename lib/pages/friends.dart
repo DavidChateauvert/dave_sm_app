@@ -19,7 +19,7 @@ class Friends extends StatefulWidget {
 class _Friends extends State<Friends> {
   List<UserResult> userResult = [];
 
-  buildFollowing() {
+  buildFriends() {
     // ignore: unnecessary_null_comparison
     if (userResult == null) {
       return circularProgress(context);
@@ -78,7 +78,7 @@ class _Friends extends State<Friends> {
         centerTitle: true,
         backgroundColor: const Color.fromARGB(255, 89, 36, 99),
       ),
-      body: buildFollowing(),
+      body: buildFriends(),
     );
   }
 }

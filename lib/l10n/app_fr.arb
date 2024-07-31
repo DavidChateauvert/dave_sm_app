@@ -296,5 +296,23 @@
         }
     },
     "error_no_connection": "Pas de connexion internet",
-    "retry": "Réessayer"
+    "retry": "Réessayer",
+    "error_unavailable": "Ce service est actuellement indisponible. Veuillez réessayer plus tard.",
+    "error_deadline_exceeded": "L'opération a pris trop de temps. Veuillez réessayer",
+    "error_platform": "Une erreur de plate-forme s'est produite : ${error_message}",
+    "@error_platform": {
+        "placeholders": {
+            "error_message": {
+                "type": "String"
+            }
+        }
+    },
+    "error_unknown": "Une erreur inconnue s'est produite : {error_message_specified}",
+    "@error_unknown": {
+        "placeholders": {
+            "error_message_specified": {
+                "type": "String"
+            }
+        }
+    }   
 }

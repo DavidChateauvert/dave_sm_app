@@ -1,7 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:sm_app/api/firebase_api.dart';
+import 'package:sm_app/widgets/checkInternetConnection.dart';
 import 'package:sm_app/widgets/comment.dart';
+import 'package:sm_app/widgets/errorMessage.dart';
 import 'package:sm_app/widgets/header.dart';
 import 'package:sm_app/widgets/progress.dart';
 import 'package:uuid/uuid.dart';
@@ -90,58 +92,65 @@ class CommentsState extends State<Comments> {
     );
   }
 
-  addComment() {
+  addComment() async {
     String commentTrim = commentController.text.trim();
-    if (commentTrim.isNotEmpty) {
-      updateCommentStatus();
-      commentFocusNode.unfocus();
-      String uuid = Uuid().v4();
-      // Add to comments
-      commentsRef.doc(postId).collection("comments").doc(uuid).set({
-        "commentId": uuid,
-        "username": currentUser.username,
-        "comment": commentTrim,
-        "timestamp": DateTime.now(),
-        "avatarUrl": currentUser.photoUrl,
-        "userId": currentUser.id,
-        "likes": {},
-      });
-
-      // Add to activity feed
-      if (postOwnerId != currentUser.id) {
-        activityFeedRef.doc(postOwnerId).collection("feedItems").add({
-          "type": "comment",
-          "commentData": commentTrim,
-          "username": currentUser.displayName,
-          "userId": currentUser.id,
-          "userProfileImg": currentUser.photoUrl,
-          "postId": postId,
-          "seen": false,
-          // "mediaUrl": mediaUrl,
+    try {
+      if (!await checkInternetConnection()) {
+        throw Exception(AppLocalizations.of(context)!.error_no_connection);
+      }
+      if (commentTrim.isNotEmpty) {
+        updateCommentStatus();
+        commentFocusNode.unfocus();
+        String uuid = Uuid().v4();
+        // Add to comments
+        commentsRef.doc(postId).collection("comments").doc(uuid).set({
+          "commentId": uuid,
+          "username": currentUser.username,
+          "comment": commentTrim,
           "timestamp": DateTime.now(),
-          "postOwnerId": postOwnerId
+          "avatarUrl": currentUser.photoUrl,
+          "userId": currentUser.id,
+          "likes": {},
         });
-      }
-      // Update post
-      postsRef.doc(postOwnerId).collection('userPosts').doc(postId).update({
-        "commentCount": FieldValue.increment(1),
-        'comments.${currentUser.id}': true,
-      });
-      // Update timeline to be quicker
-      timelineRef
-          .doc(currentUser.id)
-          .collection('timelinePosts')
-          .doc(postId)
-          .update({
-        "commentCount": FieldValue.increment(1),
-        'comments.${currentUser.id}': true,
-      });
 
-      if (postOwnerId != currentUser.id) {
-        sendNotification(commentTrim);
-      }
+        // Add to activity feed
+        if (postOwnerId != currentUser.id) {
+          activityFeedRef.doc(postOwnerId).collection("feedItems").add({
+            "type": "comment",
+            "commentData": commentTrim,
+            "username": currentUser.displayName,
+            "userId": currentUser.id,
+            "userProfileImg": currentUser.photoUrl,
+            "postId": postId,
+            "seen": false,
+            // "mediaUrl": mediaUrl,
+            "timestamp": DateTime.now(),
+            "postOwnerId": postOwnerId
+          });
+        }
+        // Update post
+        postsRef.doc(postOwnerId).collection('userPosts').doc(postId).update({
+          "commentCount": FieldValue.increment(1),
+          'comments.${currentUser.id}': true,
+        });
+        // Update timeline to be quicker
+        timelineRef
+            .doc(currentUser.id)
+            .collection('timelinePosts')
+            .doc(postId)
+            .update({
+          "commentCount": FieldValue.increment(1),
+          'comments.${currentUser.id}': true,
+        });
 
-      commentController.clear();
+        if (postOwnerId != currentUser.id) {
+          sendNotification(commentTrim);
+        }
+
+        commentController.clear();
+      }
+    } catch (e) {
+      showErrorMessage(context, e);
     }
   }
 

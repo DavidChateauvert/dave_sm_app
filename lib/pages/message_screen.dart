@@ -14,6 +14,8 @@ import 'package:sm_app/api/firebase_api.dart';
 import 'package:sm_app/pages/home.dart';
 import 'package:sm_app/pages/search.dart';
 import 'package:sm_app/pages/upload.dart';
+import 'package:sm_app/widgets/checkInternetConnection.dart';
+import 'package:sm_app/widgets/errorMessage.dart';
 import 'package:sm_app/widgets/message.dart';
 import 'package:sm_app/widgets/playVideo.dart';
 import 'package:uuid/uuid.dart';
@@ -261,68 +263,75 @@ class MessageScreeState extends State<MessageScreen> {
 
     String messageTrim = messageController.text.trim();
 
-    if (messageTrim.isNotEmpty || file != null) {
-      String mediaUrl = "";
-      if (file != null) {
-        setState(() {
-          isUploading = true;
+    try {
+      if (!await checkInternetConnection()) {
+        throw Exception(AppLocalizations.of(context)!.error_no_connection);
+      }
+      if (messageTrim.isNotEmpty || file != null) {
+        String mediaUrl = "";
+        if (file != null) {
+          setState(() {
+            isUploading = true;
+          });
+          messageFocusNode.unfocus();
+          mediaUrl = await uploadImage(file);
+        }
+        String actualMessage = determineMessage(messageTrim, file);
+        String notificationMessage =
+            determineNotificationMessage(messageTrim, file);
+        updateMessage(notificationMessage);
+
+        if (type == "video") {
+          int heightVideo = _controller.value.size.height.round() > 1440
+              ? 1440
+              : _controller.value.size.height.round();
+
+          size = Size(
+            _controller.value.size.width.round(),
+            heightVideo,
+          );
+        }
+
+        messagesRef
+            .doc(currentUserId)
+            .collection("and")
+            .doc(widget.otherUserId)
+            .collection('message')
+            .add({
+          "username": currentUser.username,
+          "message": actualMessage,
+          "timestamp": timestamp,
+          "avatarUrl": currentUser.photoUrl,
+          "userId": currentUser.id,
+          "otherUserId": widget.otherUserId,
+          "mediaUrl": mediaUrl,
+          "type": type,
+          "mediaUrlWidth": size.width,
+          "mediaUrlHeight": size.height,
         });
-        messageFocusNode.unfocus();
-        mediaUrl = await uploadImage(file);
+
+        messagesRef
+            .doc(widget.otherUserId)
+            .collection("and")
+            .doc(currentUserId)
+            .collection("message")
+            .add({
+          "username": currentUser.username,
+          "message": actualMessage,
+          "timestamp": timestamp,
+          "avatarUrl": currentUser.photoUrl,
+          "userId": currentUser.id,
+          "otherUserId": widget.otherUserId,
+          "mediaUrl": mediaUrl,
+          "type": type,
+        });
+
+        await addNotificationMessageFeed();
+        FirebaseApi().sendMessageNotification(context, widget.otherUserId,
+            notificationMessage, currentUser.displayName);
       }
-      String actualMessage = determineMessage(messageTrim, file);
-      String notificationMessage =
-          determineNotificationMessage(messageTrim, file);
-      updateMessage(notificationMessage);
-
-      if (type == "video") {
-        int heightVideo = _controller.value.size.height.round() > 1440
-            ? 1440
-            : _controller.value.size.height.round();
-
-        size = Size(
-          _controller.value.size.width.round(),
-          heightVideo,
-        );
-      }
-
-      messagesRef
-          .doc(currentUserId)
-          .collection("and")
-          .doc(widget.otherUserId)
-          .collection('message')
-          .add({
-        "username": currentUser.username,
-        "message": actualMessage,
-        "timestamp": timestamp,
-        "avatarUrl": currentUser.photoUrl,
-        "userId": currentUser.id,
-        "otherUserId": widget.otherUserId,
-        "mediaUrl": mediaUrl,
-        "type": type,
-        "mediaUrlWidth": size.width,
-        "mediaUrlHeight": size.height,
-      });
-
-      messagesRef
-          .doc(widget.otherUserId)
-          .collection("and")
-          .doc(currentUserId)
-          .collection("message")
-          .add({
-        "username": currentUser.username,
-        "message": actualMessage,
-        "timestamp": timestamp,
-        "avatarUrl": currentUser.photoUrl,
-        "userId": currentUser.id,
-        "otherUserId": widget.otherUserId,
-        "mediaUrl": mediaUrl,
-        "type": type,
-      });
-
-      await addNotificationMessageFeed();
-      FirebaseApi().sendMessageNotification(context, widget.otherUserId,
-          notificationMessage, currentUser.displayName);
+    } catch (e) {
+      showErrorMessage(context, e);
     }
 
     messageController.clear();

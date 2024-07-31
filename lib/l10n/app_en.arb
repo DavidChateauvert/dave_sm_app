@@ -296,5 +296,23 @@
         }
     },
     "error_no_connection": "No internet connection",
-    "retry": "Retry"
+    "retry": "Retry",
+    "error_unavailable": "This is currently unavailable. Please try again later",
+    "error_deadline_exceeded": "The operation took too long to complete. Please try again",
+    "error_platform": "A platform error occurred : ${error_message}",
+    "@error_platform": {
+        "placeholders": {
+            "error_message": {
+                "type": "String"
+            }
+        }
+    },
+    "error_unknown": "An unknown error occured : {error_message_specified}",
+    "@error_unknown": {
+        "placeholders": {
+            "error_message_specified": {
+                "type": "String"
+            }
+        }
+    }
 }

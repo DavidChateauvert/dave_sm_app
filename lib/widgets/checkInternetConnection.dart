@@ -9,7 +9,6 @@ Future<bool> checkInternetConnection() async {
 
 Widget showNoConnection(BuildContext context, Function retryFunction) {
   return Container(
-    color: Theme.of(context).colorScheme.background,
     child: Center(
         child: Column(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -42,7 +41,14 @@ Widget showNoConnection(BuildContext context, Function retryFunction) {
         ),
         ElevatedButton(
           onPressed: retryFunction as void Function()?,
-          child: Text(AppLocalizations.of(context)!.retry),
+          child: Text(
+            AppLocalizations.of(context)!.retry,
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontSize: 16.0,
+            ),
+          ),
         ),
       ],
     )),

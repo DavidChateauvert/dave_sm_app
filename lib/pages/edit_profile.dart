@@ -13,6 +13,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:sm_app/pages/groups.dart';
 import 'package:sm_app/pages/home.dart';
 import 'package:sm_app/pages/report_delete_user.dart';
+import 'package:sm_app/widgets/errorMessage.dart';
 import 'package:sm_app/widgets/profileHeader.dart';
 import 'package:sm_app/widgets/progress.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
@@ -419,33 +420,38 @@ class _EditProfileState extends State<EditProfile> {
         "${firstNameController.text} ${lastNameController.text}";
 
     if (_firstnameValid && _lastNameValid && _bioValid) {
-      usersRef.doc(widget.currentUserId).update({
-        "firstName": firstNameController.text,
-        "lastName": lastNameController.text,
-        "displayName": displayName,
-        "displayNameLower": displayName.toLowerCase(),
-        "bio": bioController.text,
-        "photoUrl": newPhotoUrl,
-        "dateOfBirth":
-            newDateOfBirth != null ? Timestamp.fromDate(newDateOfBirth!) : null,
-        "gender": currentGenderOptions == "specify"
-            ? genderController.text
-            : currentGenderOptions,
-      });
-      if (hasChangeProfilPicture == true) {
-        createPostInFirestore(newPhotoUrl, newSize);
+      try {
+        usersRef.doc(widget.currentUserId).update({
+          "firstName": firstNameController.text,
+          "lastName": lastNameController.text,
+          "displayName": displayName,
+          "displayNameLower": displayName.toLowerCase(),
+          "bio": bioController.text,
+          "photoUrl": newPhotoUrl,
+          "dateOfBirth": newDateOfBirth != null
+              ? Timestamp.fromDate(newDateOfBirth!)
+              : null,
+          "gender": currentGenderOptions == "specify"
+              ? genderController.text
+              : currentGenderOptions,
+        });
+        if (hasChangeProfilPicture == true) {
+          createPostInFirestore(newPhotoUrl, newSize);
+        }
+        StatusAlert.show(
+          context,
+          duration: Duration(seconds: 2),
+          subtitle: AppLocalizations.of(context)!.profile_updated,
+          configuration: IconConfiguration(icon: Icons.done),
+          maxWidth: 260,
+          backgroundColor: Theme.of(context).colorScheme.secondary,
+        );
+        Future.delayed(Duration(seconds: 1), () {
+          Navigator.pop(context, user);
+        });
+      } catch (e) {
+        showErrorMessage(context, e);
       }
-      StatusAlert.show(
-        context,
-        duration: Duration(seconds: 2),
-        subtitle: AppLocalizations.of(context)!.profile_updated,
-        configuration: IconConfiguration(icon: Icons.done),
-        maxWidth: 260,
-        backgroundColor: Theme.of(context).colorScheme.secondary,
-      );
-      Future.delayed(Duration(seconds: 1), () {
-        Navigator.pop(context, user);
-      });
     }
   }
 
@@ -726,7 +732,7 @@ class _EditProfileState extends State<EditProfile> {
             child: Text(
               "https://appdave.com/#/contact-us",
               style: TextStyle(
-                color: Theme.of(context).colorScheme.primary,
+                color: Theme.of(context).colorScheme.primaryContainer,
                 decoration: TextDecoration.underline,
               ),
               textAlign: TextAlign.center,
@@ -947,7 +953,8 @@ class _EditProfileState extends State<EditProfile> {
                         child: Text(
                           AppLocalizations.of(context)!.change_profile_picture,
                           style: TextStyle(
-                            color: Theme.of(context).colorScheme.primary,
+                            color:
+                                Theme.of(context).colorScheme.primaryContainer,
                             fontSize: 16.0,
                             fontWeight: FontWeight.w400,
                           ),

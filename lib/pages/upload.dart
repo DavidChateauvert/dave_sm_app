@@ -15,6 +15,8 @@ import 'package:sm_app/api/firebase_api.dart';
 import 'package:sm_app/models/groups.dart';
 import 'package:sm_app/pages/groups.dart';
 import 'package:sm_app/pages/home.dart';
+import 'package:sm_app/widgets/checkInternetConnection.dart';
+import 'package:sm_app/widgets/errorMessage.dart';
 import 'package:sm_app/widgets/playVideo.dart';
 import 'package:sm_app/widgets/progress.dart';
 import 'package:status_alert/status_alert.dart';
@@ -60,31 +62,35 @@ class _UploadState extends State<Upload>
   }
 
   getFriends() async {
-    QuerySnapshot followingSnapshot =
-        await friendsRef.doc(currentUser.id).collection('userFriends').get();
+    try {
+      QuerySnapshot followingSnapshot =
+          await friendsRef.doc(currentUser.id).collection('userFriends').get();
 
-    List<String> userIds = [];
+      List<String> userIds = [];
 
-    followingSnapshot.docs.forEach((doc) {
-      userIds.add(doc.id);
-    });
+      followingSnapshot.docs.forEach((doc) {
+        userIds.add(doc.id);
+      });
 
-    QuerySnapshot userSnapshot = await usersRef.get();
+      QuerySnapshot userSnapshot = await usersRef.get();
 
-    List<Map<String, String>> newData = [];
+      List<Map<String, String>> newData = [];
 
-    userSnapshot.docs.forEach((doc) {
-      if (userIds.contains(doc['id'])) {
-        newData.add({
-          'id': doc['id'],
-          'display': doc['displayName'],
-        });
-      }
-    });
+      userSnapshot.docs.forEach((doc) {
+        if (userIds.contains(doc['id'])) {
+          newData.add({
+            'id': doc['id'],
+            'display': doc['displayName'],
+          });
+        }
+      });
 
-    setState(() {
-      mentionsDataInit = newData;
-    });
+      setState(() {
+        mentionsDataInit = newData;
+      });
+    } catch (e) {
+      showErrorMessage(context, e);
+    }
   }
 
   handleTakePhotoFunctions() async {
@@ -520,7 +526,7 @@ class _UploadState extends State<Upload>
   createPostInFirestore(
       {required String caption,
       required String type,
-      required String mediaUrl}) {
+      required String mediaUrl}) async {
     Map<String, String> mentionsMap =
         mentionsDataAdded.fold({}, (map, mention) {
       map[mention['id']!] = mention['display']!;
@@ -639,54 +645,61 @@ class _UploadState extends State<Upload>
 
   handleSubmit() async {
     captionFocusNode.unfocus();
-    if ((_mentionsKey.currentState!.controller!.text.trim().isEmpty ||
-            _mentionsKey.currentState!.controller!.text.trim() == "") &&
-        file == null) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text("Post Cannot Be Empty")));
-    } else if (_mentionsKey.currentState!.controller!.text.length > 400) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text("Post Is Too Long")));
-    } else {
-      setState(() {
-        isUploading = true;
-      });
-      if (file == null) {
-        createPostInFirestore(
-            caption: _mentionsKey.currentState!.controller!.text,
-            type: "text",
-            mediaUrl: '');
-      } else {
-        String mediaUrl;
-        if (type == "photo") {
-          mediaUrl = await uploadImage(file);
-        } else {
-          mediaUrl = await uploadVideo(file);
-        }
-        createPostInFirestore(
-            caption: _mentionsKey.currentState!.controller!.text,
-            type: type,
-            mediaUrl: mediaUrl);
+    try {
+      if (!await checkInternetConnection()) {
+        throw Exception(AppLocalizations.of(context)!.error_no_connection);
       }
+      if ((_mentionsKey.currentState!.controller!.text.trim().isEmpty ||
+              _mentionsKey.currentState!.controller!.text.trim() == "") &&
+          file == null) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text("Post Cannot Be Empty")));
+      } else if (_mentionsKey.currentState!.controller!.text.length > 400) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text("Post Is Too Long")));
+      } else {
+        setState(() {
+          isUploading = true;
+        });
+        if (file == null) {
+          createPostInFirestore(
+              caption: _mentionsKey.currentState!.controller!.text,
+              type: "text",
+              mediaUrl: '');
+        } else {
+          String mediaUrl;
+          if (type == "photo") {
+            mediaUrl = await uploadImage(file);
+          } else {
+            mediaUrl = await uploadVideo(file);
+          }
+          createPostInFirestore(
+              caption: _mentionsKey.currentState!.controller!.text,
+              type: type,
+              mediaUrl: mediaUrl);
+        }
 
-      setState(() {
-        group = null;
-        file = null;
-        isUploading = false;
-        postId = Uuid().v4();
-        type = "text";
-      });
+        setState(() {
+          group = null;
+          file = null;
+          isUploading = false;
+          postId = Uuid().v4();
+          type = "text";
+        });
 
-      _mentionsKey.currentState!.controller!.clear();
-      mentionsDataAdded.clear();
-      StatusAlert.show(
-        context,
-        duration: Duration(seconds: 2),
-        subtitle: AppLocalizations.of(context)!.post_success,
-        configuration: IconConfiguration(icon: Icons.done),
-        maxWidth: 260,
-        backgroundColor: Theme.of(context).colorScheme.secondary,
-      );
+        _mentionsKey.currentState!.controller!.clear();
+        mentionsDataAdded.clear();
+        StatusAlert.show(
+          context,
+          duration: Duration(seconds: 2),
+          subtitle: AppLocalizations.of(context)!.post_success,
+          configuration: IconConfiguration(icon: Icons.done),
+          maxWidth: 260,
+          backgroundColor: Theme.of(context).colorScheme.secondary,
+        );
+      }
+    } catch (e) {
+      showErrorMessage(context, e);
     }
   }
 

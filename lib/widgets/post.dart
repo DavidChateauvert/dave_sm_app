@@ -13,7 +13,9 @@ import 'package:sm_app/pages/likePost.dart';
 import 'package:sm_app/pages/report_post.dart';
 import 'package:sm_app/pages/search.dart';
 import 'package:sm_app/providers/post_counter.dart';
+import 'package:sm_app/widgets/checkInternetConnection.dart';
 import 'package:sm_app/widgets/custom_image.dart';
+import 'package:sm_app/widgets/errorMessage.dart';
 import 'package:sm_app/widgets/playVideo.dart';
 // import 'package:sm_app/widgets/custom_image.dart';
 import 'package:sm_app/widgets/progress.dart';
@@ -382,12 +384,19 @@ class _PostState extends State<Post> {
     );
   }
 
-  deletePostInstant() {
-    setState(() {
-      seen = true;
-      deleteInstant = true;
-    });
-    deletePost();
+  deletePostInstant() async {
+    try {
+      if (!await checkInternetConnection()) {
+        throw Exception(AppLocalizations.of(context)!.error_no_connection);
+      }
+      setState(() {
+        seen = true;
+        deleteInstant = true;
+      });
+      deletePost();
+    } catch (e) {
+      showErrorMessage(context, e);
+    }
   }
 
   seenPost() {
@@ -444,42 +453,46 @@ class _PostState extends State<Post> {
 
   handleLikePost() {
     bool _isLiked = likes[currentUserId] == true;
-    if (_isLiked) {
-      // Modified owner post
-      postsRef
-          .doc(ownerId)
-          .collection('userPosts')
-          .doc(postId)
-          .update({'likes.$currentUserId': false});
-      // Modified timeline post to show quickly
-      timelineRef
-          .doc(currentUserId)
-          .collection('timelinePosts')
-          .doc(postId)
-          .update({'likes.$currentUserId': false});
-      removeLikeFromActivityFeed();
-      setState(() {
-        likeCount -= 1;
-        isLiked = false;
-        likes[currentUserId] = false;
-      });
-    } else if (!_isLiked) {
-      postsRef
-          .doc(ownerId)
-          .collection('userPosts')
-          .doc(postId)
-          .update({'likes.$currentUserId': true});
-      timelineRef
-          .doc(currentUserId)
-          .collection('timelinePosts')
-          .doc(postId)
-          .update({'likes.$currentUserId': true});
-      addLikeToActivityFeed();
-      setState(() {
-        likeCount += 1;
-        isLiked = true;
-        likes[currentUserId] = true;
-      });
+    try {
+      if (_isLiked) {
+        // Modified owner post
+        postsRef
+            .doc(ownerId)
+            .collection('userPosts')
+            .doc(postId)
+            .update({'likes.$currentUserId': false});
+        // Modified timeline post to show quickly
+        timelineRef
+            .doc(currentUserId)
+            .collection('timelinePosts')
+            .doc(postId)
+            .update({'likes.$currentUserId': false});
+        removeLikeFromActivityFeed();
+        setState(() {
+          likeCount -= 1;
+          isLiked = false;
+          likes[currentUserId] = false;
+        });
+      } else if (!_isLiked) {
+        postsRef
+            .doc(ownerId)
+            .collection('userPosts')
+            .doc(postId)
+            .update({'likes.$currentUserId': true});
+        timelineRef
+            .doc(currentUserId)
+            .collection('timelinePosts')
+            .doc(postId)
+            .update({'likes.$currentUserId': true});
+        addLikeToActivityFeed();
+        setState(() {
+          likeCount += 1;
+          isLiked = true;
+          likes[currentUserId] = true;
+        });
+      }
+    } catch (e) {
+      showErrorMessage(context, e);
     }
   }
 
